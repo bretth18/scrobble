@@ -11,6 +11,12 @@
 		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
 		A6F213072C8C021900E1D23B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213062C8C021900E1D23B /* Preview Assets.xcassets */; };
+		A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */; };
+		A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213102C8C037500E1D23B /* PreferencesView.swift */; };
+		A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213122C8C038F00E1D23B /* LastFmManager.swift */; };
+		A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */; };
+		A6F2131C2C8C085900E1D23B /* Music.h in Sources */ = {isa = PBXBuildFile; fileRef = A6F213172C8C065100E1D23B /* Music.h */; };
+		A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +26,13 @@
 		A6F213032C8C021900E1D23B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6F213062C8C021900E1D23B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A6F213082C8C021900E1D23B /* scrobble.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = scrobble.entitlements; sourceTree = "<group>"; };
+		A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scrobbler.swift; sourceTree = "<group>"; };
+		A6F213102C8C037500E1D23B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		A6F213122C8C038F00E1D23B /* LastFmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManager.swift; sourceTree = "<group>"; };
+		A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
+		A6F213172C8C065100E1D23B /* Music.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Music.h; sourceTree = "<group>"; };
+		A6F213182C8C075F00E1D23B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,6 +52,7 @@
 			children = (
 				A6F212FE2C8C021800E1D23B /* scrobble */,
 				A6F212FD2C8C021800E1D23B /* Products */,
+				A6F213142C8C05E800E1D23B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -52,8 +67,14 @@
 		A6F212FE2C8C021800E1D23B /* scrobble */ = {
 			isa = PBXGroup;
 			children = (
+				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
+				A6F213172C8C065100E1D23B /* Music.h */,
+				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
 				A6F213012C8C021800E1D23B /* ContentView.swift */,
+				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
+				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
+				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
@@ -67,6 +88,14 @@
 				A6F213062C8C021900E1D23B /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		A6F213142C8C05E800E1D23B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,7 +168,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
+				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
+				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
+				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
+				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,6 +313,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = scrobble/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -306,6 +342,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = scrobble/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
