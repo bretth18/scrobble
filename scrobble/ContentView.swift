@@ -15,22 +15,49 @@ struct ContentView: View {
     
     var body: some View {
             VStack(spacing: 10) {
-                Text("Last.fm Scrobbler")
-                    .font(.headline)
+                HStack {
+                    Text("SCROBBLE")
+                        .font(.headline)
+                }
+
                 
-                Text(scrobbler.musicAppStatus)
-                    .font(.subheadline)
-                    .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green : .red)
+                HStack {
+                    Text("Status:")
+                        .font(.caption2)
+                    Text(scrobbler.musicAppStatus)
+                        .font(.subheadline)
+                        .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green : .red)
+                }
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(.ultraThinMaterial)
+                }
                 
-                Text("Now Playing:")
-                    .font(.subheadline)
-                Text(scrobbler.currentTrack)
-                    .font(.body)
                 
-                Text("Last Scrobbled:")
-                    .font(.subheadline)
-                Text(scrobbler.lastScrobbledTrack)
-                    .font(.body)
+                VStack(alignment: .leading) {
+                    HStack(alignment: .center) {
+                        Text("Now Playing:")
+                            .font(.subheadline)
+                        Text(scrobbler.currentTrack)
+                            .font(.body)
+                    }
+                    
+                    Spacer()
+                    
+                    HStack(alignment: .center) {
+                        Text("Last Scrobbled:")
+                            .font(.subheadline)
+                        Text(scrobbler.lastScrobbledTrack)
+                            .font(.body)
+                    }
+                }
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(.ultraThickMaterial)
+                        .shadow(radius: 1)
+                }
                 
                 if scrobbler.isScrobbling {
                     ProgressView()
@@ -57,5 +84,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView().environmentObject(Scrobbler(lastFmManager: LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")))
+    ContentView().environmentObject(Scrobbler())
 }

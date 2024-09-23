@@ -49,8 +49,8 @@ class Scrobbler: ObservableObject {
     private var pollTimer: Timer?
 
     
-    init(lastFmManager: LastFmManager) {
-        self.lastFmManager = lastFmManager
+    init(lastFmManager: LastFmManager? = nil) {
+        self.lastFmManager = lastFmManager ?? LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
 
         setupMusicAppObserver()
         startPolling()
@@ -117,6 +117,7 @@ class Scrobbler: ObservableObject {
             end if
         end tell
         """
+
         
         let appleScript = NSAppleScript(source: script)
         var error: NSDictionary?
