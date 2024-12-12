@@ -91,21 +91,26 @@ class Scrobbler: ObservableObject {
                 print("Current track: \(trackString)")
                 
                 DispatchQueue.main.async {
+                    // If we're getting the same track info, this is likely just a polling update
+                    let isSameTrack = trackString == self.currentTrack
                     self.currentTrack = trackString
                     
-                    // update now playing status immediately
-                    self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album )
+                    // Always update now playing status
+                    self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                     
-                    // If it's a new track, setup scrobbling
-                    if trackString != self.lastScrobbledTrack {
+                    // Only setup new scrobble timer if this is a new track
+                    if !isSameTrack {
                         print("New track detected, setting up scrobble timer")
                         self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                     }
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.currentTrack = "No track playing"
-                    self.invalidateScrobbleTimer()
+                    if self.currentTrack != "No track playing" {
+                        print("No track playing, invalidating timers")
+                        self.currentTrack = "No track playing"
+                        self.invalidateScrobbleTimer()
+                    }
                 }
             }
         }
@@ -183,9 +188,11 @@ class Scrobbler: ObservableObject {
     
     private func setupScrobbleTimer(artist: String, title: String, album: String) {
         invalidateScrobbleTimer()
+        
         // Get the track duration
-        if let trackInfo = getCurrentTrackInfo(),
-           let duration = trackInfo.duration {
+        if let trackInfo = getCurrentTrackInfo() {
+            let duration = trackInfo.duration ?? 0
+            print("Setting up scrobble timer for track with duration: \(duration) seconds")
             
             // Only setup timer if track is longer than 30 seconds
             guard duration > 30 else {
@@ -198,10 +205,19 @@ class Scrobbler: ObservableObject {
             
             // Calculate when to scrobble - either half duration or 4 minutes
             let scrobbleDelay = min(duration / 2, 240)
+            print("Will scrobble after \(scrobbleDelay) seconds")
             
-            scrobbleTimer = Timer.scheduledTimer(withTimeInterval: scrobbleDelay, repeats: false) { [weak self] _ in
-                self?.scrobbleTrack(artist: artist, title: title, album: album)
+            // Create a timer that runs on the main run loop to ensure it stays active
+            DispatchQueue.main.async {
+                self.scrobbleTimer = Timer(timeInterval: scrobbleDelay, repeats: false) { [weak self] _ in
+                    print("Scrobble timer fired")
+                    self?.scrobbleTrack(artist: artist, title: title, album: album)
+                }
+                // Make sure the timer runs even when scrolling
+                RunLoop.main.add(self.scrobbleTimer!, forMode: .common)
             }
+        } else {
+            print("Could not get track duration")
         }
     }
     
