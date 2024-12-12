@@ -47,6 +47,10 @@ class Scrobbler: ObservableObject {
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
     private var pollTimer: Timer?
+    
+    private var currentTrackStartTime: Date?
+    private var currentTrackDuration: TimeInterval?
+    private var scrobbleTimer: Timer?
 
     
     init(lastFmManager: LastFmManager? = nil) {
@@ -89,29 +93,33 @@ class Scrobbler: ObservableObject {
                 DispatchQueue.main.async {
                     self.currentTrack = trackString
                     
+                    // update now playing status immediately
+                    self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album )
+                    
+                    // If it's a new track, setup scrobbling
                     if trackString != self.lastScrobbledTrack {
-                        print("New track detected, attempting to scrobble")
-                        self.scrobbleTrack(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                    } else {
-                        print("Track hasn't changed, not scrobbling")
+                        print("New track detected, setting up scrobble timer")
+                        self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                     }
                 }
             } else {
                 DispatchQueue.main.async {
                     self.currentTrack = "No track playing"
+                    self.invalidateScrobbleTimer()
                 }
             }
         }
     }
     
-    private func getCurrentTrackInfo() -> (name: String, artist: String, album: String)? {
+    private func getCurrentTrackInfo() -> (name: String, artist: String, album: String, duration: TimeInterval?)? {
         let script = """
         tell application "Music"
             if player state is playing then
                 set trackName to name of current track
                 set trackArtist to artist of current track
                 set trackAlbum to album of current track
-                return trackName & "|" & trackArtist & "|" & trackAlbum
+                set trackDuration to duration of current track
+                return trackName & "|" & trackArtist & "|" & trackAlbum & "|" & trackDuration
             else
                 return ""
             end if
@@ -132,14 +140,17 @@ class Scrobbler: ObservableObject {
         }
         
         let components = result.components(separatedBy: "|")
-        guard components.count == 3,
+        guard components.count == 4,
               !components[0].isEmpty,
               !components[1].isEmpty,
               !components[2].isEmpty else {
             return nil
         }
         
-        return (name: components[0], artist: components[1], album: components[2])
+        let duration = TimeInterval(components[3]) ?? 0
+        
+        
+        return (name: components[0], artist: components[1], album: components[2], duration: duration)
     }
     
     private func scrobbleTrack(artist: String, title: String, album: String) {
@@ -170,9 +181,57 @@ class Scrobbler: ObservableObject {
             .store(in: &cancellables)
     }
     
+    private func setupScrobbleTimer(artist: String, title: String, album: String) {
+        invalidateScrobbleTimer()
+        // Get the track duration
+        if let trackInfo = getCurrentTrackInfo(),
+           let duration = trackInfo.duration {
+            
+            // Only setup timer if track is longer than 30 seconds
+            guard duration > 30 else {
+                print("Track too short to scrobble (\(duration) seconds)")
+                return
+            }
+            
+            currentTrackStartTime = Date()
+            currentTrackDuration = duration
+            
+            // Calculate when to scrobble - either half duration or 4 minutes
+            let scrobbleDelay = min(duration / 2, 240)
+            
+            scrobbleTimer = Timer.scheduledTimer(withTimeInterval: scrobbleDelay, repeats: false) { [weak self] _ in
+                self?.scrobbleTrack(artist: artist, title: title, album: album)
+            }
+        }
+    }
+    
+    private func invalidateScrobbleTimer() {
+        scrobbleTimer?.invalidate()
+        scrobbleTimer = nil
+        currentTrackStartTime = nil
+        currentTrackDuration = nil
+    }
+    
+    private func updateNowPlaying(artist: String, title: String, album: String) {
+        lastFmManager.updateNowPlaying(artist: artist, track: title, album: album)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    print("Failed to update now playing: \(error)")
+                }
+            }, receiveValue: { success in
+                if success {
+                    print("Successfully updated now playing status")
+                }
+            })
+            .store(in: &cancellables)
+    }
+    
+    
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)
         pollTimer?.invalidate()
+        scrobbleTimer?.invalidate()
     }
 }
 

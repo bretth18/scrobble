@@ -186,6 +186,80 @@ class LastFmManager {
         }
         .eraseToAnyPublisher()
     }
+    
+    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
+        guard let sessionKey = self.sessionKey else {
+            print("No session key available for updating now playing")
+            return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+        }
+        
+        return Future { promise in
+            self.queue.async {
+                print("Updating now playing: \(artist) - \(track)")
+                let nowPlayingURL = "https://ws.audioscrobbler.com/2.0/"
+                
+                var parameters: [String: String] = [
+                    "method": "track.updateNowPlaying",
+                    "artist": artist,
+                    "track": track,
+                    "album": album,
+                    "api_key": self.apiKey,
+                    "sk": sessionKey
+                ]
+                
+                let signature = self.createSignature(parameters: parameters)
+                parameters["api_sig"] = signature
+                parameters["format"] = "json"
+                
+                var components = URLComponents(string: nowPlayingURL)!
+                components.queryItems = parameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+                
+                guard let url = components.url else {
+                    print("Failed to create URL for now playing update")
+                    promise(.failure(ScrobblerError.invalidURL))
+                    return
+                }
+                
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+                
+                
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Network error during now playing update: \(error)")
+                        promise(.failure(error))
+                        return
+                    }
+                    
+                    guard let data = data else {
+                        print("No data received from now playing update")
+                        promise(.failure(ScrobblerError.noData))
+                        return
+                    }
+                    
+                    let jsonString = String(data: data, encoding: .utf8) ?? "Unable to parse response"
+                    print("Now playing response: \(jsonString)")
+                    
+                    do {
+                        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                            print("Now playing API error: \(errorResponse.message)")
+                            promise(.failure(ScrobblerError.apiError(errorResponse.message)))
+                            return
+                        }
+                        
+                        // For now playing, just check res was successful
+                        promise(.success(true))
+                    } catch {
+                        print("Error decoding now playing response: \(error)")
+                        promise(.failure(error))
+                    }
+                    
+                }.resume()
+            }
+        }
+        .eraseToAnyPublisher()
+    }
 
 //    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
 //        print("Scrobble method called for: \(artist) - \(track)")
