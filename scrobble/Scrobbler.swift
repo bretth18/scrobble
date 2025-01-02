@@ -35,6 +35,8 @@ import AppKit
 
 
 class Scrobbler: ObservableObject {
+    let lastFmManager: LastFmManager
+
     @Published var currentTrack: String = "No track playing"
     @Published var isScrobbling: Bool = false
     @Published var lastScrobbledTrack: String = ""
@@ -43,7 +45,6 @@ class Scrobbler: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.scrobbler", qos: .background)
-    private let lastFmManager: LastFmManager
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
     private var pollTimer: Timer?
@@ -54,8 +55,13 @@ class Scrobbler: ObservableObject {
 
     
     init(lastFmManager: LastFmManager? = nil) {
-        self.lastFmManager = lastFmManager ?? LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
-
+        
+        if let manager = lastFmManager {
+            self.lastFmManager = manager
+        } else {
+            // This should never be hit in production since you're passing the manager in ScrobbleApp
+            self.lastFmManager = LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
+        }
         setupMusicAppObserver()
         startPolling()
         checkNowPlaying()

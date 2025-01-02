@@ -261,92 +261,154 @@ class LastFmManager {
         .eraseToAnyPublisher()
     }
 
-//    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-//        print("Scrobble method called for: \(artist) - \(track)")
-//        return authenticationSubject
-//            .first()
-//            .flatMap { [weak self] _ -> AnyPublisher<Bool, Error> in
-//                guard let self = self, let sessionKey = self.sessionKey else {
-//                    print("No session key available")
-//                    return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
-//                }
-//                
-//                return Future { promise in
-//                    self.queue.async {
-//                        print("Preparing scrobble request for: \(artist) - \(track)")
-//                        let scrobbleURL = "https://ws.audioscrobbler.com/2.0/"
-//                        let timestamp = Int(Date().timeIntervalSince1970)
-//                        
-//                        var parameters: [String: String] = [
-//                            "method": "track.scrobble",
-//                            "artist": artist,
-//                            "track": track,
-//                            "album": album,
-//                            "timestamp": String(timestamp),
-//                            "api_key": self.apiKey,
-//                            "sk": sessionKey,
-//                        ]
-//                        
-//                        print("Scrobble parameters before signature: \(parameters)")
-//                        
-//                        let signature = self.createSignature(parameters: parameters)
-//                        parameters["api_sig"] = signature
-//                        parameters["format"] = "json"
-//                        
-//                        print("Final scrobble parameters: \(parameters)")
-//                        
-//                        var components = URLComponents(string: scrobbleURL)!
-//                        components.queryItems = parameters.map { URLQueryItem(name: $0.key, value: $0.value) }
-//                        
-//                        guard let url = components.url else {
-//                            print("Failed to create URL for scrobble request")
-//                            promise(.failure(ScrobblerError.invalidURL))
-//                            return
-//                        }
-//                        
-//                        print("Scrobble request URL: \(url)")
-//                        
-//                        var request = URLRequest(url: url)
-//                        request.httpMethod = "POST"
-//                        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-//                        
-//                        URLSession.shared.dataTask(with: request) { data, response, error in
-//                            if let error = error {
-//                                print("network error durring scrobble: \(error)")
-//                                promise(.failure(error))
-//                                return
-//                            }
-//                            
-//                            guard let data = data else {
-//                                print("no data received from scrobble request")
-//                                promise(.failure(ScrobblerError.noData))
-//                                return
-//                            }
-//                            
-//                            let jsonString = String(data: data, encoding: .utf8) ?? "Unable to parse response"
-//                            print("Scrobble Response: \(jsonString)")
-//                            
-//                            do {
-//                                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-//                                    promise(.failure(ScrobblerError.apiError(errorResponse.message)))
-//                                    return
-//                                }
-//                                
-//                                let scrobbleResponse = try JSONDecoder().decode(ScrobbleResponse.self, from: data)
-//                                let success = scrobbleResponse.scrobbles.attr.accepted == "1"
-//                                print("Scrobble response: \(success ? "Success" : "Failure")")
-//                                promise(.success(success))
-//                            } catch {
-//                                promise(.failure(error))
-//                            }
-//                        }.resume()
+    
+    /// Mark: Socials
+    
+    func getFriends(page: Int = 1, limit: Int = 50) -> AnyPublisher<[Friend], Error> {
+        guard isAuthenticated else {
+            return authenticationSubject
+                .first()
+                .flatMap { [weak self] _ -> AnyPublisher<[Friend], Error> in
+                    guard let self = self else {
+                        return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+                    }
+                    return self.performGetFriends(page: page, limit: limit)
+                }
+                .eraseToAnyPublisher()
+        }
+        
+        return performGetFriends(page: page, limit: limit)
+    }
+    
+    
+    private func performGetFriends(page: Int, limit: Int) -> AnyPublisher<[Friend], Error> {
+        print("Performing getFriends - Auth status: \(isAuthenticated), Session key: \(sessionKey ?? "none")")
+        
+        guard let sessionKey = self.sessionKey else {
+            print("No session key available")
+            return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+        }
+
+        var parameters: [String: String] = [
+            "method": "user.getFriends",
+            "user": username,
+            "api_key": apiKey,
+            "sk": sessionKey,
+            "page": String(page),
+            "limit": String(limit),
+        ]
+        
+        // Create signature before adding format
+        let signature = createSignature(parameters: parameters)
+        parameters["api_sig"] = signature
+        parameters["format"] = "json"
+        
+        print("getFriends parameters: \(parameters)")
+
+
+        
+        
+        return makeRequest(parameters: parameters)
+//            .handleEvents(
+//                receiveOutput: { data in
+//                    if let responseStr = String(data: data, encoding: .utf8) {
+//                        print("Raw API Response: \(responseStr)")
 //                    }
 //                }
-//                .eraseToAnyPublisher()
-//            }
-//            .receive(on: DispatchQueue.main)
-//            .eraseToAnyPublisher()
-//    }
+//            )
+            .decode(type: FriendsResponse.self, decoder: JSONDecoder())
+    
+            .map { response -> [Friend] in
+                print("Got friends response with \(response.friends.user.count) friends")
+//                print("Friends: \(response.friends)")
+                return response.friends.user
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    
+    func getRecentTracks(for username: String, page: Int = 1, limit: Int = 50) -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error> {
+        guard isAuthenticated else {
+            return authenticationSubject
+                .first()
+                .flatMap { [weak self] _ -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error> in
+                    guard let self = self else {
+                        return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+                        
+                    }
+                    
+                    return self.performGetRecentTracks(for: username, page: page, limit: limit)
+                    
+                }
+                .eraseToAnyPublisher()
+        }
+        
+        return performGetRecentTracks(for: username, page: page, limit: limit)
+    }
+    
+    private func performGetRecentTracks(for username: String, page: Int, limit: Int) -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error> {
+        var parameters: [String: String] = [
+            "method": "user.getRecentTracks",
+            "user": username,
+            "api_key": apiKey,
+            "page": String(page),
+            "limit": String(limit),
+        ]
+        
+        // Create signature before adding format
+        let signature = createSignature(parameters: parameters)
+        parameters["api_sig"] = signature
+        parameters["format"] = "json"
+        
+ 
+        
+        return makeRequest(parameters: parameters
+        )
+        .tryMap { data -> Data in
+            if let str = String(data: data, encoding: .utf8) {
+                print("Recent tracks raw response: \(str)")
+            }
+            return data
+        }
+        .decode(type: RecentTracksResponse.self, decoder: JSONDecoder())
+        .tryMap { response -> [RecentTracksResponse.RecentTracks.Track] in
+            print("Decoded response: \(String(describing: response))")
+            let tracks = response.recenttracks.track
+            print("Found \(tracks.count) tracks")
+            tracks.forEach { track in
+                print("Track: \(track.artist.text) - \(track.name) (nowplaying: \(track.nowplaying != nil))")
+            }
+            return tracks
+        }
+        .mapError { error in
+            print("Error in recent tracks pipeline: \(error)")
+            return error
+        }
+        .eraseToAnyPublisher()
+            
+    }
+    
+    private func makeRequest(parameters: [String: String]) -> AnyPublisher<Data, Error> {
+        let baseURL = "https://ws.audioscrobbler.com/2.0/"
+        var components = URLComponents(string: baseURL)!
+        components.queryItems = parameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+        
+        guard let url = components.url else {
+            return Fail(error: ScrobblerError.invalidURL).eraseToAnyPublisher()
+        }
+        
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .subscribe(on: queue)
+            .map(\.data)
+            .tryMap { data in
+                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                    throw ScrobblerError.apiError(errorResponse.message)
+                }
+                return data
+            }
+            .eraseToAnyPublisher()
+    }
+
 
     private func createSignature(parameters: [String: Any]) -> String {
         let sortedKeys = parameters.keys.sorted()
@@ -456,6 +518,144 @@ struct ScrobbleResponse: Codable {
 struct ErrorResponse: Codable {
     let error: Int
     let message: String
+}
+
+struct Friend: Codable {
+    let name: String
+    let realname: String?
+    let url: String
+    let image: [Image]
+    let country: String?
+    let playcount: String?
+    let registered: Registered?
+    let subscriber: String?
+    
+    struct Registered: Codable {
+        let unixtime: String
+        
+        enum CodingKeys: String, CodingKey {
+            case unixtime
+        }
+    }
+    
+    struct Image: Codable {
+        let text: String
+        let size: String
+        
+        enum CodingKeys: String, CodingKey {
+            case text = "#text"
+            case size
+        }
+    }
+}
+
+struct FriendsResponse: Codable {
+    let friends: Friends
+    
+    struct Friends: Codable {
+        let user: [Friend]
+        let attr: Attr
+        
+        enum CodingKeys: String, CodingKey {
+            case user
+            case attr = "@attr"
+        }
+        
+        struct Attr: Codable {
+            let page: String
+            let total: String
+            let user: String
+            let perPage: String
+            let totalPages: String
+        }
+    }
+}
+
+struct RecentTracksResponse: Codable {
+    let recenttracks: RecentTracks
+    
+    struct RecentTracks: Codable {
+        let track: [Track]
+        let attr: Attr
+        
+        enum CodingKeys: String, CodingKey {
+            case track
+            case attr = "@attr"
+        }
+        
+        struct Track: Codable {
+            let artist: Artist
+            let streamable: String
+            let image: [Image]
+            let mbid: String
+            let album: Album
+            let name: String
+            let url: String
+            let date: Date?
+            private let attr: NowPlaying?
+            
+            var nowplaying: Bool {
+                return attr != nil
+            }
+            
+            enum CodingKeys: String, CodingKey {
+                case artist, streamable, image, mbid, album, name, url, date
+                case attr = "@attr"
+            }
+            
+            struct NowPlaying: Codable {
+                let nowplaying: String
+            }
+            
+            struct Artist: Codable {
+                let mbid: String
+                let text: String
+                
+                enum CodingKeys: String, CodingKey {
+                    case mbid
+                    case text = "#text"
+                }
+            }
+            
+            struct Album: Codable {
+                let mbid: String
+                let text: String
+                
+                enum CodingKeys: String, CodingKey {
+                    case mbid
+                    case text = "#text"
+                }
+            }
+            
+            struct Date: Codable {
+                let uts: String
+                let text: String
+                
+                enum CodingKeys: String, CodingKey {
+                    case uts
+                    case text = "#text"
+                }
+            }
+            
+            struct Image: Codable {
+                let size: String
+                let text: String
+                
+                enum CodingKeys: String, CodingKey {
+                    case size
+                    case text = "#text"
+                }
+            }
+        }
+        
+        struct Attr: Codable {
+            let user: String
+            let page: String
+            let perPage: String
+            let totalPages: String
+            let total: String
+        }
+    }
 }
 
 enum ScrobblerError: Error {

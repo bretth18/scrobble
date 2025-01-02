@@ -27,7 +27,7 @@ struct scrobbleApp: App {
     
     var body: some Scene {
         MenuBarExtra("SCROBBLER", systemImage: "music.note") {
-            ContentView()
+            MainView()
                 .environmentObject(scrobbler)
                 .environmentObject(preferencesManager)
         }
