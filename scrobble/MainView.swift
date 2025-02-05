@@ -18,10 +18,18 @@ struct MainView: View {
                     Label("Scrobbling", systemImage: "music.note")
                 }
             
-            FriendsView(lastFmManager: scrobbler.lastFmManager)
-                .tabItem {
-                    Label("Friends", systemImage: "person.2")
-                }
+            // Use type-safe casting to check for desktop manager
+            if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                FriendsView(lastFmManager: desktopManager)
+                    .tabItem {
+                        Label("Friends", systemImage: "person.2")
+                    }
+            } else {
+                FriendsView(lastFmManager: scrobbler.lastFmManager)
+                    .tabItem {
+                        Label("Friends", systemImage: "person.2")
+                    }
+            }
         }
         .frame(minWidth: 300, minHeight: 400)
     }

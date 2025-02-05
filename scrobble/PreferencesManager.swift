@@ -20,11 +20,15 @@ class PreferencesManager: ObservableObject {
     @Published var password: String {
         didSet { UserDefaults.standard.set(password, forKey: "lastFmPassword") }
     }
+    @Published var numberOfFriendsDisplayed: Int {
+        didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
+    }
     
     init() {
         apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
         apiSecret = UserDefaults.standard.string(forKey: "lastFmApiSecret") ?? ""
         username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
         password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
+        numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3
     }
 }

@@ -10,6 +10,13 @@ import Combine
 import CommonCrypto
 import CryptoKit
 
+protocol LastFmManagerType {
+    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
+    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
+    func getFriends(page: Int, limit: Int) -> AnyPublisher<[Friend], Error>
+    func getRecentTracks(for username: String, page: Int, limit: Int) -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error>
+}
+
 class LastFmManager {
     private let apiKey: String
     private let apiSecret: String
@@ -18,6 +25,9 @@ class LastFmManager {
     private var sessionKey: String?
     private var isAuthenticated = false
     private var authenticationSubject = PassthroughSubject<Void, Error>()
+    private var authRetryCount = 0
+    private let maxAuthRetries = 3
+    private var authenticationTask: Task<Void, Error>?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -31,10 +41,78 @@ class LastFmManager {
         self.password = password
         
         authenticate()
+        setupAuthenticationRetry()
+    }
+    
+    private func setupAuthenticationRetry() {
+        // Setup a timer to periodically check auth status
+        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            self?.validateAndRefreshAuth()
+        }
+    }
+    
+    private func validateAndRefreshAuth() {
+        guard let sessionKey = self.sessionKey else {
+            print("No session key found, re-authenticating")
+            authenticate()
+            return
+        }
+        
+        let parameters: [String: String] = [
+            "method": "user.getInfo",
+            "user" : username,
+            "api_key": apiKey,
+            "sk": sessionKey
+        ]
+        
+        makeRequest(parameters: parameters)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure = completion {
+                        print("Session key validation failed, attempting re-auth")
+                        self?.isAuthenticated = false
+                        self?.sessionKey = nil
+                        self?.authenticate()
+                    }
+                },
+                receiveValue: { _ in
+                        print("Session key still valid")
+                }
+            )
+            .store(in: &cancellables)
     }
     
     private func authenticate() {
+        guard authenticationTask == nil else {
+            print("Authentication already in progress")
+            return
+        }
+        
         print("Attempting to authenticate user: \(username)")
+        
+        authenticationTask = Task {
+            do {
+                try await performAuthentication()
+                authRetryCount = 0
+                authenticationTask = nil
+            } catch {
+                print("Authentication error: \(error)")
+                authRetryCount += 1
+                
+                if authRetryCount < maxAuthRetries {
+                    print("Retrying authentication (attempt \(authRetryCount + 1)/\(maxAuthRetries))")
+                    try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(authRetryCount))) * 1_000_000_000)
+                    authenticate()
+                } else {
+                    print("Max authentication retries reached")
+                    authenticationSubject.send(completion: .failure(error))
+                }
+                authenticationTask = nil
+            }
+        }
+    }
+    
+    private func performAuthentication() async throws {
         let authURL = "https://ws.audioscrobbler.com/2.0/"
         let parameters: [String: Any] = [
             "method": "auth.getMobileSession",
@@ -55,36 +133,72 @@ class LastFmManager {
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         
-        URLSession.shared.dataTaskPublisher(for: request)
-            .subscribe(on: queue)
-            .map(\.data)
-            .tryMap { data -> AuthResponse in
-                let jsonString = String(data: data, encoding: .utf8) ?? "Unable to parse response"
-                print("Auth Response: \(jsonString)")
-                
-                if let error = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    throw ScrobblerError.apiError(error.message)
-                }
-                
-                return try JSONDecoder().decode(AuthResponse.self, from: data)
-            }
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                switch completion {
-                case .finished:
-                    self?.isAuthenticated = true
-                    self?.authenticationSubject.send(())
-                    print("Authentication completed successfully")
-                case .failure(let error):
-                    print("Authentication error: \(error)")
-                    self?.authenticationSubject.send(completion: .failure(error))
-                }
-            }, receiveValue: { [weak self] response in
-                self?.sessionKey = response.session.key
-                print("Received session key: \(response.session.key)")
-            })
-            .store(in: &cancellables)
+        let (data, _) = try await URLSession.shared.data(for: request)
+        
+        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+            throw ScrobblerError.apiError(errorResponse.message)
+        }
+        
+        let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
+        self.sessionKey = authResponse.session.key
+        self.isAuthenticated = true
+        print("Authentication successful, session key: \(authResponse.session.key)")
+        authenticationSubject.send(())
     }
+    
+//    private func authenticate() {
+//        
+//        print("Attempting to authenticate user: \(username)")
+//        let authURL = "https://ws.audioscrobbler.com/2.0/"
+//        let parameters: [String: Any] = [
+//            "method": "auth.getMobileSession",
+//            "username": username,
+//            "password": password,
+//            "api_key": apiKey,
+//        ]
+//        
+//        let signature = createSignature(parameters: parameters)
+//        var allParameters = parameters
+//        allParameters["api_sig"] = signature
+//        allParameters["format"] = "json"
+//        
+//        var components = URLComponents(string: authURL)!
+//        components.queryItems = allParameters.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
+//        
+//        var request = URLRequest(url: components.url!)
+//        request.httpMethod = "POST"
+//        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+//        
+//        URLSession.shared.dataTaskPublisher(for: request)
+//            .subscribe(on: queue)
+//            .map(\.data)
+//            .tryMap { data -> AuthResponse in
+//                let jsonString = String(data: data, encoding: .utf8) ?? "Unable to parse response"
+//                print("Auth Response: \(jsonString)")
+//                
+//                if let error = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+//                    throw ScrobblerError.apiError(error.message)
+//                }
+//                
+//                return try JSONDecoder().decode(AuthResponse.self, from: data)
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveCompletion: { [weak self] completion in
+//                switch completion {
+//                case .finished:
+//                    self?.isAuthenticated = true
+//                    self?.authenticationSubject.send(())
+//                    print("Authentication completed successfully")
+//                case .failure(let error):
+//                    print("Authentication error: \(error)")
+//                    self?.authenticationSubject.send(completion: .failure(error))
+//                }
+//            }, receiveValue: { [weak self] response in
+//                self?.sessionKey = response.session.key
+//                print("Received session key: \(response.session.key)")
+//            })
+//            .store(in: &cancellables)
+//    }
     
     func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
         print("Scrobble method called for: \(artist) - \(track)")
@@ -664,4 +778,9 @@ enum ScrobblerError: Error {
     case apiError(String)
     case noData
     case invalidURL
+}
+
+
+extension LastFmManager: LastFmManagerType {
+    
 }

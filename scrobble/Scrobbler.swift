@@ -35,7 +35,7 @@ import AppKit
 
 
 class Scrobbler: ObservableObject {
-    let lastFmManager: LastFmManager
+    let lastFmManager: LastFmManagerType
 
     @Published var currentTrack: String = "No track playing"
     @Published var isScrobbling: Bool = false
@@ -54,7 +54,7 @@ class Scrobbler: ObservableObject {
     private var scrobbleTimer: Timer?
 
     
-    init(lastFmManager: LastFmManager? = nil) {
+    init(lastFmManager: LastFmManagerType? = nil) {
         
         if let manager = lastFmManager {
             self.lastFmManager = manager

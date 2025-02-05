@@ -15,10 +15,10 @@ class FriendsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private var lastFmManager: LastFmManager
+    private var lastFmManager: LastFmManagerType
     private var cancellables = Set<AnyCancellable>()
     
-    init(lastFmManager: LastFmManager) {
+    init(lastFmManager: LastFmManagerType) {
         self.lastFmManager = lastFmManager
         loadFriends()
     }
@@ -27,7 +27,7 @@ class FriendsViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        lastFmManager.getFriends(limit: 3)
+        lastFmManager.getFriends(page: 1, limit: 3)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 self?.isLoading = false
@@ -43,7 +43,7 @@ class FriendsViewModel: ObservableObject {
     
     private func loadRecentTracksForFriends() {
         for friend in friends {
-            lastFmManager.getRecentTracks(for: friend.name, limit: 5)
+            lastFmManager.getRecentTracks(for: friend.name, page: 1, limit: 5)
                 .receive(on: DispatchQueue.main)
                 .sink(receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
@@ -60,7 +60,7 @@ class FriendsViewModel: ObservableObject {
         loadFriends()
     }
     
-    func updateLastFmManager(_ manager: LastFmManager) {
+    func updateLastFmManager(_ manager: LastFmManagerType) {
         self.lastFmManager = manager
         loadFriends()
     }

@@ -65,6 +65,7 @@ struct ContentView: View {
                 }
                 
                 if let errorMessage = scrobbler.errorMessage {
+                    
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
@@ -79,7 +80,6 @@ struct ContentView: View {
                 }
             }
             .padding()
-            .frame(width: 250)
         }
 }
 

@@ -26,6 +26,11 @@ struct PreferencesView: View {
                     TextField("Username", text: $preferencesManager.username)
                     SecureField("Password", text: $preferencesManager.password)
                 }
+                
+                Divider()
+                Section(header: Text("Friend Display").bold()){
+                    TextField("No. Friends Shown", value: $preferencesManager.numberOfFriendsDisplayed, format: .number)
+                }
             }
             .padding()
                         

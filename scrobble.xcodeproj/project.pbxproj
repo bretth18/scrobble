@@ -3,13 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		A63A2B172D27177D000BC92E /* FriendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B162D27177D000BC92E /* FriendsViewModel.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
 		A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* MainView.swift */; };
+		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
+		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -26,6 +28,8 @@
 		A63A2B162D27177D000BC92E /* FriendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewModel.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; };
+		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -40,6 +44,10 @@
 		A6F213182C8C075F00E1D23B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A65DF1BA2D3AE7B6006AD060 /* ViewComponents */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewComponents; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A6F212F92C8C021800E1D23B /* Frameworks */ = {
@@ -80,10 +88,13 @@
 				A63A2B162D27177D000BC92E /* FriendsViewModel.swift */,
 				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
 				A6F213012C8C021800E1D23B /* ContentView.swift */,
+				A65DF1BA2D3AE7B6006AD060 /* ViewComponents */,
 				A63A2B1A2D271A95000BC92E /* MainView.swift */,
+				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
+				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
@@ -121,6 +132,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A65DF1BA2D3AE7B6006AD060 /* ViewComponents */,
 			);
 			name = scrobble;
 			productName = scrobble;
@@ -181,9 +195,11 @@
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */,
+				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
+				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
@@ -321,7 +337,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				DEVELOPMENT_TEAM = 94XUGF9CU7;
@@ -352,7 +368,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				DEVELOPMENT_TEAM = 94XUGF9CU7;

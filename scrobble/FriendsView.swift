@@ -11,16 +11,12 @@ struct FriendsView: View {
     @EnvironmentObject var scrobbler: Scrobbler
     @StateObject private var viewModel: FriendsViewModel
     
-    
-    init(lastFmManager: LastFmManager) {
+    init(lastFmManager: LastFmManagerType) {
         _viewModel = StateObject(wrappedValue: FriendsViewModel(lastFmManager: lastFmManager))
-
-
     }
     
-    
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             HStack {
                 Text("Friends Activity")
                     .font(.headline)
@@ -31,6 +27,7 @@ struct FriendsView: View {
                 .disabled(viewModel.isLoading)
             }
             .padding(.horizontal)
+            .padding(.top)
             
             if viewModel.isLoading {
                 ProgressView()
@@ -46,9 +43,10 @@ struct FriendsView: View {
                                 friend: friend,
                                 recentTracks: viewModel.friendTracks[friend.name] ?? []
                             )
+                            .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding()
+                    .padding(.horizontal)
                 }
             }
             
@@ -59,9 +57,8 @@ struct FriendsView: View {
                     .padding()
             }
         }
-        .frame(minWidth: 300, minHeight: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            // Update the viewModel with the correct LastFmManager from the environment
             viewModel.updateLastFmManager(scrobbler.lastFmManager)
         }
     }
@@ -103,6 +100,7 @@ struct FriendCardView: View {
                     }
                     .foregroundColor(.secondary)
                 }
+                Spacer()
             }
             
             if recentTracks.isEmpty {
@@ -150,12 +148,14 @@ struct FriendCardView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             }
+                            Spacer()
                         }
                     }
                 }
             }
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 10)
                 .foregroundStyle(.ultraThinMaterial)
