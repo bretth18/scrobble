@@ -9,37 +9,62 @@ import SwiftUI
 
 struct PreferencesView: View {
     @EnvironmentObject var preferencesManager: PreferencesManager
+    @EnvironmentObject var scrobbler: Scrobbler
+    @StateObject private var authState = AuthState.shared
     
     var body: some View {
-        
         VStack {
-
             Form {
-                Section(header: Text("Last.fm API Credentials").bold()) {
+                Section(header: Text("Last.fm API").bold()) {
                     TextField("API Key", text: $preferencesManager.apiKey)
+                        .textFieldStyle(.roundedBorder)
                     SecureField("API Secret", text: $preferencesManager.apiSecret)
+                        .textFieldStyle(.roundedBorder)
                 }
                 
-                Divider()
-                
-                Section(header: Text("Last.fm Account").bold()) {
+                Section(header: Text("Account").bold()) {
                     TextField("Username", text: $preferencesManager.username)
-                    SecureField("Password", text: $preferencesManager.password)
+                        .textFieldStyle(.roundedBorder)
+                    
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        HStack {
+                            Button(authState.isAuthenticated ? "Log Out" : "Authenticate") {
+                                if authState.isAuthenticated {
+                                    authState.signOut()
+                                    desktopManager.startAuth()
+                                } else {
+                                    desktopManager.startAuth()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            if authState.isAuthenticated {
+                                Text("✓ Connected")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
                 
-                Divider()
-                Section(header: Text("Friend Display").bold()){
-                    TextField("No. Friends Shown", value: $preferencesManager.numberOfFriendsDisplayed, format: .number)
+                Section(header: Text("Display").bold()) {
+                    Stepper(
+                        "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
+                        value: $preferencesManager.numberOfFriendsDisplayed,
+                        in: 1...10
+                    )
                 }
             }
             .padding()
-                        
-            Text("Credentials are stored securely on-device and only transmitted to Last.Fm servers for authentication")
-                .font(.footnote)
+            .formStyle(.grouped)
+            
+            Text("Your credentials are stored securely on-device")
+                .font(.caption)
                 .foregroundStyle(.secondary)
+                .padding(.bottom)
         }
     }
 }
+
 #Preview {
     PreferencesView()
         .environmentObject(PreferencesManager())   

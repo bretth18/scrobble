@@ -13,6 +13,10 @@
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
 		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
 		A64304C02D52F479001998B6 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BF2D52F479001998B6 /* AuthView.swift */; };
+		A64304C22D52FAD6001998B6 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C12D52FAD6001998B6 /* MenuBarView.swift */; };
+		A64304C42D52FB3B001998B6 /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C32D52FB3B001998B6 /* WindowManager.swift */; };
+		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
+		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -32,6 +36,10 @@
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; };
 		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
 		A64304BF2D52F479001998B6 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		A64304C12D52FAD6001998B6 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		A64304C32D52FB3B001998B6 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
+		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -86,6 +94,9 @@
 			children = (
 				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
+				A64304C52D52FBA1001998B6 /* AppState.swift */,
+				A64304C72D52FBEC001998B6 /* AuthState.swift */,
+				A64304C12D52FAD6001998B6 /* MenuBarView.swift */,
 				A6F213172C8C065100E1D23B /* Music.h */,
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
 				A63A2B162D27177D000BC92E /* FriendsViewModel.swift */,
@@ -96,6 +107,7 @@
 				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
+				A64304C32D52FB3B001998B6 /* WindowManager.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
 				A64304BF2D52F479001998B6 /* AuthView.swift */,
@@ -198,7 +210,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A63A2B172D27177D000BC92E /* FriendsViewModel.swift in Sources */,
+				A64304C22D52FAD6001998B6 /* MenuBarView.swift in Sources */,
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
+				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
+				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
+				A64304C42D52FB3B001998B6 /* WindowManager.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 
 class PreferencesManager: ObservableObject {
     @Published var apiKey: String {
@@ -30,5 +31,19 @@ class PreferencesManager: ObservableObject {
         username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
         password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
         numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3
+    }
+    
+    func showPreferences() {
+        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "preferences" }) {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+    
+    func showMainWindow() {
+        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 }

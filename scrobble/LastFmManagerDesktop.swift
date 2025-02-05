@@ -20,19 +20,19 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     private var isAuthenticated = false
     private var authenticationSubject = PassthroughSubject<Void, Error>()
     
-    @Published private(set) var authState: AuthState = .unknown
+    @Published private(set) var authStatus: AuthStatus = .unknown
     @Published var isAuthenticating = false
     
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.api", qos: .background)
     
-    enum AuthState: Equatable {
+    enum AuthStatus: Equatable {
         case unknown
         case needsAuth
         case authenticated
         case failed(String)  // Changed from Error to String since Error isn't Equatable
         
-        static func == (lhs: AuthState, rhs: AuthState) -> Bool {
+        static func == (lhs: AuthStatus, rhs: AuthStatus) -> Bool {
             switch (lhs, rhs) {
             case (.unknown, .unknown):
                 return true
@@ -63,13 +63,13 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
             self.sessionKey = savedSessionKey
             validateSavedSession()
         } else {
-            authState = .needsAuth
+            authStatus = .needsAuth
         }
     }
     
     private func validateSavedSession() {
         guard let sessionKey = self.sessionKey else {
-            authState = .needsAuth
+            authStatus = .needsAuth
             return
         }
         
@@ -95,7 +95,7 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
                 },
                 receiveValue: { _ in
                     print("Saved session validated successfully")
-                    self.authState = .authenticated
+                    self.authStatus = .authenticated
                 }
             )
             .store(in: &cancellables)
@@ -105,7 +105,7 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
         guard !isAuthenticating else { return }
         
         isAuthenticating = true
-        authState = .unknown
+        authStatus = .unknown
         
         getToken()
             .flatMap { [weak self] token -> AnyPublisher<String, Error> in
@@ -127,12 +127,12 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
                     self?.isAuthenticating = false
                     if case .failure(let error) = completion {
                         print("Auth error: \(error)")
-                        self?.authState = .failed(error.localizedDescription)
+                        self?.authStatus = .failed(error.localizedDescription)
                     }
                 },
                 receiveValue: { [weak self] sessionKey in
                     self?.sessionKey = sessionKey
-                    self?.authState = .authenticated
+                    self?.authStatus = .authenticated
                     UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
                 }
             )
@@ -401,4 +401,30 @@ private struct SessionResponse: Codable {
 // Add this to your ScrobblerError enum
 extension ScrobblerError {
     static let authorizationCancelled = ScrobblerError.apiError("Authorization was cancelled by user")
+}
+
+
+
+extension LastFmDesktopManager {
+    func handleAuthSuccess(_ sessionKey: String) {
+        self.sessionKey = sessionKey
+        UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
+        DispatchQueue.main.async {
+            AuthState.shared.handleAuthSuccess()
+        }
+    }
+    
+    func handleAuthFailure(_ error: String) {
+        DispatchQueue.main.async {
+            AuthState.shared.handleAuthFailure(error)
+        }
+    }
+    
+    func logout() {
+        sessionKey = nil
+        UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
+        DispatchQueue.main.async {
+            AuthState.shared.signOut()
+        }
+    }
 }

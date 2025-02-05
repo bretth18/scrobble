@@ -11,8 +11,7 @@ import SwiftUI
 struct scrobbleApp: App {
     @StateObject private var preferencesManager = PreferencesManager()
     @StateObject private var scrobbler: Scrobbler
-    @State private var isMainWindowShown = false
-    @State private var isPreferencesWindowShown = false
+    @StateObject private var appState = AppState.shared
     
     init() {
         let prefManager = PreferencesManager()
@@ -21,12 +20,10 @@ struct scrobbleApp: App {
         let lastFmManager = LastFmDesktopManager(
             apiKey: prefManager.apiKey,
             apiSecret: prefManager.apiSecret,
-            username: prefManager.username,
-            password: prefManager.password
+            username: prefManager.username
         )
         _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager))
     }
-    
     
     private var authSheetBinding: Binding<Bool> {
         Binding(
@@ -42,8 +39,8 @@ struct scrobbleApp: App {
     }
     
     var body: some Scene {
-        Group {
-            MenuBarExtra("SCROBBLER", systemImage: "music.note") {
+        MenuBarExtra {
+            VStack(alignment: .center, spacing: 0) {
                 MainView()
                     .environmentObject(scrobbler)
                     .environmentObject(preferencesManager)
@@ -52,59 +49,60 @@ struct scrobbleApp: App {
                             LastFmAuthSheet(lastFmManager: desktopManager)
                         }
                     }
+                    .padding(.top, 4)
                 
                 Divider()
                 
                 HStack(alignment: .center) {
-                    Button("Open window") {
-                        isMainWindowShown = true
-                        NSApplication.shared.activate(ignoringOtherApps: true)
+                    Button("Open Window") {
+                        appState.showMainWindow()
                     }
                     
-                    Button("Open preferences") {
-                        isPreferencesWindowShown = true
-                        NSApplication.shared.activate(ignoringOtherApps: true)
+                    Button("Preferences") {
+                        appState.showPreferences()
+                    }
+                    
+                    Button("Quit") {
+                        NSApplication.shared.terminate(nil)
                     }
                 }
                 .padding()
-            }
-            .menuBarExtraStyle(.window)
-            
-            WindowGroup("Scrobbler") {
-                MainView()
-                    .environmentObject(scrobbler)
-                    .environmentObject(preferencesManager)
-                    .sheet(isPresented: authSheetBinding) {
-                        if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                            LastFmAuthSheet(lastFmManager: desktopManager)
-                        }
-                    }
-            }
-            .commands {
-                CommandMenu("Window") {
-                    Button("Toggle Main Window") {
-                        isMainWindowShown.toggle()
-                        NSApplication.shared.activate(ignoringOtherApps: true)
-                    }
-                    .keyboardShortcut("m", modifiers: [.command, .shift])
-                }
                 
-                CommandMenu("Preferences")
-                {
-                    Button("Toggle Preferences Window") {
-                        isPreferencesWindowShown.toggle()
-                        NSApplication.shared.activate(ignoringOtherApps: true)
+            }
+        } label: {
+            Image(systemName: "music.note")
+        }
+        .menuBarExtraStyle(.window)
+
+        WindowGroup {
+            MainView()
+                .environmentObject(scrobbler)
+                .environmentObject(preferencesManager)
+                .sheet(isPresented: authSheetBinding) {
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        LastFmAuthSheet(lastFmManager: desktopManager)
                     }
-                    .keyboardShortcut("p", modifiers: [.command, .shift])
                 }
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        .defaultSize(width: 400, height: 600)
+        .commands {
+            CommandGroup(replacing: .newItem) { }
+            CommandMenu("Window") {
+                Button("Toggle Main Window") {
+                    appState.isMainWindowVisible.toggle()
+                }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
             }
-            .defaultSize(width: 400, height: 600)
-            
-            WindowGroup("Preferences") {
-                PreferencesView()
-                    .environmentObject(preferencesManager)
-            }
-            .defaultSize(width: 300, height: 200)
+        }
+        
+
+        Settings {
+            PreferencesView()
+                .environmentObject(preferencesManager)
+                .environmentObject(scrobbler)
+                .frame(width: 500, height: 500)
         }
     }
 }

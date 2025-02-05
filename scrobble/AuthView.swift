@@ -15,7 +15,7 @@ struct AuthView: View {
     var body: some View {
         VStack(spacing: 20) {
             Group {
-                switch lastFmManager.authState {
+                switch lastFmManager.authStatus {
                 case .unknown:
                     ProgressView()
                         .progressViewStyle(.circular)
@@ -46,7 +46,7 @@ struct AuthView: View {
                     isAuthWindowShown = false
                 }
                 
-                if case .needsAuth = lastFmManager.authState {
+                if case .needsAuth = lastFmManager.authStatus {
                     Button("Authenticate") {
                         lastFmManager.startAuth()
                     }
@@ -58,7 +58,7 @@ struct AuthView: View {
         }
         .padding()
         .frame(width: 300)
-        .onChange(of: lastFmManager.authState) { state in
+        .onChange(of: lastFmManager.authStatus) { state in
             if case .authenticated = state {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     dismiss()

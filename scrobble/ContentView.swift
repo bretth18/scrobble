@@ -71,13 +71,13 @@ struct ContentView: View {
                         .font(.caption)
                 }
                 
-                Button("Open Preferences") {
-                    NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-                }
-                
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
+//                Button("Open Preferences") {
+//                    NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+//                }
+//                
+//                Button("Quit") {
+//                    NSApplication.shared.terminate(nil)
+//                }
             }
             .padding()
         }
