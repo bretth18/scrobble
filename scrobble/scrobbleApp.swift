@@ -12,6 +12,7 @@ struct scrobbleApp: App {
     @StateObject private var preferencesManager = PreferencesManager()
     @StateObject private var scrobbler: Scrobbler
     @StateObject private var appState = AppState.shared
+    @StateObject private var authState = AuthState.shared
     
     init() {
         let prefManager = PreferencesManager()
@@ -25,84 +26,63 @@ struct scrobbleApp: App {
         _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager))
     }
     
-    private var authSheetBinding: Binding<Bool> {
-        Binding(
-            get: {
-                (scrobbler.lastFmManager as? LastFmDesktopManager)?.showingAuthSheet ?? false
-            },
-            set: { newValue in
-                if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                    desktopManager.showingAuthSheet = newValue
-                }
-            }
-        )
-    }
-    
     var body: some Scene {
         MenuBarExtra {
-            VStack(alignment: .center, spacing: 0) {
-                MainView()
-                    .environmentObject(scrobbler)
-                    .environmentObject(preferencesManager)
-                    .sheet(isPresented: authSheetBinding) {
-                        if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                            LastFmAuthSheet(lastFmManager: desktopManager)
-                        }
-                    }
-                    .padding(.top, 4)
-                
-                Divider()
-                
-                HStack(alignment: .center) {
-                    Button("Open Window") {
-                        appState.showMainWindow()
-                    }
-                    
-                    Button("Preferences") {
-                        appState.showPreferences()
-                    }
-                    
-                    Button("Quit") {
-                        NSApplication.shared.terminate(nil)
+            MainView()
+                .environmentObject(scrobbler)
+                .environmentObject(preferencesManager)
+                .sheet(isPresented: $authState.showingAuthSheet) {
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        LastFmAuthSheet(lastFmManager: desktopManager)
                     }
                 }
-                .padding()
-                
-            }
+            
+            Divider()
+            
+            MenuButtons()
+                .environmentObject(authState)
+                .environmentObject(appState)
         } label: {
             Image(systemName: "music.note")
         }
         .menuBarExtraStyle(.window)
 
-        WindowGroup {
+        WindowGroup("Scrobbler") {
             MainView()
                 .environmentObject(scrobbler)
                 .environmentObject(preferencesManager)
-                .sheet(isPresented: authSheetBinding) {
-                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        LastFmAuthSheet(lastFmManager: desktopManager)
-                    }
-                }
+                .environmentObject(appState)
+                .environmentObject(authState)
         }
-        .windowResizability(.contentSize)
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
-        .commands {
-            CommandGroup(replacing: .newItem) { }
-            CommandMenu("Window") {
-                Button("Toggle Main Window") {
-                    appState.isMainWindowVisible.toggle()
-                }
-                .keyboardShortcut("m", modifiers: [.command, .shift])
-            }
-        }
-        
 
         Settings {
             PreferencesView()
                 .environmentObject(preferencesManager)
                 .environmentObject(scrobbler)
-                .frame(width: 500, height: 500)
+                .environmentObject(authState)
         }
+    }
+}
+
+struct MenuButtons: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        HStack {
+            Button("Open Window") {
+                appState.showMainWindow()
+            }
+            
+            Button("Preferences") {
+                appState.showPreferences()
+            }
+            
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+        }
+        .padding(.horizontal)
     }
 }

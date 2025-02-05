@@ -9,18 +9,16 @@ import SwiftUI
 
 struct LastFmAuthSheet: View {
     @ObservedObject var lastFmManager: LastFmDesktopManager
-    @EnvironmentObject var appState: AppState
-    @StateObject private var authState = AuthState.shared
+    @EnvironmentObject var authState: AuthState
     
     var body: some View {
         VStack(spacing: 20) {
             Text("Last.fm Authentication")
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.headline)
             
             if authState.isAuthenticating {
-                ProgressView()
-                Text("Authorizing...")
+                ProgressView("Authorizing...")
+                    .progressViewStyle(.circular)
             } else {
                 Text("Please authorize the app in your browser.\nClick Continue once you've completed the authorization.")
                     .multilineTextAlignment(.center)
@@ -31,6 +29,7 @@ struct LastFmAuthSheet: View {
                     }
                     
                     Button("Continue") {
+                        authState.isAuthenticating = true
                         lastFmManager.completeAuthorization(authorized: true)
                     }
                     .keyboardShortcut(.defaultAction)

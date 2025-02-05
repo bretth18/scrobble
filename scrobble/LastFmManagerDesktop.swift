@@ -10,6 +10,7 @@ import Combine
 import CommonCrypto
 import CryptoKit
 import AppKit
+import SwiftUICore
 
 class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     private let apiKey: String
@@ -23,8 +24,12 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     @Published private(set) var authStatus: AuthStatus = .unknown
     @Published var isAuthenticating = false
     
+    @ObservedObject private var authState = AuthState.shared
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.api", qos: .background)
+    
+    private var authPromise: ((Result<String, Error>) -> Void)?
+    @Published var authToken: String = ""
     
     enum AuthStatus: Equatable {
         case unknown
@@ -102,10 +107,7 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     }
     
     func startAuth() {
-        guard !isAuthenticating else { return }
-        
-        isAuthenticating = true
-        authStatus = .unknown
+        authState.startAuth()
         
         getToken()
             .flatMap { [weak self] token -> AnyPublisher<String, Error> in
@@ -113,30 +115,53 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
                     return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
                 }
                 
-                // Open the authorization URL
-                let authURL = "http://www.last.fm/api/auth/?api_key=\(self.apiKey)&token=\(token)"
-                if let url = URL(string: authURL) {
+                self.authToken = token
+                
+                // Open auth URL in browser
+                if let url = URL(string: "http://www.last.fm/api/auth/?api_key=\(self.apiKey)&token=\(token)") {
                     NSWorkspace.shared.open(url)
                 }
                 
+                return self.waitForUserAuthorization(token: token)
+            }
+            .flatMap { [weak self] token -> AnyPublisher<String, Error> in
+                guard let self = self else {
+                    return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+                }
                 return self.getSession(token: token)
             }
+            .delay(for: .seconds(2), scheduler: DispatchQueue.main) // Give Last.fm time to process auth
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
-                    self?.isAuthenticating = false
                     if case .failure(let error) = completion {
+                        self?.authState.completeAuth(success: false)
                         print("Auth error: \(error)")
-                        self?.authStatus = .failed(error.localizedDescription)
                     }
                 },
                 receiveValue: { [weak self] sessionKey in
                     self?.sessionKey = sessionKey
-                    self?.authStatus = .authenticated
                     UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
+                    self?.authState.completeAuth(success: true)
                 }
             )
             .store(in: &cancellables)
+    }
+    
+    func completeAuthorization(authorized: Bool) {
+        if authorized {
+            authPromise?(.success(authToken))
+        } else {
+            authPromise?(.failure(ScrobblerError.authorizationCancelled))
+            authState.completeAuth(success: false)
+        }
+        authPromise = nil
+    }
+    
+    private func waitForUserAuthorization(token: String) -> AnyPublisher<String, Error> {
+        Future { [weak self] promise in
+            self?.authPromise = promise
+        }.eraseToAnyPublisher()
     }
     
     private func authenticate() {
@@ -192,8 +217,6 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     
     // Observers for SwiftUI state
     @Published var showingAuthSheet = false
-    @Published var authToken: String = ""
-    private var authPromise: ((Result<String, Error>) -> Void)?
 
     private func handleUserAuthorization(token: String) -> AnyPublisher<String, Error> {
         return Future { [weak self] promise in
@@ -214,33 +237,49 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
         }.eraseToAnyPublisher()
     }
     
-    // Call this method from your SwiftUI view when user completes auth
-    func completeAuthorization(authorized: Bool) {
-        showingAuthSheet = false
-        if authorized {
-            authPromise?(.success(authToken))
-        } else {
-            authPromise?(.failure(ScrobblerError.authorizationCancelled))
-        }
-        authPromise = nil
-    }
-    
+//    // Call this method from your SwiftUI view when user completes auth
+//    func completeAuthorization(authorized: Bool) {
+//        showingAuthSheet = false
+//        if authorized {
+//            authPromise?(.success(authToken))
+//        } else {
+//            authPromise?(.failure(ScrobblerError.authorizationCancelled))
+//        }
+//        authPromise = nil
+//    }
+//    
     private func getSession(token: String) -> AnyPublisher<String, Error> {
-        let parameters: [String: Any] = [
-            "method": "auth.getSession",
-            "api_key": apiKey,
-            "token": token
-        ]
-        
-        let signature = createSignature(parameters: parameters)
-        var allParameters = parameters
-        allParameters["api_sig"] = signature
-        allParameters["format"] = "json"
-        
-        return makeRequest(parameters: allParameters)
-            .decode(type: SessionResponse.self, decoder: JSONDecoder())
-            .map { $0.session.key }
-            .eraseToAnyPublisher()
+        // Add a small delay to allow Last.fm to process the authorization
+        return Future { promise in
+            // Wait 2 seconds before requesting the session
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                let parameters: [String: Any] = [
+                    "method": "auth.getSession",
+                    "api_key": self.apiKey,
+                    "token": token
+                ]
+                
+                let signature = self.createSignature(parameters: parameters)
+                var allParameters = parameters
+                allParameters["api_sig"] = signature
+                allParameters["format"] = "json"
+                
+                self.makeRequest(parameters: allParameters)
+                    .decode(type: SessionResponse.self, decoder: JSONDecoder())
+                    .map { $0.session.key }
+                    .sink(
+                        receiveCompletion: { completion in
+                            if case .failure(let error) = completion {
+                                promise(.failure(error))
+                            }
+                        },
+                        receiveValue: { sessionKey in
+                            promise(.success(sessionKey))
+                        }
+                    )
+                    .store(in: &self.cancellables)
+            }
+        }.eraseToAnyPublisher()
     }
     
     // MARK: - Public API (matching original LastFmManager)
@@ -406,19 +445,19 @@ extension ScrobblerError {
 
 
 extension LastFmDesktopManager {
-    func handleAuthSuccess(_ sessionKey: String) {
-        self.sessionKey = sessionKey
-        UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
-        DispatchQueue.main.async {
-            AuthState.shared.handleAuthSuccess()
-        }
-    }
-    
-    func handleAuthFailure(_ error: String) {
-        DispatchQueue.main.async {
-            AuthState.shared.handleAuthFailure(error)
-        }
-    }
+//    func handleAuthSuccess(_ sessionKey: String) {
+//        self.sessionKey = sessionKey
+//        UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
+//        DispatchQueue.main.async {
+//            AuthState.shared.handleAuthSuccess()
+//        }
+//    }
+//    
+//    func handleAuthFailure(_ error: String) {
+//        DispatchQueue.main.async {
+//            AuthState.shared.handleAuthFailure(error)
+//        }
+//    }
     
     func logout() {
         sessionKey = nil

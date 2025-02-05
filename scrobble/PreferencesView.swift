@@ -10,43 +10,38 @@ import SwiftUI
 struct PreferencesView: View {
     @EnvironmentObject var preferencesManager: PreferencesManager
     @EnvironmentObject var scrobbler: Scrobbler
-    @StateObject private var authState = AuthState.shared
+    @EnvironmentObject var authState: AuthState
     
     var body: some View {
         VStack {
             Form {
-                Section(header: Text("Last.fm API").bold()) {
+                Section("Last.fm API") {
                     TextField("API Key", text: $preferencesManager.apiKey)
-                        .textFieldStyle(.roundedBorder)
                     SecureField("API Secret", text: $preferencesManager.apiSecret)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
-                Section(header: Text("Account").bold()) {
                     TextField("Username", text: $preferencesManager.username)
-                        .textFieldStyle(.roundedBorder)
                     
-                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        HStack {
-                            Button(authState.isAuthenticated ? "Log Out" : "Authenticate") {
-                                if authState.isAuthenticated {
-                                    authState.signOut()
-                                    desktopManager.startAuth()
-                                } else {
-                                    desktopManager.startAuth()
+                    HStack {
+                        if authState.isAuthenticated {
+                            Label("Connected", systemImage: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            
+                            Button("Sign Out") {
+                                if let manager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                                    manager.logout()
+                                }
+                            }
+                        } else {
+                            Button("Connect to Last.fm") {
+                                if let manager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                                    manager.startAuth()
                                 }
                             }
                             .buttonStyle(.borderedProminent)
-                            
-                            if authState.isAuthenticated {
-                                Text("✓ Connected")
-                                    .foregroundStyle(.secondary)
-                            }
                         }
                     }
                 }
                 
-                Section(header: Text("Display").bold()) {
+                Section("Display") {
                     Stepper(
                         "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
                         value: $preferencesManager.numberOfFriendsDisplayed,
@@ -54,14 +49,21 @@ struct PreferencesView: View {
                     )
                 }
             }
-            .padding()
             .formStyle(.grouped)
+            
+            if let error = authState.authError {
+                Text(error)
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding()
+            }
             
             Text("Your credentials are stored securely on-device")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
                 .padding(.bottom)
         }
+        .padding()
     }
 }
 
