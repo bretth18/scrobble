@@ -20,28 +20,58 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     private var isAuthenticated = false
     private var authenticationSubject = PassthroughSubject<Void, Error>()
     
+    @Published private(set) var authState: AuthState = .unknown
+    @Published var isAuthenticating = false
+    
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.api", qos: .background)
+    
+    enum AuthState: Equatable {
+        case unknown
+        case needsAuth
+        case authenticated
+        case failed(String)  // Changed from Error to String since Error isn't Equatable
+        
+        static func == (lhs: AuthState, rhs: AuthState) -> Bool {
+            switch (lhs, rhs) {
+            case (.unknown, .unknown):
+                return true
+            case (.needsAuth, .needsAuth):
+                return true
+            case (.authenticated, .authenticated):
+                return true
+            case (.failed(let lhsError), .failed(let rhsError)):
+                return lhsError == rhsError
+            default:
+                return false
+            }
+        }
+    }
 
     // Keep same init signature for compatibility
-    init(apiKey: String, apiSecret: String, username: String, password: String) {
+    init(apiKey: String, apiSecret: String, username: String, password: String = "") {
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self.username = username
-        self.password = password  // Stored but not used
+        self.password = password
         
-        // Try to load existing session key
+        checkSavedAuth()
+    }
+    
+    private func checkSavedAuth() {
         if let savedSessionKey = UserDefaults.standard.string(forKey: "lastfm_session_key") {
             self.sessionKey = savedSessionKey
-            self.isAuthenticated = true
             validateSavedSession()
         } else {
-            authenticate()
+            authState = .needsAuth
         }
     }
     
     private func validateSavedSession() {
-        guard let sessionKey = self.sessionKey else { return }
+        guard let sessionKey = self.sessionKey else {
+            authState = .needsAuth
+            return
+        }
         
         // Test the session with a simple API call
         let parameters: [String: String] = [
@@ -52,6 +82,7 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
         ]
         
         makeRequest(parameters: parameters)
+            .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure = completion {
@@ -64,6 +95,45 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
                 },
                 receiveValue: { _ in
                     print("Saved session validated successfully")
+                    self.authState = .authenticated
+                }
+            )
+            .store(in: &cancellables)
+    }
+    
+    func startAuth() {
+        guard !isAuthenticating else { return }
+        
+        isAuthenticating = true
+        authState = .unknown
+        
+        getToken()
+            .flatMap { [weak self] token -> AnyPublisher<String, Error> in
+                guard let self = self else {
+                    return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+                }
+                
+                // Open the authorization URL
+                let authURL = "http://www.last.fm/api/auth/?api_key=\(self.apiKey)&token=\(token)"
+                if let url = URL(string: authURL) {
+                    NSWorkspace.shared.open(url)
+                }
+                
+                return self.getSession(token: token)
+            }
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    self?.isAuthenticating = false
+                    if case .failure(let error) = completion {
+                        print("Auth error: \(error)")
+                        self?.authState = .failed(error.localizedDescription)
+                    }
+                },
+                receiveValue: { [weak self] sessionKey in
+                    self?.sessionKey = sessionKey
+                    self?.authState = .authenticated
+                    UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
                 }
             )
             .store(in: &cancellables)
