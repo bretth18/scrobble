@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct scrobbleApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var preferencesManager = PreferencesManager()
     @StateObject private var scrobbler: Scrobbler
     @StateObject private var appState = AppState.shared
@@ -31,11 +32,7 @@ struct scrobbleApp: App {
             MainView()
                 .environmentObject(scrobbler)
                 .environmentObject(preferencesManager)
-                .sheet(isPresented: $authState.showingAuthSheet) {
-                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        LastFmAuthSheet(lastFmManager: desktopManager)
-                    }
-                }
+                .environmentObject(authState)
             
             Divider()
             
@@ -53,6 +50,12 @@ struct scrobbleApp: App {
                 .environmentObject(preferencesManager)
                 .environmentObject(appState)
                 .environmentObject(authState)
+                .sheet(isPresented: $authState.showingAuthSheet) {
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        LastFmAuthSheet(lastFmManager: desktopManager)
+                            .environmentObject(authState)
+                    }
+                }
         }
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
@@ -62,6 +65,61 @@ struct scrobbleApp: App {
                 .environmentObject(preferencesManager)
                 .environmentObject(scrobbler)
                 .environmentObject(authState)
+                .sheet(isPresented: $authState.showingAuthSheet) {
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        LastFmAuthSheet(lastFmManager: desktopManager)
+                            .environmentObject(authState)
+                    }
+                }
+        }
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Setup URL event handling for Last.fm authentication callbacks
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleURLEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+    }
+    
+    @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else { return }
+        guard let url = URL(string: urlString) else { return }
+        
+        // Handle the URL - look for Last.fm auth callbacks
+        handleLastFmAuthCallback(url: url)
+    }
+    
+    private func handleLastFmAuthCallback(url: URL) {
+        // Example URL: scrobble://auth?token=abc123
+        guard url.scheme == "scrobble" else { return }
+        
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        guard let queryItems = components?.queryItems else { return }
+        
+        // Check for token parameter
+        if let tokenItem = queryItems.first(where: { $0.name == "token" }),
+           let token = tokenItem.value {
+            // Notify LastFmDesktopManager about successful authorization
+            NotificationCenter.default.post(
+                name: NSNotification.Name("LastFmAuthSuccess"),
+                object: nil,
+                userInfo: ["token": token]
+            )
+        }
+        // Check for error parameter
+        else if let errorItem = queryItems.first(where: { $0.name == "error" }),
+                let error = errorItem.value {
+            // Notify LastFmDesktopManager about failed authorization
+            NotificationCenter.default.post(
+                name: NSNotification.Name("LastFmAuthFailure"),
+                object: nil,
+                userInfo: ["error": error]
+            )
         }
     }
 }

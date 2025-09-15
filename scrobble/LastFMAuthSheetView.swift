@@ -6,46 +6,48 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct LastFmAuthSheet: View {
     @ObservedObject var lastFmManager: LastFmDesktopManager
     @EnvironmentObject var authState: AuthState
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Last.fm Authentication")
-                .font(.headline)
-            
+        VStack(spacing: 0) {
             if authState.isAuthenticating {
-                ProgressView("Authorizing...")
-                    .progressViewStyle(.circular)
-            } else {
-                Text("Please authorize the app in your browser.\nClick Continue once you've completed the authorization.")
-                    .multilineTextAlignment(.center)
-                
-                HStack(spacing: 16) {
+                VStack(spacing: 20) {
+                    Text("Last.fm Authentication")
+                        .font(.headline)
+                    
+                    ProgressView("Getting session...")
+                        .progressViewStyle(.circular)
+                    
+                    Text("Requesting session from Last.fm...\nThis may take a few seconds.")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                    
                     Button("Cancel") {
+                        authState.isAuthenticating = false
                         lastFmManager.completeAuthorization(authorized: false)
                     }
                     
-                    Button("Continue") {
-                        authState.isAuthenticating = true
-                        lastFmManager.completeAuthorization(authorized: true)
+                    if let error = authState.authError {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .font(.caption)
                     }
-                    .keyboardShortcut(.defaultAction)
                 }
-            }
-            
-            if let error = authState.authError {
-                Text(error)
-                    .foregroundColor(.red)
-                    .font(.caption)
+                .padding()
+                .frame(width: 400, height: 200)
+            } else {
+                LastFmWebAuthView(lastFmManager: lastFmManager)
+                    .environmentObject(authState)
             }
         }
-        .padding()
-        .frame(width: 300)
     }
 }
+
 #Preview {
     LastFmAuthSheet(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", password: ""))
+        .environmentObject(AuthState.shared)
 }

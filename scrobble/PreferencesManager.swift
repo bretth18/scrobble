@@ -9,12 +9,10 @@ import Foundation
 import AppKit
 
 class PreferencesManager: ObservableObject {
-    @Published var apiKey: String {
-        didSet { UserDefaults.standard.set(apiKey, forKey: "lastFmApiKey") }
-    }
-    @Published var apiSecret: String {
-        didSet { UserDefaults.standard.set(apiSecret, forKey: "lastFmApiSecret") }
-    }
+    let apiKey = "70d4b4448efbe1f95036d2653a5c9e2d"
+    let apiSecret = "cd31e625c60fd33ce487761130613d5d"
+    
+
     @Published var username: String {
         didSet { UserDefaults.standard.set(username, forKey: "lastFmUsername") }
     }
@@ -26,8 +24,8 @@ class PreferencesManager: ObservableObject {
     }
     
     init() {
-        apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
-        apiSecret = UserDefaults.standard.string(forKey: "lastFmApiSecret") ?? ""
+//        apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
+//        apiSecret = UserDefaults.standard.string(forKey: "lastFmApiSecret") ?? ""
         username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
         password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
         numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3

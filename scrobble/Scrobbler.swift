@@ -52,6 +52,8 @@ class Scrobbler: ObservableObject {
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
     private var scrobbleTimer: Timer?
+    
+    private var mediaRemoteFetcher: NowPlayingFetcher?
 
     
     init(lastFmManager: LastFmManagerType? = nil) {
@@ -62,6 +64,20 @@ class Scrobbler: ObservableObject {
             // This should never be hit in production since you're passing the manager in ScrobbleApp
             self.lastFmManager = LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
         }
+        
+        
+//        // Attempt to initialize MediaRemote in-process shim (optional)
+//        self.mediaRemoteFetcher = NowPlayingFetcher()
+//        if mediaRemoteFetcher != nil {
+//            // Optionally listen for now playing notifications to trigger quicker updates
+//            _ = mediaRemoteFetcher?.startNotifications { [weak self] in
+//                self?.checkNowPlaying()
+//            }
+//            
+//            print("MediaRemoteFetcher initialized successfully")
+//        }
+        
+        
         setupMusicAppObserver()
         startPolling()
         checkNowPlaying()
@@ -92,7 +108,7 @@ class Scrobbler: ObservableObject {
         queue.async { [weak self] in
             guard let self = self else { return }
             
-            if let trackInfo = self.getCurrentTrackInfo() {
+            if let trackInfo = self.getCurrentTrackInfo(){
                 let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
                 print("Current track: \(trackString)")
                 
@@ -164,6 +180,114 @@ class Scrobbler: ObservableObject {
         return (name: components[0], artist: components[1], album: components[2], duration: duration)
     }
     
+    private func getCurrentTrackInfoNew() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String)? {
+        let script = """
+            use framework "Foundation"
+            use framework "AppKit"
+            use scripting additions
+
+            on getNowPlayingInfoAsString()
+                set mediaRemoteBundle to current application's NSBundle's bundleWithPath:"/System/Library/PrivateFrameworks/MediaRemote.framework"
+                mediaRemoteBundle's load()
+                
+                set MRNowPlayingRequest to current application's NSClassFromString("MRNowPlayingRequest")
+                if MRNowPlayingRequest is missing value then
+                    error "MRNowPlayingRequest class not found."
+                end if
+                
+                set nowItem to MRNowPlayingRequest's localNowPlayingItem()
+                if nowItem is missing value then return ""
+                
+                set infoDict to nowItem's nowPlayingInfo()
+                
+                -- Fetch metadata
+                set title to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoTitle"
+                if title is missing value then set title to ""
+                set artist to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoArtist"
+                if artist is missing value then set artist to ""
+                set album to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoAlbum"
+                if album is missing value then set album to ""
+                set duration to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoDuration"
+                if duration is missing value then set duration to 0
+                set rate to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoPlaybackRate"
+                if rate is missing value then set rate to 0
+                
+                -- App name
+                set appName to MRNowPlayingRequest's localNowPlayingPlayerPath()'s client()'s displayName()
+                if appName is missing value then set appName to ""
+                
+                -- Playback state
+                set isPlaying to "false"
+                if (rate as real) > 0 then set isPlaying to "true"
+                
+                -- Join as pipe-separated string
+                set resultString to (title as text) & "|" & (artist as text) & "|" & (album as text) & "|" & (duration as string) & "|" & (appName as text) & "|" & isPlaying
+                
+                return resultString
+            end getNowPlayingInfoAsString
+            getNowPlayingInfoAsString()
+            """
+        
+        let appleScript = NSAppleScript(source: script)
+        var error: NSDictionary?
+        
+        guard let result = appleScript?.executeAndReturnError(&error).stringValue,
+              !result.isEmpty else {
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = "Error getting track info: \(error)"
+                }
+            }
+            return nil
+        }
+        
+        let components = result.components(separatedBy: "|")
+        guard components.count == 6,
+                !components[0].isEmpty,
+                !components[1].isEmpty,
+                !components[2].isEmpty,
+                !components[4].isEmpty,
+              !components[5].isEmpty else {
+            return nil
+        }
+        
+        let name = components[0]
+        let artist = components[1]
+        let album = components[2]
+        let duration = TimeInterval(components[3]) ?? 0
+        let application = components[4]
+        let isPlaying = components[5] == "true"
+
+        
+        
+        // Only return info if something is actually playing
+        guard isPlaying else {
+            return nil
+        }
+        
+        return (name: name, artist: artist, album: album, duration: duration, application: application)
+        
+    }
+    
+    private func getCurrentTrackInfoViaShim() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String)? {
+        print("Fetching current track info via MediaRemoteFetcher shim")
+        guard let fetcher = mediaRemoteFetcher else {
+            print("MediaRemoteFetcher not initialized, attempting to initialize")
+            return nil
+        }
+        print("Using MediaRemoteFetcher shim to get track info")
+        let info = fetcher.currentInfo()
+        let parsed = fetcher.parse(info)
+        guard let name = parsed.title, let artist = parsed.artist else { return nil }
+        let album = parsed.album ?? ""
+        let duration = parsed.duration
+        let rate = parsed.rate ?? 0
+        // Only return when playing
+        guard rate > 0 else { return nil }
+        // Application name is unavailable via this minimal shim; return empty string
+        return (name: name, artist: artist, album: album, duration: duration, application: "")
+    }
+    
     private func scrobbleTrack(artist: String, title: String, album: String) {
         print("Attempting to scrobble: \(artist) - \(title)")
         isScrobbling = true
@@ -196,7 +320,7 @@ class Scrobbler: ObservableObject {
         invalidateScrobbleTimer()
         
         // Get the track duration
-        if let trackInfo = getCurrentTrackInfo() {
+        if let trackInfo = getCurrentTrackInfoNew() {
             let duration = trackInfo.duration ?? 0
             print("Setting up scrobble timer for track with duration: \(duration) seconds")
             
@@ -265,3 +389,4 @@ extension Scrobbler {
         print("[\(timestamp)] \(message)")
     }
 }
+

@@ -16,9 +16,37 @@ struct PreferencesView: View {
         VStack {
             Form {
                 Section("Last.fm API") {
-                    TextField("API Key", text: $preferencesManager.apiKey)
-                    SecureField("API Secret", text: $preferencesManager.apiSecret)
+                    Text("API Key: \(preferencesManager.apiKey)")
+                    Text("API Secret: \(preferencesManager.apiSecret)")
                     TextField("Username", text: $preferencesManager.username)
+                    
+                    HStack(spacing: 8) {
+                        Group {
+                            switch (scrobbler.lastFmManager as? LastFmDesktopManager)?.authStatus ?? .unknown {
+                            case .authenticated:
+                                Label("Authenticated", systemImage: "checkmark.seal.fill")
+                                    .foregroundStyle(.green)
+                            case .needsAuth:
+                                Label("Not connected", systemImage: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.yellow)
+                            case .failed(let message):
+                                Label("Auth failed", systemImage: "xmark.octagon.fill")
+                                    .foregroundStyle(.red)
+                            case .unknown:
+                                Label("Checking...", systemImage: "hourglass")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .font(.subheadline)
+
+                        if case .failed(let message) = (scrobbler.lastFmManager as? LastFmDesktopManager)?.authStatus {
+                            Text(message)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                    }
                     
                     HStack {
                         if authState.isAuthenticated {
@@ -31,12 +59,16 @@ struct PreferencesView: View {
                                 }
                             }
                         } else {
-                            Button("Connect to Last.fm") {
+                            Button("Open Login Window") {
                                 if let manager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                                    manager.startAuth()
+                                    if manager.currentAuthToken.isEmpty {
+                                        manager.startAuth()
+                                    } else {
+                                        authState.showingAuthSheet = true
+                                    }
                                 }
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.bordered)
                         }
                     }
                 }
@@ -71,3 +103,4 @@ struct PreferencesView: View {
     PreferencesView()
         .environmentObject(PreferencesManager())   
 }
+

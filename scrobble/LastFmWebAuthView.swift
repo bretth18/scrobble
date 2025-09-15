@@ -13,6 +13,7 @@ struct LastFmWebAuthView: View {
     @EnvironmentObject var authState: AuthState
     @State private var webPage = WebPage()
     @State private var isLoading = true
+    @State private var currentURL = ""
     
     var body: some View {
         VStack(spacing: 0) {
@@ -40,8 +41,12 @@ struct LastFmWebAuthView: View {
                 .onAppear {
                     loadAuthPage()
                 }
-                .onChange(of: webPage.currentNavigationEvent) { _, newEvent in
-                    handleNavigationChange(newEvent)
+                .onChange(of: webPage.isLoading) { _, newValue in
+                    isLoading = newValue
+                    if !newValue {
+                        // Page finished loading, check for authorization completion
+                        checkIfAuthorizationComplete()
+                    }
                 }
             
             // Footer
@@ -54,6 +59,11 @@ struct LastFmWebAuthView: View {
                 Spacer()
                 
                 if !isLoading {
+                    Button("I've authorized the app") {
+                        completeAuthorization()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    
                     Button("Reload") {
                         loadAuthPage()
                     }
@@ -78,83 +88,94 @@ struct LastFmWebAuthView: View {
         isLoading = true
         authState.authError = nil
         
-        let authURL = "http://www.last.fm/api/auth/?api_key=\(lastFmManager.apiKey)&token=\(lastFmManager.currentAuthToken)"
+        let authURL = "https://www.last.fm/api/auth/?api_key=\(lastFmManager.apiKey)&token=\(lastFmManager.currentAuthToken)"
         
         if let url = URL(string: authURL) {
             let request = URLRequest(url: url)
             let _ = webPage.load(request)
-        }
-    }
-    
-    private func handleNavigationChange(_ event: WebPage.NavigationEvent?) {
-        guard let event = event else { return }
-        
-        switch event.state {
-        case .started:
-            isLoading = true
-            authState.authError = nil
-            
-        case .finished:
-            isLoading = false
-            checkIfAuthorizationComplete()
-            
-        case .failed:
-            isLoading = false
-            if let error = event.error {
-                authState.authError = "Failed to load: \(error.localizedDescription)"
-            }
-            
-        default:
-            break
+            currentURL = authURL
         }
     }
     
     private func checkIfAuthorizationComplete() {
-        // Check if we're on a success page or if the URL indicates success
-        guard let currentURL = webPage.currentNavigationEvent?.frameInfo.request.url?.absoluteString else {
-            return
-        }
+        print("Checking if authorization is complete...")
         
-        print("Current URL: \(currentURL)")
-        
-        // Check if we're on a page that indicates successful authorization
-        // Last.fm typically shows a success page or redirects after successful auth
-        if currentURL.contains("authorized") || 
-           currentURL.contains("success") || 
-           currentURL.contains("callback") ||
-           isLastFmSuccessPage() {
-            
-            print("Authorization appears complete, attempting to get session...")
-            authState.isAuthenticating = true
-            lastFmManager.completeAuthorization(authorized: true)
+        // First check the current URL
+        Task {
+            do {
+                // Get the current URL from the webview
+                let urlScript = "window.location.href"
+                if let currentURLResult = try await webPage.callJavaScript(urlScript) as? String {
+                    currentURL = currentURLResult
+                    print("Current URL: \(currentURL)")
+                    
+                    // Check URL patterns that might indicate success
+                    if currentURL.contains("authorized") || 
+                       currentURL.contains("success") || 
+                       currentURL.contains("callback") {
+                        
+                        print("Authorization appears complete based on URL, attempting to get session...")
+                        DispatchQueue.main.async {
+                            self.completeAuthorization()
+                        }
+                        return
+                    }
+                }
+                
+                // Check page content for authorization indicators
+                await checkPageContentForSuccess()
+            } catch {
+                print("Error checking URL: \(error)")
+                await checkPageContentForSuccess()
+            }
         }
     }
     
-    private func isLastFmSuccessPage() -> Bool {
-        // We can check the page content to see if authorization was successful
-        // This is a simplified approach - you might want to check for specific content
-        Task {
-            do {
-                let script = """
-                document.body.innerText.toLowerCase().includes('authorized') || 
-                document.body.innerText.toLowerCase().includes('success') ||
-                document.querySelector('.auth-success, .success, .authorized') !== null
-                """
+    private func checkPageContentForSuccess() async {
+        do {
+            // Look for success indicators in the page
+            let script = """
+            function checkForSuccess() {
+                const bodyText = document.body.innerText.toLowerCase();
+                const hasSuccessText = bodyText.includes('authorized') || 
+                                      bodyText.includes('success') ||
+                                      bodyText.includes('application has been authorized') ||
+                                      bodyText.includes('permission granted') ||
+                                      bodyText.includes('you have successfully authorized');
                 
-                let result = try await webPage.callJavaScript(script)
-                if let isSuccess = result as? Bool, isSuccess {
-                    DispatchQueue.main.async {
-                        print("Detected successful authorization via page content")
-                        self.authState.isAuthenticating = true
-                        self.lastFmManager.completeAuthorization(authorized: true)
-                    }
-                }
-            } catch {
-                print("Error checking page content: \(error)")
+                const hasSuccessElement = document.querySelector('.auth-success, .success, .authorized, .permission-granted, .successful') !== null;
+                
+                // Look for specific Last.fm success patterns
+                const hasLastFmSuccess = bodyText.includes('application authorized') ||
+                                       bodyText.includes('app authorized') ||
+                                       bodyText.includes('successfully granted');
+                
+                console.log('Body text contains:', bodyText.substring(0, 200));
+                console.log('Success indicators:', {hasSuccessText, hasSuccessElement, hasLastFmSuccess});
+                
+                return hasSuccessText || hasSuccessElement || hasLastFmSuccess;
             }
+            return checkForSuccess();
+            """
+            
+            let result = try await webPage.callJavaScript(script)
+            if let isSuccess = result as? Bool, isSuccess {
+                print("Detected successful authorization via page content")
+                DispatchQueue.main.async {
+                    self.completeAuthorization()
+                }
+            } else {
+                print("No success indicators found yet")
+            }
+        } catch {
+            print("Error checking page content: \(error)")
         }
-        
-        return false
+    }
+    
+    private func completeAuthorization() {
+        print("Completing authorization...")
+        authState.isAuthenticating = true
+        lastFmManager.completeAuthorization(authorized: true)
     }
 }
 

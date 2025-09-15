@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.bretthenderson.scrobble</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>scrobble</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppleEventsUsageDescription</key>
     <string>This app needs to control Apple Music to scrobble tracks.</string>
     <key>NSNetworkVolumesUsageDescription</key>

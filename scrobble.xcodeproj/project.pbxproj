@@ -15,6 +15,9 @@
 		A64304C02D52F479001998B6 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BF2D52F479001998B6 /* AuthView.swift */; };
 		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
+		A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */; };
+		A6A580982E78CE870079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */; };
+		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -36,6 +39,11 @@
 		A64304BF2D52F479001998B6 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
+		A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmWebAuthView.swift; sourceTree = "<group>"; };
+		A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
+		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
+		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
+		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -109,6 +117,11 @@
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
+				A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */,
+				A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */,
+				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
+				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
+				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
 			);
 			path = scrobble;
 			sourceTree = "<group>";
@@ -161,10 +174,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					A6F212FB2C8C021800E1D23B = {
 						CreatedOnToolsVersion = 15.4;
+						LastSwiftMigration = 2600;
 					};
 				};
 			};
@@ -213,7 +227,10 @@
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
+				A6A580982E78CE870079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
+				A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */,
+				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
 				A64304C02D52F479001998B6 /* AuthView.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
@@ -260,6 +277,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -283,6 +301,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -324,6 +343,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -340,6 +360,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -349,14 +370,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
@@ -367,10 +392,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -380,14 +408,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
@@ -398,10 +430,12 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

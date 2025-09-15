@@ -52,13 +52,19 @@ struct AuthView: View {
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(lastFmManager.isAuthenticating)
+                } else if case .authenticated = lastFmManager.authStatus {
+                    Button("OK") {
+                        dismiss()
+                        isAuthWindowShown = false
+                    }
+                    .keyboardShortcut(.defaultAction)
                 }
             }
             .padding(.top)
         }
         .padding()
         .frame(width: 300)
-        .onChange(of: lastFmManager.authStatus) { state in
+        .onChange(of: lastFmManager.authStatus) { _, state in
             if case .authenticated = state {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     dismiss()
