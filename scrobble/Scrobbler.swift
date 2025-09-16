@@ -38,6 +38,7 @@ class Scrobbler: ObservableObject {
     let lastFmManager: LastFmManagerType
 
     @Published var currentTrack: String = "No track playing"
+    @Published var currentArtwork: NSImage? = nil
     @Published var isScrobbling: Bool = false
     @Published var lastScrobbledTrack: String = ""
     @Published var errorMessage: String?
@@ -66,21 +67,32 @@ class Scrobbler: ObservableObject {
         }
         
         
-//        // Attempt to initialize MediaRemote in-process shim (optional)
+        
+        self.mediaRemoteFetcher = NowPlayingFetcher()
+        
+        if self.mediaRemoteFetcher != nil {
+            self.mediaRemoteFetcher?.setupAndStart()
+            print("MediaRemoteTestFetcher initialized successfully")
+        }
+        
+        
+        
+        // Attempt to initialize MediaRemote in-process shim (optional)
 //        self.mediaRemoteFetcher = NowPlayingFetcher()
 //        if mediaRemoteFetcher != nil {
 //            // Optionally listen for now playing notifications to trigger quicker updates
-//            _ = mediaRemoteFetcher?.startNotifications { [weak self] in
-//                self?.checkNowPlaying()
+//            _ = mediaRemoteFetcher?.startNotifications { _ in
+//                self.checkNowPlaying()
 //            }
 //            
 //            print("MediaRemoteFetcher initialized successfully")
 //        }
-        
+//        
         
         setupMusicAppObserver()
         startPolling()
         checkNowPlaying()
+        
     }
     
     private func setupMusicAppObserver() {
@@ -108,7 +120,7 @@ class Scrobbler: ObservableObject {
         queue.async { [weak self] in
             guard let self = self else { return }
             
-            if let trackInfo = self.getCurrentTrackInfo(){
+            if let trackInfo = self.getCurrentTrackInfoViaFetcher(){
                 let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
                 print("Current track: \(trackString)")
                 
@@ -116,6 +128,8 @@ class Scrobbler: ObservableObject {
                     // If we're getting the same track info, this is likely just a polling update
                     let isSameTrack = trackString == self.currentTrack
                     self.currentTrack = trackString
+                    
+                    self.currentArtwork = trackInfo.artwork
                     
                     // Always update now playing status
                     self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
@@ -269,23 +283,25 @@ class Scrobbler: ObservableObject {
         
     }
     
-    private func getCurrentTrackInfoViaShim() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String)? {
-        print("Fetching current track info via MediaRemoteFetcher shim")
+
+    
+    private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
+        print("Fetching current track info via MediaRemoteTestFetcher")
         guard let fetcher = mediaRemoteFetcher else {
-            print("MediaRemoteFetcher not initialized, attempting to initialize")
+            print("MediaRemoteTestFetcher not initialized")
             return nil
         }
-        print("Using MediaRemoteFetcher shim to get track info")
-        let info = fetcher.currentInfo()
-        let parsed = fetcher.parse(info)
-        guard let name = parsed.title, let artist = parsed.artist else { return nil }
-        let album = parsed.album ?? ""
-        let duration = parsed.duration
-        let rate = parsed.rate ?? 0
-        // Only return when playing
-        guard rate > 0 else { return nil }
-        // Application name is unavailable via this minimal shim; return empty string
-        return (name: name, artist: artist, album: album, duration: duration, application: "")
+        let trackInfo = fetcher.fetchCurrentTrackInfo()
+        guard trackInfo.isPlaying else {
+            print("No track currently playing (isPlaying = false) in MediaRemoteTestFetcher")
+            return nil
+        }
+        guard !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
+            print("No track currently playing in MediaRemoteTestFetcher")
+            return nil
+        }
+        print("Fetched track info: \(trackInfo)")
+        return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, artwork: trackInfo.artwork)
     }
     
     private func scrobbleTrack(artist: String, title: String, album: String) {
@@ -320,7 +336,7 @@ class Scrobbler: ObservableObject {
         invalidateScrobbleTimer()
         
         // Get the track duration
-        if let trackInfo = getCurrentTrackInfoNew() {
+        if let trackInfo = getCurrentTrackInfoViaFetcher() {
             let duration = trackInfo.duration ?? 0
             print("Setting up scrobble timer for track with duration: \(duration) seconds")
             

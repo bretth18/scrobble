@@ -29,16 +29,20 @@ struct scrobbleApp: App {
     
     var body: some Scene {
         MenuBarExtra {
-            MainView()
-                .environmentObject(scrobbler)
-                .environmentObject(preferencesManager)
-                .environmentObject(authState)
+            VStack(spacing: 10) {
+                MainView()
+                    .environmentObject(scrobbler)
+                    .environmentObject(preferencesManager)
+                    .environmentObject(authState)
+                
+                Divider()
+                
+                MenuButtons()
+                    .environmentObject(authState)
+                    .environmentObject(appState)
+            }
+            .padding(8)
             
-            Divider()
-            
-            MenuButtons()
-                .environmentObject(authState)
-                .environmentObject(appState)
         } label: {
             Image(systemName: "music.note")
         }

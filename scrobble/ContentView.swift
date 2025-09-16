@@ -43,6 +43,15 @@ struct ContentView: View {
                             .font(.body)
                     }
                     
+                    if let currentArtwork = scrobbler.currentArtwork {
+                        Image(nsImage: currentArtwork)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .cornerRadius(8)
+                    }
+                        
+                    
                     Spacer()
                     
                     HStack(alignment: .center) {

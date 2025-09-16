@@ -16,8 +16,11 @@
 		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */; };
-		A6A580982E78CE870079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */; };
 		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
+		A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6A580A22E78D8480079DC91 /* MediaPlayer.framework */; };
+		A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */; };
+		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
+		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -30,6 +33,20 @@
 		A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A6A580AA2E78DB9F0079DC91 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A63A2B162D27177D000BC92E /* FriendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewModel.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
@@ -40,10 +57,11 @@
 		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmWebAuthView.swift; sourceTree = "<group>"; };
-		A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
 		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
 		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
+		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingTestFetcher.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -69,6 +87,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */,
+				A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */,
 				A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,7 +138,7 @@
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
 				A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */,
-				A6A580972E78CE870079DC91 /* NowPlayingFetcher.swift */,
+				A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */,
 				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
 				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
 				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
@@ -137,6 +157,7 @@
 		A6F213142C8C05E800E1D23B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A6A580A22E78D8480079DC91 /* MediaPlayer.framework */,
 				A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */,
 			);
 			name = Frameworks;
@@ -152,6 +173,7 @@
 				A6F212F82C8C021800E1D23B /* Sources */,
 				A6F212F92C8C021800E1D23B /* Frameworks */,
 				A6F212FA2C8C021800E1D23B /* Resources */,
+				A6A580AA2E78DB9F0079DC91 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -191,6 +213,9 @@
 				Base,
 			);
 			mainGroup = A6F212F32C8C021800E1D23B;
+			packageReferences = (
+				A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */,
+			);
 			productRefGroup = A6F212FD2C8C021800E1D23B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -222,12 +247,12 @@
 				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
 				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
+				A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
-				A6A580982E78CE870079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
 				A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
@@ -378,11 +403,15 @@
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
@@ -393,9 +422,15 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -416,11 +451,15 @@
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
@@ -431,9 +470,15 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -462,6 +507,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ejbills/mediaremote-adapter.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */;
+			productName = MediaRemoteAdapter;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A6F212F42C8C021800E1D23B /* Project object */;
 }
