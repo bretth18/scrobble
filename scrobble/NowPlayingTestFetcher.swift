@@ -10,7 +10,7 @@ import MediaRemoteAdapter
 
 final class NowPlayingFetcher {
 
-    let mediaController = MediaController()
+    let mediaController: MediaController
     
     var currentTrackDuration: TimeInterval = 0
     var currentTrackTitle: String = ""
@@ -22,7 +22,8 @@ final class NowPlayingFetcher {
     var isPlaying: Bool = false
     
     
-    init() {
+    init(bundleId: String? = nil) {
+        mediaController = MediaController(bundleIdentifier: bundleId)
         mediaController.onTrackInfoReceived = { trackInfo in
             self.currentTrackDuration = (trackInfo.payload.durationMicros ?? 0) / 1_000_000
             self.currentTrackTitle = trackInfo.payload.title!

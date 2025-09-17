@@ -14,7 +14,7 @@ struct ContentView: View {
     @State private var showingPreferences = false
     
     var body: some View {
-            VStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("SCROBBLE")
                         .font(.headline)
@@ -22,23 +22,23 @@ struct ContentView: View {
 
                 
                 HStack {
-                    Text("Status:")
-                        .font(.caption2)
+                    Text("status:")
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(.secondary.opacity(0.7))
                     Text(scrobbler.musicAppStatus)
                         .font(.subheadline)
-                        .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green : .red)
+                        .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
                 }
                 .padding()
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(.ultraThinMaterial)
-                }
+                .glassEffect(in: .rect(cornerRadius: 8))
                 
                 
                 VStack(alignment: .leading) {
+                    Text("Now Playing:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary.opacity(0.7))
                     HStack(alignment: .center) {
-                        Text("Now Playing:")
-                            .font(.subheadline)
+
                         Text(scrobbler.currentTrack)
                             .font(.body)
                     }
@@ -54,19 +54,29 @@ struct ContentView: View {
                     
                     Spacer()
                     
+                    Text("Last Scrobbled:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary.opacity(0.7))
+                    
                     HStack(alignment: .center) {
-                        Text("Last Scrobbled:")
-                            .font(.subheadline)
                         Text(scrobbler.lastScrobbledTrack)
                             .font(.body)
                     }
                 }
+                .frame(minWidth: 200)
                 .padding()
                 .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(.ultraThickMaterial)
-                        .shadow(radius: 1)
+                    if let currentArtwork = scrobbler.currentArtwork {
+                        Image(nsImage: currentArtwork)
+                            .resizable()
+                            .scaledToFill()
+                            .blur(radius: 20)
+                            .opacity(0.5)
+                            
+                    }
                 }
+                .glassEffect(in: .rect(cornerRadius: 8))
+
                 
                 if scrobbler.isScrobbling {
                     ProgressView()
@@ -80,13 +90,6 @@ struct ContentView: View {
                         .font(.caption)
                 }
                 
-//                Button("Open Preferences") {
-//                    NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-//                }
-//                
-//                Button("Quit") {
-//                    NSApplication.shared.terminate(nil)
-//                }
             }
             .padding()
         }
