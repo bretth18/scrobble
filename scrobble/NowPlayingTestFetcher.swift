@@ -8,9 +8,21 @@
 import Foundation
 import MediaRemoteAdapter
 
+struct KnownMusicBundleIds: Hashable {
+    static let spotify = "com.spotify.client"
+    static let appleMusic = "com.apple.music"
+    static let safari = "com.apple.safari"
+}
+
+struct KnownMusicAppNames: Hashable {
+    static let spotify = ("Spotify", "Spotify for Mac", "spotify")
+    static let appleMusic = ("Music" ,"Apple Music" ,"music" ,"Music.app" ,"Music.app (Music)" ,"AppleMusic")
+    static let safari = ("Safari" ,"Safari.app" ,"safari" , "Safari.app (Safari)")
+}
+
 final class NowPlayingFetcher {
 
-    let mediaController: MediaController
+    var mediaController: MediaController
     
     var currentTrackDuration: TimeInterval = 0
     var currentTrackTitle: String = ""
@@ -38,6 +50,17 @@ final class NowPlayingFetcher {
         }
     }
     
+    func setOnTrackInfoReceived(_ callback: @escaping (TrackInfo) -> Void) {
+        mediaController.onTrackInfoReceived = callback
+    }
+    
+    
+    func reloadWithNewBundleId(_ bundleId: String) {
+        mediaController.stop()
+        mediaController = MediaController(bundleIdentifier: bundleId)
+        setupAndStart()
+    }
+    
     func setupAndStart() {
         mediaController.startListening()
     }
@@ -53,5 +76,9 @@ final class NowPlayingFetcher {
     
     func fetchCurrentArtworkBase64() -> String? {
         return currentArtworkBase64
+    }
+    
+    deinit {
+        mediaController.stop()
     }
 }

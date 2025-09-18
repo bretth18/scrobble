@@ -25,9 +25,11 @@ struct FriendsView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .disabled(viewModel.isLoading)
+                .buttonStyle(.glass)
             }
             .padding(.horizontal)
             .padding(.top)
+            .scrollEdgeEffectStyle(.soft, for: .bottom)
             
             if viewModel.isLoading {
                 ProgressView()
@@ -48,6 +50,7 @@ struct FriendsView: View {
                     }
                     .padding(.horizontal)
                 }
+                .scrollEdgeEffectStyle(.soft, for: .all)
             }
             
             if let error = viewModel.errorMessage {
@@ -156,11 +159,9 @@ struct FriendCardView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 10)
-                .foregroundStyle(.ultraThinMaterial)
-                .shadow(radius: 1)
-        }
+        .glassEffect(in: .rect(cornerRadius: 10))
+        .shadow(radius: 1)
+
     }
     
     private func formatDate(uts: String) -> String {

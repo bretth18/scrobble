@@ -13,11 +13,32 @@ struct PreferencesView: View {
     @EnvironmentObject var authState: AuthState
     
     var body: some View {
-        VStack {
+        VStack() {
+            
+
+            
             Form {
+                
+                Section("About") {
+                    
+                    HStack(alignment: .center) {
+                        Text("scrobbler v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        
+                        Text("by COMPUTER DATA")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text("Billions must scrobble!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
                 Section("Last.fm API") {
-                    Text("API Key: \(preferencesManager.apiKey)")
-                    Text("API Secret: \(preferencesManager.apiSecret)")
+//                    Text("API Key: \(preferencesManager.apiKey)")
+//                    Text("API Secret: \(preferencesManager.apiSecret)")
                     TextField("Username", text: $preferencesManager.username)
                     
                     HStack(spacing: 8) {
@@ -80,6 +101,10 @@ struct PreferencesView: View {
                         in: 1...10
                     )
                 }
+                
+                Section("Scrobbling") {
+                    TextField("Media App Source", text: $preferencesManager.mediaAppSource)
+                }
             }
             .formStyle(.grouped)
             
@@ -96,11 +121,13 @@ struct PreferencesView: View {
                 .padding(.bottom)
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 #Preview {
     PreferencesView()
-        .environmentObject(PreferencesManager())   
+        .environmentObject(PreferencesManager())
+        .environmentObject(Scrobbler())
 }
 

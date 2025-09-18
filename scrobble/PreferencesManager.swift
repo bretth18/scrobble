@@ -22,6 +22,9 @@ class PreferencesManager: ObservableObject {
     @Published var numberOfFriendsDisplayed: Int {
         didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
     }
+    @Published var mediaAppSource: String {
+        didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource")}
+    }
     
     init() {
 //        apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
@@ -29,6 +32,7 @@ class PreferencesManager: ObservableObject {
         username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
         password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
         numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3
+        mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Music"
     }
     
     func showPreferences() {

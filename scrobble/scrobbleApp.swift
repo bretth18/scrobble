@@ -48,7 +48,7 @@ struct scrobbleApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        WindowGroup("Scrobbler") {
+        WindowGroup("Scrobbler", id: "scrobbler") {
             MainView()
                 .environmentObject(scrobbler)
                 .environmentObject(preferencesManager)
@@ -64,18 +64,25 @@ struct scrobbleApp: App {
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
 
+        
         Settings {
-            PreferencesView()
-                .environmentObject(preferencesManager)
-                .environmentObject(scrobbler)
-                .environmentObject(authState)
-                .sheet(isPresented: $authState.showingAuthSheet) {
-                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        LastFmAuthSheet(lastFmManager: desktopManager)
-                            .environmentObject(authState)
+                PreferencesView()
+                    .environmentObject(preferencesManager)
+                    .environmentObject(scrobbler)
+                    .environmentObject(authState)
+                    .sheet(isPresented: $authState.showingAuthSheet) {
+                        if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                            LastFmAuthSheet(lastFmManager: desktopManager)
+                                .environmentObject(authState)
+                        }
                     }
-                }
+            
+                
         }
+        .windowResizability(.automatic)
+        .defaultSize(width: 800, height: 600)
+    
+        
     }
 }
 
@@ -131,20 +138,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct MenuButtons: View {
     @EnvironmentObject var appState: AppState
     
+    @Environment(\.openWindow) var openWindow
+    
     var body: some View {
-        HStack {
-            Button("Open Window") {
-                appState.showMainWindow()
+        GlassEffectContainer(spacing: 10) {
+            HStack(alignment: .center) {
+                Button {
+                    openWindow(id: "scrobbler")
+                } label: {
+                    Label("Window", systemImage: "rectangle.expand.vertical" )
+                        .foregroundStyle(.secondary.opacity(0.7))
+                        .font(.caption2)
+                }
+                .buttonStyle(.glass)
+                
+                Spacer()
+                
+//                Button {
+//                    openWindow(id: "settings")
+//                } label: {
+//                    Label("Preferences", systemImage: "gearshape" )
+//                        .foregroundStyle(.secondary.opacity(0.7))
+//                        .font(.caption2)
+//                    
+//                }
+//                .buttonStyle(.glass)
+//                .foregroundStyle(.tertiary)
+                
+                
+                Button {
+                    NSApplication.shared.terminate(nil)
+                } label: {
+                    Label("Quit", systemImage: "xmark.circle" )
+                        .foregroundStyle(.secondary.opacity(0.7))
+                        .font(.caption2)
+                    
+                }
+                .buttonStyle(.glass)
+                .foregroundStyle(.tertiary)
+                
             }
-            
-            Button("Preferences") {
-                appState.showPreferences()
-            }
-            
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
     }
 }

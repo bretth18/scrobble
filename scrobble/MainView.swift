@@ -31,6 +31,7 @@ struct MainView: View {
                     }
             }
         }
+        .tabViewStyle(.tabBarOnly)
         .frame(minWidth: 300, minHeight: 400)
     }
 }
