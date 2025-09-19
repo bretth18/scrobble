@@ -88,6 +88,7 @@ struct scrobbleApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        
         // Setup URL event handling for Last.fm authentication callbacks
         NSAppleEventManager.shared().setEventHandler(
             self,
@@ -96,6 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             andEventID: AEEventID(kAEGetURL)
         )
     }
+    
     
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
         guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else { return }
