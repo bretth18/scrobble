@@ -7,10 +7,11 @@
 
 import Foundation
 import MediaRemoteAdapter
+import AppKit
 
 struct KnownMusicBundleIds: Hashable {
     static let spotify = "com.spotify.client"
-    static let appleMusic = "com.apple.music"
+    static let appleMusic = "com.apple.Music"
     static let safari = "com.apple.safari"
 }
 
@@ -22,7 +23,7 @@ struct KnownMusicAppNames: Hashable {
 
 final class NowPlayingFetcher {
 
-    var mediaController: MediaController
+    private var mediaController: MediaController
     
     var currentTrackDuration: TimeInterval = 0
     var currentTrackTitle: String = ""
@@ -33,40 +34,126 @@ final class NowPlayingFetcher {
     var currentArtworkBase64: String? = nil
     var isPlaying: Bool = false
     
+    // Track current target
+    var currentTargetApp: SupportedMusicApp?
+    
+    // Store external callback to reapply after controller reset
+    private var externalCallback: ((TrackInfo) -> Void)?
     
     init(bundleId: String? = nil) {
+        // Find the app from our supported list
+        if let bundleId = bundleId {
+            currentTargetApp = SupportedMusicApp.findApp(byBundleId: bundleId)
+        }
+        
         mediaController = MediaController(bundleIdentifier: bundleId)
-        mediaController.onTrackInfoReceived = { trackInfo in
+        setupTrackInfoHandler()
+    }
+    
+    init(targetApp: SupportedMusicApp) {
+        currentTargetApp = targetApp
+        let bundleId = targetApp.bundleId == "any" ? nil : targetApp.bundleId
+        mediaController = MediaController(bundleIdentifier: bundleId)
+        setupTrackInfoHandler()
+    }
+    
+    private func setupTrackInfoHandler() {
+        mediaController.onTrackInfoReceived = { [weak self] trackInfo in
+            guard let self = self else { return }
+            
+            // Update internal state
             self.currentTrackDuration = (trackInfo.payload.durationMicros ?? 0) / 1_000_000
-            self.currentTrackTitle = trackInfo.payload.title!
-            self.currentTrackArtist = trackInfo.payload.artist!
-            self.currentTrackAlbum = trackInfo.payload.album!
-            self.currentApplication = trackInfo.payload.applicationName!
+            self.currentTrackTitle = trackInfo.payload.title ?? ""
+            self.currentTrackArtist = trackInfo.payload.artist ?? ""
+            self.currentTrackAlbum = trackInfo.payload.album ?? ""
+            self.currentApplication = trackInfo.payload.applicationName ?? ""
             self.currentArtwork = trackInfo.payload.artwork
             self.currentArtworkBase64 = trackInfo.payload.artworkDataBase64
             self.isPlaying = trackInfo.payload.isPlaying ?? false
             
-            
+            // Call external callback if set
+            self.externalCallback?(trackInfo)
         }
     }
     
     func setOnTrackInfoReceived(_ callback: @escaping (TrackInfo) -> Void) {
-        mediaController.onTrackInfoReceived = callback
+        externalCallback = callback
     }
     
+    func setTargetApp(_ app: SupportedMusicApp) {
+        print("🎯 Switching target app from \(currentTargetApp?.displayName ?? "none") to \(app.displayName)")
+        
+        // Immediately clear current state when switching apps
+        clearCurrentState()
+        
+        // Stop everything immediately on main thread
+        mediaController.stopListening()
+        
+        // Update target
+        currentTargetApp = app
+        let bundleId = app.bundleId == "any" ? nil : app.bundleId
+        
+        // Force a complete reload with a longer delay
+        reloadWithNewBundleId(bundleId)
+    }
     
-    func reloadWithNewBundleId(_ bundleId: String) {
-        mediaController.stop()
-        mediaController = MediaController(bundleIdentifier: bundleId)
-        setupAndStart()
+    private func clearCurrentState() {
+        print("🧹 Clearing current playback state")
+        currentTrackDuration = 0
+        currentTrackTitle = ""
+        currentTrackArtist = ""
+        currentTrackAlbum = ""
+        currentApplication = ""
+        currentArtwork = nil
+        currentArtworkBase64 = nil
+        isPlaying = false
+    }
+    
+    func reloadWithNewBundleId(_ bundleId: String?) {
+        print("🔄 Reloading MediaController with bundleId: \(bundleId ?? "nil (any app)")")
+        
+        // More aggressive cleanup - wait longer for complete termination
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            
+            print("🏗️ Creating new MediaController instance")
+            
+            // Create completely new controller instance
+            self.mediaController = MediaController(bundleIdentifier: bundleId)
+            
+            // Reapply handlers
+            self.setupTrackInfoHandler()
+            
+            // Start listening
+            self.setupAndStart()
+            
+            print("✅ MediaController reloaded and started for app: \(self.currentTargetApp?.displayName ?? "any")")
+            
+            // Force an immediate check after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                print("🔍 Current state after reload: \(self.getCurrentState())")
+            }
+        }
     }
     
     func setupAndStart() {
+        print("🚀 Starting MediaController listening")
         mediaController.startListening()
+    }
+    
+    func stop() {
+        print("🛑 Stopping MediaController")
+        mediaController.stopListening()
+    }
+    
+    // Force an immediate update - useful after app switches
+    func forceUpdate() {
+        // This doesn't actually force an update from MediaController,
+        // but we can trigger the UI to refresh by calling the callback with current state
+        print("🔄 Forcing UI update with current state")
     }
 
     func fetchCurrentTrackInfo() -> (isPlaying: Bool, title: String, artist: String, album: String, duration: TimeInterval, application: String, artwork: NSImage?, artworkBase64: String?) {
-
         return (isPlaying: isPlaying, title: currentTrackTitle, artist: currentTrackArtist, album: currentTrackAlbum, duration: currentTrackDuration, application: currentApplication, artwork: currentArtwork, artworkBase64: currentArtworkBase64)
     }
     
@@ -78,7 +165,43 @@ final class NowPlayingFetcher {
         return currentArtworkBase64
     }
     
+    func getCurrentlyPlayingApps() -> [String] {
+        let runningApps = NSWorkspace.shared.runningApplications
+        let musicAppBundleIds = SupportedMusicApp.allApps.map { $0.bundleId }.filter { $0 != "any" }
+        
+        return runningApps.compactMap { app in
+            guard let bundleId = app.bundleIdentifier,
+                  musicAppBundleIds.contains(bundleId),
+                  !app.isTerminated else { return nil }
+            return SupportedMusicApp.findApp(byBundleId: bundleId)?.displayName
+        }
+    }
+    
+    func getRunningMusicApps() -> [SupportedMusicApp] {
+        let runningApps = NSWorkspace.shared.runningApplications
+        let musicAppBundleIds = SupportedMusicApp.allApps.map { $0.bundleId }.filter { $0 != "any" }
+        
+        return runningApps.compactMap { app in
+            guard let bundleId = app.bundleIdentifier,
+                  musicAppBundleIds.contains(bundleId),
+                  !app.isTerminated else { return nil }
+            return SupportedMusicApp.findApp(byBundleId: bundleId)
+        }
+    }
+    
+    // Debug method to check current state
+    func getCurrentState() -> String {
+        return """
+        Target App: \(currentTargetApp?.displayName ?? "none")
+        Bundle ID: \(currentTargetApp?.bundleId ?? "none")
+        Is Playing: \(isPlaying)
+        Current Track: \(currentTrackTitle)
+        Current Artist: \(currentTrackArtist)
+        Current App: \(currentApplication)
+        """
+    }
+    
     deinit {
-        mediaController.stop()
+        mediaController.stopListening()
     }
 }

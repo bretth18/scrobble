@@ -18,6 +18,11 @@ struct MainView: View {
                     Label("Scrobbling", systemImage: "music.note")
                 }
             
+            AppSelectionView()
+                .tabItem {
+                    Label("Apps", systemImage: "app.badge")
+                }
+            
             // Use type-safe casting to check for desktop manager
             if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                 FriendsView(lastFmManager: desktopManager)
@@ -44,6 +49,6 @@ struct MainView: View {
         password: prefManager.password
     )
     MainView()
-        .environmentObject(Scrobbler(lastFmManager: lastFmManager))
+        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environmentObject(prefManager)
 }

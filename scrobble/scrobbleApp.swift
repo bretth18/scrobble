@@ -24,7 +24,7 @@ struct scrobbleApp: App {
             apiSecret: prefManager.apiSecret,
             username: prefManager.username
         )
-        _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager))
+        _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
     }
     
     var body: some Scene {

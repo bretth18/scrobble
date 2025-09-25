@@ -22,9 +22,22 @@ class PreferencesManager: ObservableObject {
     @Published var numberOfFriendsDisplayed: Int {
         didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
     }
-    @Published var mediaAppSource: String {
-        didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource")}
+    @Published var selectedMusicApp: SupportedMusicApp {
+        didSet { 
+            UserDefaults.standard.set(selectedMusicApp.bundleId, forKey: "selectedMusicAppBundleId")
+            // Only sync with mediaAppSource after initialization is complete
+            if _isInitialized {
+                mediaAppSource = selectedMusicApp.displayName
+            }
+        }
     }
+    
+    // Keep for backwards compatibility
+    @Published var mediaAppSource: String {
+        didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource") }
+    }
+    
+    private var _isInitialized = false
     
     init() {
 //        apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
@@ -32,7 +45,21 @@ class PreferencesManager: ObservableObject {
         username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
         password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
         numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3
-        mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Music"
+        
+        // Initialize mediaAppSource first to avoid initialization order issues
+        mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
+        
+        // Then initialize selectedMusicApp
+        let savedBundleId = UserDefaults.standard.string(forKey: "selectedMusicAppBundleId") ?? "com.apple.Music"
+        selectedMusicApp = SupportedMusicApp.findApp(byBundleId: savedBundleId) ?? SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })!
+        
+        // Sync mediaAppSource with selectedMusicApp if they don't match
+        if mediaAppSource != selectedMusicApp.displayName {
+            mediaAppSource = selectedMusicApp.displayName
+        }
+        
+        // Mark as initialized so didSet handlers work properly going forward
+        _isInitialized = true
     }
     
     func showPreferences() {

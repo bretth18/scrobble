@@ -161,15 +161,29 @@ struct ContentViewNowPlayingCardView: View {
                     }
                     
                     
+//                    HStack {
+//                        Text("status:")
+//                            .font(.caption2.monospaced())
+//                            .foregroundStyle(.secondary.opacity(0.7))
+//                        Spacer()
+//                        Text(scrobbler.musicAppStatus)
+//                            .textCase(.lowercase)
+//                            .font(.subheadline)
+//                            .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
+//                    }
+//                    .padding()
+//                    .glassEffect(in: .rect(cornerRadius: 8))
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Current Target App Display
                     HStack {
-                        Text("status:")
+                        Label("monitoring:", systemImage: preferencesManager.selectedMusicApp.icon)
                             .font(.caption2.monospaced())
                             .foregroundStyle(.secondary.opacity(0.7))
                         Spacer()
-                        Text(scrobbler.musicAppStatus)
-                            .textCase(.lowercase)
+                        Text(preferencesManager.selectedMusicApp.displayName.lowercased())
                             .font(.subheadline)
-                            .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
+                            .foregroundColor(.accentColor.opacity(0.8))
                     }
                     .padding()
                     .glassEffect(in: .rect(cornerRadius: 8))
@@ -313,5 +327,14 @@ struct ContentViewNowPlayingCardView: View {
 
 
 #Preview {
-    ContentView().environmentObject(Scrobbler())
+    let prefManager = PreferencesManager()
+    let lastFmManager = LastFmManager(
+        apiKey: prefManager.apiKey,
+        apiSecret: prefManager.apiSecret,
+        username: prefManager.username,
+        password: prefManager.password
+    )
+    ContentView()
+        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environmentObject(prefManager)
 }

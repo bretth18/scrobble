@@ -54,10 +54,17 @@ class Scrobbler: ObservableObject {
     private var currentTrackDuration: TimeInterval?
     private var scrobbleTimer: Timer?
     
-    private var mediaRemoteFetcher: NowPlayingFetcher?
-
+    private var _mediaRemoteFetcher: NowPlayingFetcher?
     
-    init(lastFmManager: LastFmManagerType? = nil) {
+    // Expose the fetcher for UI components that need to check running apps
+    var mediaRemoteFetcher: NowPlayingFetcher? {
+        return _mediaRemoteFetcher
+    }
+    
+    // Add reference to preferences manager to monitor app changes
+    private var preferencesManager: PreferencesManager?
+    
+    init(lastFmManager: LastFmManagerType? = nil, preferencesManager: PreferencesManager? = nil) {
         
         if let manager = lastFmManager {
             self.lastFmManager = manager
@@ -66,12 +73,19 @@ class Scrobbler: ObservableObject {
             self.lastFmManager = LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
         }
         
+        self.preferencesManager = preferencesManager
         
+        // Initialize with the selected app from preferences
+        if let prefManager = preferencesManager {
+            self._mediaRemoteFetcher = NowPlayingFetcher(targetApp: prefManager.selectedMusicApp)
+        } else {
+            // Fallback to default Apple Music
+            let defaultApp = SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.music" })!
+            self._mediaRemoteFetcher = NowPlayingFetcher(targetApp: defaultApp)
+        }
         
-        self.mediaRemoteFetcher = NowPlayingFetcher()
-        
-        if self.mediaRemoteFetcher != nil {
-            self.mediaRemoteFetcher?.setupAndStart()
+        if self._mediaRemoteFetcher != nil {
+            self._mediaRemoteFetcher?.setupAndStart()
             print("MediaRemoteTestFetcher initialized successfully")
         }
         
@@ -93,6 +107,44 @@ class Scrobbler: ObservableObject {
         startPolling()
         checkNowPlaying()
         
+    }
+    
+    // Method to change the target music app
+    func setTargetMusicApp(_ app: SupportedMusicApp) {
+        print("🎵 Scrobbler switching to target app: \(app.displayName)")
+        
+        // Clear current track display immediately
+        DispatchQueue.main.async {
+            self.currentTrack = "Switching to \(app.displayName)..."
+            self.currentArtwork = nil
+        }
+        
+        // Switch the fetcher
+        _mediaRemoteFetcher?.setTargetApp(app)
+        
+        // Update the status to reflect the change
+        musicAppStatus = "Connected to \(app.displayName)"
+        
+        // Schedule multiple checks to ensure we catch the new app's state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            print("🔍 First check after app switch")
+            self.checkNowPlaying()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            print("🔍 Second check after app switch")
+            self.checkNowPlaying()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            print("🔍 Final check after app switch")
+            self.checkNowPlaying()
+        }
+    }
+    
+    // Debug method to get current target app
+    func getCurrentTargetApp() -> SupportedMusicApp? {
+        return _mediaRemoteFetcher?.currentTargetApp
     }
     
     private func setupMusicAppObserver() {
@@ -120,9 +172,11 @@ class Scrobbler: ObservableObject {
         queue.async { [weak self] in
             guard let self = self else { return }
             
+            print("🔍 Checking now playing...")
+            
             if let trackInfo = self.getCurrentTrackInfoViaFetcher(){
                 let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
-                print("Current track: \(trackString)")
+                print("✅ Found track: \(trackString) from app: \(trackInfo.application)")
                 
                 DispatchQueue.main.async {
                     // If we're getting the same track info, this is likely just a polling update
@@ -136,15 +190,17 @@ class Scrobbler: ObservableObject {
                     
                     // Only setup new scrobble timer if this is a new track
                     if !isSameTrack {
-                        print("New track detected, setting up scrobble timer")
+                        print("🆕 New track detected, setting up scrobble timer")
                         self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                     }
                 }
             } else {
+                print("❌ No track info found")
                 DispatchQueue.main.async {
                     if self.currentTrack != "No track playing" {
-                        print("No track playing, invalidating timers")
+                        print("🔇 No track playing, invalidating timers")
                         self.currentTrack = "No track playing"
+                        self.currentArtwork = nil
                         self.invalidateScrobbleTimer()
                     }
                 }
@@ -286,21 +342,27 @@ class Scrobbler: ObservableObject {
 
     
     private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
-        print("Fetching current track info via MediaRemoteTestFetcher")
-        guard let fetcher = mediaRemoteFetcher else {
-            print("MediaRemoteTestFetcher not initialized")
+        print("📱 Fetching current track info via MediaRemoteTestFetcher")
+        guard let fetcher = _mediaRemoteFetcher else {
+            print("❌ MediaRemoteTestFetcher not initialized")
             return nil
         }
+        
+        print("🎯 Current target app: \(fetcher.currentTargetApp?.displayName ?? "none")")
+        
         let trackInfo = fetcher.fetchCurrentTrackInfo()
+        
+        print("📊 Track info from fetcher: isPlaying=\(trackInfo.isPlaying), title='\(trackInfo.title)', artist='\(trackInfo.artist)', app='\(trackInfo.application)'")
+        
         guard trackInfo.isPlaying else {
-            print("No track currently playing (isPlaying = false) in MediaRemoteTestFetcher")
+            print("⏸️ No track currently playing (isPlaying = false) in MediaRemoteTestFetcher")
             return nil
         }
         guard !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
-            print("No track currently playing in MediaRemoteTestFetcher")
+            print("📭 No track currently playing (empty title/artist) in MediaRemoteTestFetcher")
             return nil
         }
-        print("Fetched track info: \(trackInfo)")
+        print("✅ Returning valid track info: \(trackInfo.artist) - \(trackInfo.title)")
         return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, artwork: trackInfo.artwork)
     }
     

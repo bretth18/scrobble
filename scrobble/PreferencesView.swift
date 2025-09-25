@@ -103,7 +103,26 @@ struct PreferencesView: View {
                 }
                 
                 Section("Scrobbling") {
-                    TextField("Media App Source", text: $preferencesManager.mediaAppSource)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Music App Source")
+                            .font(.headline)
+                        
+                        Picker("Select Music App", selection: $preferencesManager.selectedMusicApp) {
+                            ForEach(SupportedMusicApp.allApps, id: \.self) { app in
+                                Label(app.displayName, systemImage: app.icon)
+                                    .tag(app)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: preferencesManager.selectedMusicApp) { _, newApp in
+                            // Update the scrobbler when the app selection changes
+                            scrobbler.setTargetMusicApp(newApp)
+                        }
+                        
+                        Text("Select which app to monitor for scrobbling")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .formStyle(.grouped)
@@ -126,8 +145,15 @@ struct PreferencesView: View {
 }
 
 #Preview {
+    let prefManager = PreferencesManager()
+    let lastFmManager = LastFmManager(
+        apiKey: prefManager.apiKey,
+        apiSecret: prefManager.apiSecret,
+        username: prefManager.username,
+        password: prefManager.password
+    )
     PreferencesView()
-        .environmentObject(PreferencesManager())
-        .environmentObject(Scrobbler())
+        .environmentObject(prefManager)
+        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
 }
 

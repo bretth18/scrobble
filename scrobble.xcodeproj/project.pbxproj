@@ -15,6 +15,8 @@
 		A64304C02D52F479001998B6 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BF2D52F479001998B6 /* AuthView.swift */; };
 		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
+		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
+		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */; };
 		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
 		A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6A580A22E78D8480079DC91 /* MediaPlayer.framework */; };
@@ -56,6 +58,8 @@
 		A64304BF2D52F479001998B6 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
+		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
+		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFmWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmWebAuthView.swift; sourceTree = "<group>"; };
 		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
 		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
@@ -142,6 +146,8 @@
 				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
 				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
 				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
+				A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */,
+				A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */,
 			);
 			path = scrobble;
 			sourceTree = "<group>";
@@ -246,9 +252,11 @@
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
 				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
+				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
 				A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */,
+				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
@@ -395,6 +403,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
@@ -422,7 +431,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
@@ -443,6 +452,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
@@ -470,7 +480,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
