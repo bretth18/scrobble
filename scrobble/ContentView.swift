@@ -142,6 +142,7 @@ struct ContentViewNowPlayingCardView: View {
     struct ContentView: View {
         @EnvironmentObject var scrobbler: Scrobbler
         @EnvironmentObject var preferencesManager: PreferencesManager
+        @State private var servicesRefreshTrigger = UUID()
     
         @State private var showingPreferences = false
     
@@ -189,6 +190,23 @@ struct ContentViewNowPlayingCardView: View {
                     .glassEffect(in: .rect(cornerRadius: 8))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
+                    // Scrobbling Services Status
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("scrobbling to:")
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.secondary.opacity(0.7))
+                        
+                        ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
+                            .environmentObject(scrobbler)
+                    }
+                    .padding()
+                    .glassEffect(in: .rect(cornerRadius: 8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onReceive(scrobbler.$servicesLastUpdated) { _ in
+                        print("📱 ContentView received servicesLastUpdated change")
+                        servicesRefreshTrigger = UUID()
+                    }
+                    
                     
                     VStack(alignment: .leading) {
                         
@@ -204,13 +222,13 @@ struct ContentViewNowPlayingCardView: View {
                                 Image(nsImage: currentArtwork)
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 100, height: 100)
+                                    .frame(width: 50, height: 50)
                                     .cornerRadius(8)
                                     .glassEffect(.clear)
                             }
                             
-                            
-                            Spacer()
+//                            
+//                            Spacer()
                             
                             Text("Last Scrobbled:")
                                 .font(.subheadline)
@@ -324,6 +342,52 @@ struct ContentViewNowPlayingCardView: View {
 //            .frame(width: contentWidth + 24) // Account for padding
 //        }
 //    }
+
+struct ServicesStatusView: View {
+    @EnvironmentObject var scrobbler: Scrobbler
+    let refreshTrigger: UUID
+    
+    var body: some View {
+        // The refreshTrigger will force this view to rebuild when ContentView updates it
+        let services = scrobbler.getScrobblingServices()
+        
+        let _ = print("🖥️ ServicesStatusView updating with trigger \(refreshTrigger), found \(services.count) services")
+        let _ = services.forEach { service in
+            print("  - \(service.serviceName): authenticated = \(service.isAuthenticated)")
+        }
+        
+        if services.isEmpty {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("no services enabled")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+        } else {
+            ForEach(services, id: \.serviceId) { service in
+                HStack(spacing: 6) {
+                    Image(systemName: service.isAuthenticated ? "checkmark.circle.fill" : "circle.fill")
+                        .foregroundStyle(service.isAuthenticated ? .green.opacity(0.8) : .secondary.opacity(0.5))
+                        .font(.caption)
+                    
+                    Text(service.serviceName.lowercased())
+                        .font(.caption)
+                        .foregroundStyle(service.isAuthenticated ? .primary : .secondary)
+                    
+                    Spacer()
+                    
+                    if !service.isAuthenticated {
+                        Text("not authenticated")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary.opacity(0.7))
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 #Preview {

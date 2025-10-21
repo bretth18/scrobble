@@ -36,6 +36,8 @@ import AppKit
 
 class Scrobbler: ObservableObject {
     let lastFmManager: LastFmManagerType
+    private var scrobblingServices: [ScrobblingService] = []
+    @Published var servicesLastUpdated = Date() // This will trigger UI updates when services change
 
     @Published var currentTrack: String = "No track playing"
     @Published var currentArtwork: NSImage? = nil
@@ -53,6 +55,7 @@ class Scrobbler: ObservableObject {
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
     private var scrobbleTimer: Timer?
+    private var hasScrobbledCurrentSession = false
     
     private var _mediaRemoteFetcher: NowPlayingFetcher?
     
@@ -74,6 +77,21 @@ class Scrobbler: ObservableObject {
         }
         
         self.preferencesManager = preferencesManager
+        
+        // Initialize scrobbling services
+        setupScrobblingServices(preferencesManager: preferencesManager)
+        
+        // Monitor preferences changes for scrobbling service settings
+        if let prefManager = preferencesManager {
+            prefManager.$enableLastFm
+                .combineLatest(prefManager.$enableCustomScrobbler, prefManager.$blueskyHandle)
+                .dropFirst() // Skip initial values
+                .sink { [weak self] _, _, _ in
+                    print("Scrobbling preferences changed, refreshing services...")
+                    self?.refreshScrobblingServices()
+                }
+                .store(in: &cancellables)
+        }
         
         // Initialize with the selected app from preferences
         if let prefManager = preferencesManager {
@@ -107,6 +125,51 @@ class Scrobbler: ObservableObject {
         startPolling()
         checkNowPlaying()
         
+    }
+    
+    private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
+        scrobblingServices.removeAll()
+        
+        guard let prefManager = preferencesManager else { return }
+        
+        // Add Last.fm service if enabled
+        if prefManager.enableLastFm {
+            let lastFmService = LastFmServiceAdapter(lastFmManager: lastFmManager)
+            scrobblingServices.append(lastFmService)
+        }
+        
+        // Add custom scrobbling service if enabled
+        if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
+            let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
+            
+            // Subscribe to authentication state changes to trigger UI updates
+            customService.authenticationPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] isAuthenticated in
+                    print("🔄 Custom service authentication state changed to: \(isAuthenticated)")
+                    self?.servicesLastUpdated = Date()
+                }
+                .store(in: &cancellables)
+            
+            scrobblingServices.append(customService)
+        }
+        
+        // Trigger UI update
+        DispatchQueue.main.async {
+            self.servicesLastUpdated = Date()
+        }
+        
+        print("Initialized \(scrobblingServices.count) scrobbling services")
+    }
+    
+    // Method to refresh services when preferences change
+    func refreshScrobblingServices() {
+        setupScrobblingServices(preferencesManager: preferencesManager)
+    }
+    
+    // Get all available services for UI
+    func getScrobblingServices() -> [ScrobblingService] {
+        return scrobblingServices
     }
     
     // Method to change the target music app
@@ -185,13 +248,15 @@ class Scrobbler: ObservableObject {
                     
                     self.currentArtwork = trackInfo.artwork
                     
-                    // Always update now playing status
-                    self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                    
-                    // Only setup new scrobble timer if this is a new track
+                    // Only update now playing status and setup scrobble timer if this is a new track
                     if !isSameTrack {
-                        print("🆕 New track detected, setting up scrobble timer")
+                        print("🆕 New track detected, updating now playing and setting up scrobble timer")
+                        // Reset scrobble session flag for new track
+                        self.hasScrobbledCurrentSession = false
+                        self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                         self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+                    } else {
+                        print("🔄 Same track continuing, skipping now playing update")
                     }
                 }
             } else {
@@ -367,31 +432,77 @@ class Scrobbler: ObservableObject {
     }
     
     private func scrobbleTrack(artist: String, title: String, album: String) {
+        // Prevent duplicate scrobbles for the current play session
+        if hasScrobbledCurrentSession {
+            print("⚠️ Preventing duplicate scrobble for current play session: \(artist) - \(title)")
+            return
+        }
+        
         print("Attempting to scrobble: \(artist) - \(title)")
         isScrobbling = true
         errorMessage = nil
         
-         lastFmManager.scrobble(artist: artist, track: title, album: album)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                self?.isScrobbling = false
-                switch completion {
-                case .finished:
-                    print("Scrobble request completed")
-                case .failure(let error):
-                    self?.errorMessage = "Scrobble error: \(error.localizedDescription)"
-                    print("Scrobble error: \(error)")
+        // Mark this session as scrobbled
+        hasScrobbledCurrentSession = true
+        
+        // Scrobble to all enabled services
+        let publishers = scrobblingServices.map { service in
+            service.scrobble(artist: artist, track: title, album: album)
+                .map { success in (service: service, success: success) }
+                .catch { error in
+                    print("Scrobble error for \(service.serviceName): \(error)")
+                    return Just((service: service, success: false))
                 }
-            }, receiveValue: { [weak self] success in
-                if success {
-                    self?.lastScrobbledTrack = "\(artist) - \(title)"
-                    print("Successfully scrobbled: \(artist) - \(title)")
-                } else {
-                    self?.errorMessage = "Failed to scrobble: \(artist) - \(title)"
-                    print("Failed to scrobble: \(artist) - \(title)")
+        }
+        
+        if publishers.isEmpty {
+            // Fallback to original Last.fm manager if no services configured
+            lastFmManager.scrobble(artist: artist, track: title, album: album)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { [weak self] completion in
+                    self?.isScrobbling = false
+                    switch completion {
+                    case .finished:
+                        print("Scrobble request completed")
+                    case .failure(let error):
+                        self?.errorMessage = "Scrobble error: \(error.localizedDescription)"
+                        print("Scrobble error: \(error)")
+                    }
+                }, receiveValue: { [weak self] success in
+                    if success {
+                        self?.lastScrobbledTrack = "\(artist) - \(title)"
+                        print("Successfully scrobbled: \(artist) - \(title)")
+                    } else {
+                        self?.errorMessage = "Failed to scrobble: \(artist) - \(title)"
+                        print("Failed to scrobble: \(artist) - \(title)")
+                    }
+                })
+                .store(in: &cancellables)
+        } else {
+            // Use new multi-service approach
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] results in
+                    self?.isScrobbling = false
+                    
+                    let successfulScrobbles = results.filter { $0.success }
+                    let failedScrobbles = results.filter { !$0.success }
+                    
+                    if !successfulScrobbles.isEmpty {
+                        self?.lastScrobbledTrack = "\(artist) - \(title)"
+                        let successNames = successfulScrobbles.map { $0.service.serviceName }.joined(separator: ", ")
+                        print("Successfully scrobbled to: \(successNames)")
+                    }
+                    
+                    if !failedScrobbles.isEmpty {
+                        let failureNames = failedScrobbles.map { $0.service.serviceName }.joined(separator: ", ")
+                        self?.errorMessage = "Failed to scrobble to: \(failureNames)"
+                        print("Failed to scrobble to: \(failureNames)")
+                    }
                 }
-            })
-            .store(in: &cancellables)
+                .store(in: &cancellables)
+        }
     }
     
     private func setupScrobbleTimer(artist: String, title: String, album: String) {
@@ -434,21 +545,55 @@ class Scrobbler: ObservableObject {
         scrobbleTimer = nil
         currentTrackStartTime = nil
         currentTrackDuration = nil
+        // Reset session flag when track stops/changes
+        hasScrobbledCurrentSession = false
     }
     
     private func updateNowPlaying(artist: String, title: String, album: String) {
-        lastFmManager.updateNowPlaying(artist: artist, track: title, album: album)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let error) = completion {
-                    print("Failed to update now playing: \(error)")
+        // Update now playing for all enabled services
+        let publishers = scrobblingServices.map { service in
+            service.updateNowPlaying(artist: artist, track: title, album: album)
+                .map { success in (service: service, success: success) }
+                .catch { error in
+                    print("Now playing error for \(service.serviceName): \(error)")
+                    return Just((service: service, success: false))
                 }
-            }, receiveValue: { success in
-                if success {
-                    print("Successfully updated now playing status")
+        }
+        
+        if publishers.isEmpty {
+            // Fallback to original Last.fm manager if no services configured
+            lastFmManager.updateNowPlaying(artist: artist, track: title, album: album)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Failed to update now playing: \(error)")
+                    }
+                }, receiveValue: { success in
+                    if success {
+                        print("Successfully updated now playing status")
+                    }
+                })
+                .store(in: &cancellables)
+        } else {
+            // Use new multi-service approach
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { results in
+                    let successfulUpdates = results.filter { $0.success }
+                    if !successfulUpdates.isEmpty {
+                        let successNames = successfulUpdates.map { $0.service.serviceName }.joined(separator: ", ")
+                        print("Successfully updated now playing for: \(successNames)")
+                    }
+                    
+                    let failedUpdates = results.filter { !$0.success }
+                    if !failedUpdates.isEmpty {
+                        let failureNames = failedUpdates.map { $0.service.serviceName }.joined(separator: ", ")
+                        print("Failed to update now playing for: \(failureNames)")
+                    }
                 }
-            })
-            .store(in: &cancellables)
+                .store(in: &cancellables)
+        }
     }
     
     

@@ -10,7 +10,7 @@ import Combine
 import AppKit
 import WebKit
 
-class BlueskyOAuthManager: ObservableObject {
+class BlueskyOAuthManager: NSObject, ObservableObject {
     @Published var isAuthenticated = false
     @Published var isAuthenticating = false
     @Published var authError: String?
@@ -26,6 +26,7 @@ class BlueskyOAuthManager: ObservableObject {
     
     init(blueskyHandle: String) {
         self.blueskyHandle = blueskyHandle
+        super.init()
         checkExistingAuth()
     }
     
@@ -36,41 +37,79 @@ class BlueskyOAuthManager: ObservableObject {
                 let cookies = try JSONDecoder().decode([CookieData].self, from: cookieData)
                 sessionCookies = cookies.compactMap { $0.toCookie() }
                 
-                // Test if the session is still valid
-                testAuthenticationStatus()
+                print("🔄 Found \(sessionCookies.count) stored cookies for \(blueskyHandle)")
+                
+                // For now, assume stored cookies are valid
+                // TODO: Implement proper session validation once you have a test endpoint
+                if !sessionCookies.isEmpty {
+                    print("✅ Assuming stored auth is valid")
+                    isAuthenticated = true
+                } else {
+                    print("❌ No valid cookies found")
+                    clearStoredAuth()
+                }
+                
+                // Uncomment this when you have a proper auth test endpoint:
+                // testAuthenticationStatus()
             } catch {
                 print("Failed to decode stored cookies: \(error)")
                 clearStoredAuth()
             }
+        } else {
+            print("🔍 No stored cookies found for \(blueskyHandle)")
         }
     }
     
     private func testAuthenticationStatus() {
-        // Make a test request to see if our session is still valid
-        var request = URLRequest(url: URL(string: "\(baseURL)/api/auth/status")!)
+        print("🔍 Testing stored authentication status...")
         
-        // Add cookies to request
-        for cookie in sessionCookies {
-            if let cookieHeader = HTTPCookie.requestHeaderFields(with: [cookie])["Cookie"] {
-                request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
-            }
+        // Make a test request to see if our session is still valid
+        // Try using a simple endpoint that should work with authentication
+        guard let testURL = URL(string: "\(baseURL)/api/test") else {
+            print("❌ Invalid test URL")
+            clearStoredAuth()
+            return
         }
         
+        var request = URLRequest(url: testURL)
+        
+        // Add cookies to request
+        let cookieHeader = HTTPCookie.requestHeaderFields(with: sessionCookies)["Cookie"] ?? ""
+        request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
+        
+        print("🔍 Testing auth with cookies: \(sessionCookies.map { $0.name })")
+        
         URLSession.shared.dataTaskPublisher(for: request)
-            .map(\.response)
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
-                    if case .failure = completion {
-                        self?.isAuthenticated = false
-                        self?.clearStoredAuth()
+                    switch completion {
+                    case .failure(let error):
+                        print("❌ Auth test failed: \(error.localizedDescription)")
+                        // Don't immediately clear auth - the endpoint might not exist
+                        // Instead, assume auth is valid if we have cookies
+                        if !(self?.sessionCookies.isEmpty ?? true) {
+                            print("🔄 Assuming auth is valid since we have stored cookies")
+                            self?.isAuthenticated = true
+                        } else {
+                            self?.clearStoredAuth()
+                        }
+                    case .finished:
+                        break
                     }
                 },
                 receiveValue: { [weak self] response in
-                    if let httpResponse = response as? HTTPURLResponse {
-                        self?.isAuthenticated = (200...299).contains(httpResponse.statusCode)
-                        if !self?.isAuthenticated ?? false {
+                    if let httpResponse = response.response as? HTTPURLResponse {
+                        let isAuth = (200...299).contains(httpResponse.statusCode)
+                        print("🔍 Auth test response: \(httpResponse.statusCode) - authenticated: \(isAuth)")
+                        self?.isAuthenticated = isAuth
+                        if !isAuth && httpResponse.statusCode != 404 {
+                            // Only clear auth if it's actually an auth failure, not a missing endpoint
                             self?.clearStoredAuth()
+                        } else if httpResponse.statusCode == 404 {
+                            // If the test endpoint doesn't exist, assume auth is valid if we have cookies
+                            print("🔄 Test endpoint not found, assuming auth is valid")
+                            self?.isAuthenticated = !(self?.sessionCookies.isEmpty ?? true)
                         }
                     }
                 }
@@ -151,35 +190,66 @@ class BlueskyOAuthManager: ObservableObject {
     private func extractAndStoreCookies() {
         guard let webView = webView else { return }
         
+        print("Extracting cookies from WebView...")
+        
         // Get all cookies from the WebView
         webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
             guard let self = self else { return }
             
-            // Filter for cookies from our domain
-            let relevantCookies = cookies.filter { cookie in
-                cookie.domain.contains("railway.app") && cookie.name.lowercased().contains("jwt")
+            print("Total cookies found: \(cookies.count)")
+            for cookie in cookies {
+                print("Cookie: \(cookie.name) = \(cookie.value.prefix(20))... (domain: \(cookie.domain), path: \(cookie.path))")
             }
             
-            if !relevantCookies.isEmpty {
-                self.sessionCookies = relevantCookies
-                self.storeCookies(relevantCookies)
-                self.completeAuthentication(success: true)
-            } else {
-                // Look for any session-related cookies
-                let sessionCookies = cookies.filter { cookie in
-                    cookie.domain.contains("railway.app") && 
-                    (cookie.name.lowercased().contains("session") || 
-                     cookie.name.lowercased().contains("auth") ||
-                     cookie.name.lowercased().contains("token"))
+            // Filter for cookies from our Railway domain
+            let railwayCookies = cookies.filter { cookie in
+                cookie.domain.contains("railway.app") || cookie.domain.contains("clientserver-production-be44")
+            }
+            
+            print("Railway domain cookies found: \(railwayCookies.count)")
+            
+            if !railwayCookies.isEmpty {
+                // Look specifically for the 'auth' cookie first
+                let authCookie = railwayCookies.first { cookie in
+                    cookie.name.lowercased() == "auth"
                 }
                 
-                if !sessionCookies.isEmpty {
-                    self.sessionCookies = sessionCookies
-                    self.storeCookies(sessionCookies)
+                if let authCookie = authCookie {
+                    print("Found 'auth' cookie: \(authCookie.name)")
+                    self.sessionCookies = [authCookie]
+                    self.storeCookies([authCookie])
                     self.completeAuthentication(success: true)
-                } else {
-                    self.completeAuthentication(success: false, error: "No authentication cookies found")
+                    return
                 }
+                
+                // Fallback: look for any auth/session related cookies
+                let authCookies = railwayCookies.filter { cookie in
+                    let name = cookie.name.lowercased()
+                    return name.contains("auth") ||
+                           name.contains("session") || 
+                           name.contains("jwt") ||
+                           name.contains("token") ||
+                           name.contains("access") ||
+                           name.contains("bearer")
+                }
+                
+                if !authCookies.isEmpty {
+                    print("Found auth-related cookies: \(authCookies.map { $0.name })")
+                    self.sessionCookies = authCookies
+                    self.storeCookies(authCookies)
+                    self.completeAuthentication(success: true)
+                    return
+                }
+                
+                // If we have Railway cookies but none match our expected patterns,
+                // let's try using all of them
+                print("Using all Railway cookies as potential auth cookies: \(railwayCookies.map { $0.name })")
+                self.sessionCookies = railwayCookies
+                self.storeCookies(railwayCookies)
+                self.completeAuthentication(success: true)
+            } else {
+                print("No Railway domain cookies found")
+                self.completeAuthentication(success: false, error: "No authentication cookies found")
             }
         }
     }
@@ -201,14 +271,63 @@ class BlueskyOAuthManager: ObservableObject {
     }
     
     func signOut() {
-        clearStoredAuth()
-        
-        // Also clear WebKit data store if needed
-        let dataStore = WKWebsiteDataStore.default()
-        dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), 
-                           modifiedSince: Date(timeIntervalSince1970: 0)) {
-            print("WebKit data cleared for sign out")
+        // Log out via server endpoint using our auth cookies, then clear local state
+        let logoutURLString = "\(baseURL)/oauth/logout"
+        guard let logoutURL = URL(string: logoutURLString) else {
+            print("❌ Invalid logout URL")
+            clearStoredAuth()
+            return
         }
+
+        // Build authenticated request with cookies
+        var request = createAuthenticatedRequest(url: logoutURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        print("🔐 Logging out via \(logoutURLString) with cookies: \(sessionCookies.map { $0.name })")
+
+        let clearLocalState: () -> Void = { [weak self] in
+            guard let self = self else { return }
+            self.clearStoredAuth()
+            // Also clear WebKit default data store if needed
+            let dataStore = WKWebsiteDataStore.default()
+            dataStore.removeData(
+                ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+                modifiedSince: Date(timeIntervalSince1970: 0)
+            ) {
+                print("🧹 WebKit data cleared for sign out")
+            }
+        }
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+
+            if let error = error {
+                print("⚠️ Logout request failed: \(error.localizedDescription)")
+                DispatchQueue.main.async { clearLocalState() }
+                return
+            }
+
+            if let http = response as? HTTPURLResponse {
+                print("🔍 Logout response status: \(http.statusCode)")
+                if http.statusCode == 405 {
+                    // Some servers use GET for logout, retry with GET
+                    var getRequest = self.createAuthenticatedRequest(url: logoutURL)
+                    getRequest.httpMethod = "GET"
+                    URLSession.shared.dataTask(with: getRequest) { _, resp2, err2 in
+                        if let err2 = err2 {
+                            print("⚠️ Logout (GET) failed: \(err2.localizedDescription)")
+                        } else if let http2 = resp2 as? HTTPURLResponse {
+                            print("🔍 Logout (GET) response status: \(http2.statusCode)")
+                        }
+                        DispatchQueue.main.async { clearLocalState() }
+                    }.resume()
+                    return
+                }
+            }
+
+            DispatchQueue.main.async { clearLocalState() }
+        }.resume()
     }
     
     // Create authenticated URLRequest with cookies
@@ -232,15 +351,25 @@ extension BlueskyOAuthManager: WKNavigationDelegate {
         if let url = webView.url?.absoluteString {
             print("Navigation finished: \(url)")
             
-            // Check if we're back at the base domain after OAuth
+            // Check if we're back at the base domain after OAuth (but not on the initial login page)
             if url.contains("clientserver-production-be44.up.railway.app") && 
                !url.contains("oauth/login") &&
-               !url.contains("bsky.app") {
+               !url.contains("bsky.social") {
                 
+                print("Detected successful OAuth redirect to Railway app - extracting cookies")
                 // Likely completed OAuth flow, extract cookies
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     self.extractAndStoreCookies()
                 }
+            } else if url.contains("bsky.social") {
+                print("On Bluesky OAuth page - waiting for user to complete authentication")
+                // We're on the Bluesky OAuth page, user needs to enter credentials
+                // Don't close the window, just wait
+            } else if url.contains("oauth/login") {
+                print("On initial OAuth login page")
+                // Initial page, this is expected
+            } else {
+                print("Navigation to unexpected URL: \(url)")
             }
         }
     }

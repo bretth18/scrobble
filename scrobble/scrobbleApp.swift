@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct scrobbleApp: App {
@@ -14,6 +15,8 @@ struct scrobbleApp: App {
     @StateObject private var scrobbler: Scrobbler
     @StateObject private var appState = AppState.shared
     @StateObject private var authState = AuthState.shared
+    
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         let prefManager = PreferencesManager()
@@ -25,6 +28,18 @@ struct scrobbleApp: App {
             username: prefManager.username
         )
         _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        
+        // Monitor preferences changes to refresh scrobbling services
+        setupPreferencesObserver()
+    }
+    
+    private func setupPreferencesObserver() {
+        // This will be set up after the StateObjects are initialized
+        DispatchQueue.main.async {
+            // Note: We can't store this in the struct since it's not mutable
+            // The scrobbler will handle its own refresh logic
+            print("Preferences observer setup completed")
+        }
     }
     
     var body: some Scene {

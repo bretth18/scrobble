@@ -771,12 +771,30 @@ struct RecentTracksResponse: Codable {
     }
 }
 
-enum ScrobblerError: Error {
+enum ScrobblerError: Error, LocalizedError {
     case noSessionKey
     case networkError(Error)
     case apiError(String)
     case noData
     case invalidURL
+    case authenticationRequired
+    
+    var errorDescription: String? {
+        switch self {
+        case .noSessionKey:
+            return "No session key available"
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        case .apiError(let message):
+            return message
+        case .noData:
+            return "No data received"
+        case .invalidURL:
+            return "Invalid URL"
+        case .authenticationRequired:
+            return "Authentication required"
+        }
+    }
 }
 
 

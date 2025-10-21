@@ -39,6 +39,7 @@ protocol ScrobblingService {
 class LastFmServiceAdapter: ScrobblingService {
     private let lastFmManager: LastFmManagerType
     private let authStatusSubject = CurrentValueSubject<Bool, Never>(false)
+    private var cancellables = Set<AnyCancellable>()
     
     var serviceId: String { "lastfm" }
     var serviceName: String { "Last.fm" }
@@ -68,16 +69,21 @@ class LastFmServiceAdapter: ScrobblingService {
                         return false
                     }
                 }
-                .subscribe(authStatusSubject)
+                .sink { [weak self] isAuth in
+                    self?.authStatusSubject.send(isAuth)
+                }
+                .store(in: &cancellables)
         }
     }
     
     func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-        lastFmManager.scrobble(artist: artist, track: track, album: album)
+        print("🎵 Last.fm: Scrobbling \(artist) - \(track)")
+        return lastFmManager.scrobble(artist: artist, track: track, album: album)
     }
     
     func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-        lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
+        print("🔔 Last.fm: Updating now playing \(artist) - \(track)")
+        return lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
     }
     
     func authenticate() -> AnyPublisher<Bool, Error> {

@@ -37,6 +37,20 @@ class PreferencesManager: ObservableObject {
         didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource") }
     }
     
+    // Custom scrobbler settings
+    @Published var enableCustomScrobbler: Bool {
+        didSet { UserDefaults.standard.set(enableCustomScrobbler, forKey: "enableCustomScrobbler") }
+    }
+    
+    @Published var blueskyHandle: String {
+        didSet { UserDefaults.standard.set(blueskyHandle, forKey: "blueskyHandle") }
+    }
+    
+    // Last.fm settings
+    @Published var enableLastFm: Bool {
+        didSet { UserDefaults.standard.set(enableLastFm, forKey: "enableLastFm") }
+    }
+    
     private var _isInitialized = false
     
     init() {
@@ -48,6 +62,14 @@ class PreferencesManager: ObservableObject {
         
         // Initialize mediaAppSource first to avoid initialization order issues
         mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
+        
+        // Initialize custom scrobbler settings
+        enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
+        blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
+        
+        // Initialize Last.fm settings (default to enabled for backward compatibility)
+        enableLastFm = UserDefaults.standard.object(forKey: "enableLastFm") != nil ? 
+                       UserDefaults.standard.bool(forKey: "enableLastFm") : true
         
         // Then initialize selectedMusicApp
         let savedBundleId = UserDefaults.standard.string(forKey: "selectedMusicAppBundleId") ?? "com.apple.Music"

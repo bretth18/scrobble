@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */; };
+		A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */; };
+		A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */; };
 		A63A2B172D27177D000BC92E /* FriendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B162D27177D000BC92E /* FriendsViewModel.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
 		A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* MainView.swift */; };
@@ -50,6 +53,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
+		A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyOAuthManager.swift; sourceTree = "<group>"; };
+		A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomScrobblingService.swift; sourceTree = "<group>"; };
 		A63A2B162D27177D000BC92E /* FriendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewModel.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -148,6 +154,9 @@
 				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
 				A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */,
 				A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */,
+				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
+				A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */,
+				A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */,
 			);
 			path = scrobble;
 			sourceTree = "<group>";
@@ -259,14 +268,17 @@
 				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
+				A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
 				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
 				A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */,
+				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
 				A64304C02D52F479001998B6 /* AuthView.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
+				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -409,7 +421,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -423,7 +435,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
+				INFOPLIST_KEY_CFBundleDisplayName = "scrobble [internal_clg]";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -431,7 +443,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
@@ -458,7 +470,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -472,7 +484,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
+				INFOPLIST_KEY_CFBundleDisplayName = "scrobble [internal_clg]";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -480,7 +492,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
