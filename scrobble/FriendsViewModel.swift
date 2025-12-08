@@ -16,8 +16,7 @@ class FriendsViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private var lastFmManager: LastFmManagerType
-    private var cancellables = Set<AnyCancellable>()
-    
+
     init(lastFmManager: LastFmManagerType) {
         self.lastFmManager = lastFmManager
         loadFriends()

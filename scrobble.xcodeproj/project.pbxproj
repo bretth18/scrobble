@@ -15,7 +15,6 @@
 		A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* MainView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
 		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
-		A64304C02D52F479001998B6 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BF2D52F479001998B6 /* AuthView.swift */; };
 		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
 		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
@@ -61,7 +60,6 @@
 		A63A2B1A2D271A95000BC92E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; };
 		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
-		A64304BF2D52F479001998B6 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
@@ -88,7 +86,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A64304BC2D52F3FF001998B6 /* Windows */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Windows; sourceTree = "<group>"; };
 		A65DF1BA2D3AE7B6006AD060 /* ViewComponents */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewComponents; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -126,6 +123,8 @@
 		A6F212FE2C8C021800E1D23B /* scrobble */ = {
 			isa = PBXGroup;
 			children = (
+				A6F2FEE82EE79A26003826F7 /* Models */,
+				A6F2FEE72EE79A20003826F7 /* Views */,
 				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
 				A64304C52D52FBA1001998B6 /* AppState.swift */,
@@ -142,8 +141,6 @@
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
-				A64304BF2D52F479001998B6 /* AuthView.swift */,
-				A64304BC2D52F3FF001998B6 /* Windows */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
@@ -178,6 +175,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A6F2FEE72EE79A20003826F7 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A6F2FEE82EE79A26003826F7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -195,7 +206,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A64304BC2D52F3FF001998B6 /* Windows */,
 				A65DF1BA2D3AE7B6006AD060 /* ViewComponents */,
 			);
 			name = scrobble;
@@ -275,7 +285,6 @@
 				A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */,
 				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
-				A64304C02D52F479001998B6 /* AuthView.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,

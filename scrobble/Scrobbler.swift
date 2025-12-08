@@ -67,14 +67,8 @@ class Scrobbler: ObservableObject {
     // Add reference to preferences manager to monitor app changes
     private var preferencesManager: PreferencesManager?
     
-    init(lastFmManager: LastFmManagerType? = nil, preferencesManager: PreferencesManager? = nil) {
-        
-        if let manager = lastFmManager {
-            self.lastFmManager = manager
-        } else {
-            // This should never be hit in production since you're passing the manager in ScrobbleApp
-            self.lastFmManager = LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
-        }
+    init(lastFmManager: LastFmManagerType, preferencesManager: PreferencesManager? = nil) {
+        self.lastFmManager = lastFmManager
         
         self.preferencesManager = preferencesManager
         

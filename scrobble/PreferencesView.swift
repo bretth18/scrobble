@@ -226,13 +226,14 @@ struct PreferencesView: View {
 
 #Preview {
     let prefManager = PreferencesManager()
-    let lastFmManager = LastFmManager(
+    let authState = AuthState()
+    let lastFmManager = LastFmDesktopManager(
         apiKey: prefManager.apiKey,
         apiSecret: prefManager.apiSecret,
         username: prefManager.username,
-        password: prefManager.password
+        authState: authState
     )
-    let authState = AuthState()
+    
     PreferencesView()
         .environmentObject(prefManager)
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
