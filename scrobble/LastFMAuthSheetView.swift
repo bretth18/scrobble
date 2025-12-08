@@ -7,10 +7,11 @@
 
 import SwiftUI
 import WebKit
+import Observation
 
 struct LastFmAuthSheet: View {
-    @ObservedObject var lastFmManager: LastFmDesktopManager
-    @EnvironmentObject var authState: AuthState
+    var lastFmManager: LastFmDesktopManager
+    @Environment(AuthState.self) var authState
     
     var body: some View {
         VStack(spacing: 0) {
@@ -41,13 +42,15 @@ struct LastFmAuthSheet: View {
                 .frame(width: 400, height: 200)
             } else {
                 LastFmWebAuthView(lastFmManager: lastFmManager)
-                    .environmentObject(authState)
+                    .environment(authState)
             }
         }
     }
 }
 
 #Preview {
-    LastFmAuthSheet(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", password: ""))
-        .environmentObject(AuthState.shared)
+    let authState = AuthState()
+    let manager = LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", password: "", authState: authState)
+    return LastFmAuthSheet(lastFmManager: manager)
+        .environment(authState)
 }

@@ -7,11 +7,12 @@
 
 import SwiftUI
 import Combine
+import Observation
 
 struct PreferencesView: View {
     @EnvironmentObject var preferencesManager: PreferencesManager
     @EnvironmentObject var scrobbler: Scrobbler
-    @EnvironmentObject var authState: AuthState
+    @Environment(AuthState.self) var authState
     
     @State private var cancellables = Set<AnyCancellable>()
     
@@ -231,8 +232,10 @@ struct PreferencesView: View {
         username: prefManager.username,
         password: prefManager.password
     )
+    let authState = AuthState()
     PreferencesView()
         .environmentObject(prefManager)
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environment(authState)
 }
 

@@ -19,5 +19,9 @@
     <string>This app needs access to network volumes for proper functionality.</string>
     <key>NSSystemAdministrationUsageDescription</key>
     <string>This app requires system administration access for proper functionality.</string>
+    <key>LastFmApiKey</key>
+    <string>$(LASTFM_API_KEY)</string>
+    <key>LastFmApiSecret</key>
+    <string>$(LASTFM_API_SECRET)</string>
 </dict>
 </plist>

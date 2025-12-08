@@ -18,8 +18,8 @@ protocol LastFmManagerType {
 }
 
 class LastFmManager {
-    private let apiKey: String = "70d4b4448efbe1f95036d2653a5c9e2d"
-    private let apiSecret: String = "cd31e625c60fd33ce487761130613d5d"
+    private let apiKey: String = Secrets.lastFmApiKey
+    private let apiSecret: String = Secrets.lastFmApiSecret
     private let username: String
     private let password: String
     private var sessionKey: String?

@@ -60,7 +60,7 @@ class LastFmServiceAdapter: ScrobblingService {
         
         // Monitor auth status changes if it's a desktop manager
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
-            desktopManager.$authStatus
+            desktopManager.authStatusSubject
                 .map { status in
                     switch status {
                     case .authenticated:
@@ -89,7 +89,7 @@ class LastFmServiceAdapter: ScrobblingService {
     func authenticate() -> AnyPublisher<Bool, Error> {
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
             desktopManager.startAuth()
-            return desktopManager.$authStatus
+            return desktopManager.authStatusSubject
                 .compactMap { status in
                     switch status {
                     case .authenticated:

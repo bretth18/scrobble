@@ -9,8 +9,8 @@ import Foundation
 import AppKit
 
 class PreferencesManager: ObservableObject {
-    let apiKey = "70d4b4448efbe1f95036d2653a5c9e2d"
-    let apiSecret = "cd31e625c60fd33ce487761130613d5d"
+    let apiKey = Secrets.lastFmApiKey
+    let apiSecret = Secrets.lastFmApiSecret
     
 
     @Published var username: String {

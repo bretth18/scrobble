@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AuthWindow: Scene {
-    @ObservedObject var lastFmManager: LastFmDesktopManager
+    var lastFmManager: LastFmDesktopManager
     @Binding var isAuthWindowShown: Bool
     
     

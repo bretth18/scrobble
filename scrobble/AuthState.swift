@@ -8,16 +8,16 @@
 import Foundation
 import SwiftUI
 import Combine
+import Observation
 
-class AuthState: ObservableObject {
-    static let shared = AuthState()
+@Observable
+class AuthState {
+    var isAuthenticated = false
+    var isAuthenticating = false
+    var showingAuthSheet = false
+    var authError: String?
     
-    @Published var isAuthenticated = false
-    @Published var isAuthenticating = false
-    @Published var showingAuthSheet = false
-    @Published var authError: String?
-    
-    private init() {
+    init() {
         // Check for existing session on launch
         isAuthenticated = UserDefaults.standard.string(forKey: "lastfm_session_key") != nil
     }

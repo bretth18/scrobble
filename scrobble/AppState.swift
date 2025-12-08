@@ -8,15 +8,15 @@
 import Foundation
 import SwiftUI
 import Combine
+import Observation
 
 
-class AppState: ObservableObject {
-    static let shared = AppState()
+@Observable
+class AppState {
+    var isMainWindowVisible = false
+    var isPreferencesVisible = false
     
-    @Published var isMainWindowVisible = false
-    @Published var isPreferencesVisible = false
-    
-    private init() {
+    init() {
         // Restore window state if needed
         isMainWindowVisible = UserDefaults.standard.bool(forKey: "mainWindowVisible")
     }

@@ -1,0 +1,13 @@
+# Xcode
+.DS_Store
+*.scrobbler
+*.db
+*.xcuserstate
+xcuserdata/
+
+# Scrobble Secrets
+Configs/Secrets.xcconfig
+
+# Build
+.build/
+Packages/

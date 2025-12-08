@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Secrets
+      run: |
+        mkdir -p Configs
+        echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> Configs/Secrets.xcconfig
+        echo "LASTFM_API_SECRET=${{ secrets.LASTFM_API_SECRET }}" >> Configs/Secrets.xcconfig
+      
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app
+
+    - name: Build App
+      run: |
+        xcodebuild -scheme scrobble -destination 'platform=macOS' -configuration Release build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO

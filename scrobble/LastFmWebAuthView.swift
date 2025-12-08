@@ -7,10 +7,11 @@
 
 import SwiftUI
 import WebKit
+import Observation
 
 struct LastFmWebAuthView: View {
-    @ObservedObject var lastFmManager: LastFmDesktopManager
-    @EnvironmentObject var authState: AuthState
+    var lastFmManager: LastFmDesktopManager
+    @Environment(AuthState.self) var authState
     @State private var webPage = WebPage()
     @State private var isLoading = true
     @State private var currentURL = ""
@@ -180,6 +181,8 @@ struct LastFmWebAuthView: View {
 }
 
 #Preview {
-    LastFmWebAuthView(lastFmManager: LastFmDesktopManager(apiKey: "test", apiSecret: "test", username: "test"))
-        .environmentObject(AuthState.shared)
+    let authState = AuthState()
+    let manager = LastFmDesktopManager(apiKey: "test", apiSecret: "test", username: "test", authState: authState)
+    return LastFmWebAuthView(lastFmManager: manager)
+        .environment(authState)
 }

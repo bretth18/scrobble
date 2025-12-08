@@ -11,8 +11,23 @@ import CommonCrypto
 import CryptoKit
 import AppKit
 import SwiftUI
+import Observation
 
-class LastFmDesktopManager: ObservableObject, LastFmManagerType {
+import SwiftUI
+import Observation
+
+struct Secrets {
+    static var lastFmApiKey: String {
+        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiKey") as? String ?? ""
+    }
+    
+    static var lastFmApiSecret: String {
+        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiSecret") as? String ?? ""
+    }
+}
+
+@Observable
+class LastFmDesktopManager: LastFmManagerType {
     let apiKey: String  // Made public for WebKit auth view
     private let apiSecret: String
     private let username: String
@@ -21,16 +36,23 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     private var isAuthenticated = false
     private var authenticationSubject = PassthroughSubject<Void, Error>()
     
-    @Published private(set) var authStatus: AuthStatus = .unknown
-    @Published var isAuthenticating = false
+    // Combine publisher for compatibility with ScrobblingService
+    let authStatusSubject = CurrentValueSubject<AuthStatus, Never>(.unknown)
     
-    @ObservedObject private var authState = AuthState.shared
+    private(set) var authStatus: AuthStatus = .unknown {
+        didSet {
+            authStatusSubject.send(authStatus)
+        }
+    }
+    var isAuthenticating = false
+    
+    var authState: AuthState
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.api", qos: .background)
     
     private var authPromise: ((Result<String, Error>) -> Void)?
-    @Published var authToken: String = ""
-    @Published var currentAuthToken: String = ""
+    var authToken: String = ""
+    var currentAuthToken: String = ""
     
     enum AuthStatus: Equatable {
         case unknown
@@ -55,11 +77,12 @@ class LastFmDesktopManager: ObservableObject, LastFmManagerType {
     }
 
     // Keep same init signature for compatibility
-    init(apiKey: String, apiSecret: String, username: String, password: String = "") {
+    init(apiKey: String, apiSecret: String, username: String, password: String = "", authState: AuthState) {
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self.username = username
         self.password = password
+        self.authState = authState
         
         checkSavedAuth()
     }
@@ -463,7 +486,7 @@ extension LastFmDesktopManager {
         sessionKey = nil
         UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
         DispatchQueue.main.async {
-            AuthState.shared.signOut()
+            self.authState.signOut()
             self.authStatus = .needsAuth
         }
     }

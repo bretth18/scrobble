@@ -7,14 +7,15 @@
 
 import SwiftUI
 import Combine
+import Observation
 
 @main
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var preferencesManager = PreferencesManager()
     @StateObject private var scrobbler: Scrobbler
-    @StateObject private var appState = AppState.shared
-    @StateObject private var authState = AuthState.shared
+    @State private var appState = AppState()
+    @State private var authState: AuthState
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -22,10 +23,14 @@ struct scrobbleApp: App {
         let prefManager = PreferencesManager()
         _preferencesManager = StateObject(wrappedValue: prefManager)
         
+        let auth = AuthState()
+        _authState = State(initialValue: auth)
+        
         let lastFmManager = LastFmDesktopManager(
             apiKey: prefManager.apiKey,
             apiSecret: prefManager.apiSecret,
-            username: prefManager.username
+            username: prefManager.username,
+            authState: auth
         )
         _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         
@@ -48,13 +53,13 @@ struct scrobbleApp: App {
                 MainView()
                     .environmentObject(scrobbler)
                     .environmentObject(preferencesManager)
-                    .environmentObject(authState)
+                    .environment(authState)
                 
                 Divider()
                 
                 MenuButtons()
-                    .environmentObject(authState)
-                    .environmentObject(appState)
+                    .environment(authState)
+                    .environment(appState)
             }
             .padding(8)
             
@@ -67,12 +72,12 @@ struct scrobbleApp: App {
             MainView()
                 .environmentObject(scrobbler)
                 .environmentObject(preferencesManager)
-                .environmentObject(appState)
-                .environmentObject(authState)
+                .environment(appState)
+                .environment(authState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                         LastFmAuthSheet(lastFmManager: desktopManager)
-                            .environmentObject(authState)
+                            .environment(authState)
                     }
                 }
         }
@@ -84,11 +89,11 @@ struct scrobbleApp: App {
                 PreferencesView()
                     .environmentObject(preferencesManager)
                     .environmentObject(scrobbler)
-                    .environmentObject(authState)
+                    .environment(authState)
                     .sheet(isPresented: $authState.showingAuthSheet) {
                         if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                             LastFmAuthSheet(lastFmManager: desktopManager)
-                                .environmentObject(authState)
+                                .environment(authState)
                         }
                     }
             
@@ -153,7 +158,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct MenuButtons: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) var appState
     
     @Environment(\.openWindow) var openWindow
     

@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import Observation
 
 struct AuthView: View {
-    @ObservedObject var lastFmManager: LastFmDesktopManager
+    var lastFmManager: LastFmDesktopManager
     @Binding var isAuthWindowShown: Bool
     @Environment(\.dismiss) var dismiss
     
@@ -76,5 +77,7 @@ struct AuthView: View {
 }
 
 #Preview {
-    AuthView(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: ""), isAuthWindowShown: .constant(true))
+    let authState = AuthState()
+    let manager = LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", authState: authState)
+    return AuthView(lastFmManager: manager, isAuthWindowShown: .constant(true))
 }
