@@ -2,7 +2,7 @@
 //  ScrobblingService.swift
 //  scrobble
 //
-//  Created by Assistant on 1/25/25.
+//  Created by Brett Henderson on 1/25/25.
 //
 
 import Foundation
@@ -12,25 +12,25 @@ import Combine
 protocol ScrobblingService {
     /// Unique identifier for this service
     var serviceId: String { get }
-    
+
     /// Display name for this service
     var serviceName: String { get }
-    
+
     /// Whether this service is currently authenticated and ready to scrobble
     var isAuthenticated: Bool { get }
-    
+
     /// Stream that emits authentication status changes
     var authStatus: AsyncStream<Bool> { get }
-    
+
     /// Scrobble a track that has been played
     func scrobble(artist: String, track: String, album: String) async throws -> Bool
-    
+
     /// Update now playing status
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool
-    
+
     /// Start authentication process if needed
     func authenticate() async throws -> Bool
-    
+
     /// Sign out and clear authentication
     func signOut()
 }
@@ -38,19 +38,19 @@ protocol ScrobblingService {
 /// Adapter to make existing LastFmManagerType conform to ScrobblingService
 class LastFmServiceAdapter: ScrobblingService {
     private let lastFmManager: LastFmManagerType
-    
+
     var serviceId: String { "lastfm" }
     var serviceName: String { "Last.fm" }
-    
+
     var isAuthenticated: Bool {
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
             return desktopManager.authStatus == .authenticated
         }
         return false
     }
-    
-    
-    
+
+
+
     var authStatus: AsyncStream<Bool> {
         AsyncStream { continuation in
             guard let desktopManager = lastFmManager as? LastFmDesktopManager else {
@@ -75,14 +75,14 @@ class LastFmServiceAdapter: ScrobblingService {
             }
         }
     }
-    
+
     init(lastFmManager: LastFmManagerType) {
         self.lastFmManager = lastFmManager
     }
-    
+
     func scrobble(artist: String, track: String, album: String) async throws -> Bool {
         Log.debug("Last.fm: Scrobbling \(artist) - \(track)", category: .scrobble)
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             var cancellable: AnyCancellable?
             cancellable = lastFmManager.scrobble(artist: artist, track: track, album: album)
@@ -100,10 +100,10 @@ class LastFmServiceAdapter: ScrobblingService {
                 })
         }
     }
-    
+
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
         Log.debug("Last.fm: Updating now playing \(artist) - \(track)", category: .scrobble)
-        
+
         return try await withCheckedThrowingContinuation { continuation in
              var cancellable: AnyCancellable?
              cancellable = lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
@@ -121,7 +121,7 @@ class LastFmServiceAdapter: ScrobblingService {
                  })
          }
     }
-    
+
     func authenticate() async throws -> Bool {
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
             desktopManager.startAuth()
@@ -135,7 +135,7 @@ class LastFmServiceAdapter: ScrobblingService {
 
         throw ScrobblerError.authenticationFailed
     }
-    
+
     func signOut() {
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
             desktopManager.logout()

@@ -2,7 +2,7 @@
 //  BlueskyOAuthManager.swift
 //  scrobble
 //
-//  Created by Assistant on 1/25/25.
+//  Created by Brett Henderson on 1/25/25.
 //
 
 import Foundation
@@ -21,16 +21,16 @@ class BlueskyOAuthManager: NSObject {
     private let baseURL = "https://clientserver-production-be44.up.railway.app"
     private var authWindow: NSWindow?
     private var webView: WKWebView?
-    
+
     // Session management
     private var sessionCookies: [HTTPCookie] = []
-    
+
     init(blueskyHandle: String) {
         self.blueskyHandle = blueskyHandle
         super.init()
         checkExistingAuth()
     }
-    
+
     private func checkExistingAuth() {
         // Check if we have stored cookies for this handle
         if let cookieData = UserDefaults.standard.data(forKey: "bluesky_auth_cookies_\(blueskyHandle)") {
@@ -66,7 +66,7 @@ class BlueskyOAuthManager: NSObject {
             Log.debug("No stored cookies found for \(blueskyHandle)", category: .auth)
         }
     }
-    
+
     private func testAuthenticationStatus() {
         Log.debug("Testing stored authentication status...", category: .auth)
 
@@ -118,7 +118,7 @@ class BlueskyOAuthManager: NSObject {
             }
         }
     }
-    
+
     @MainActor
     func startAuthentication() async {
         guard !isAuthenticating else { return }
@@ -138,41 +138,41 @@ class BlueskyOAuthManager: NSObject {
         // Create a new window with WebKit view
         createAuthWindow(with: url)
     }
-    
+
     private func createAuthWindow(with url: URL) {
         let windowRect = NSRect(x: 0, y: 0, width: 800, height: 600)
-        
+
         authWindow = NSWindow(
             contentRect: windowRect,
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
-        
+
         authWindow?.title = "Bluesky Authentication"
         authWindow?.center()
         authWindow?.isReleasedWhenClosed = false
-        
+
         // Create WebKit configuration
         let config = WKWebViewConfiguration()
         config.websiteDataStore = WKWebsiteDataStore.nonPersistent() // Start fresh
-        
+
         // Create WebKit view
         webView = WKWebView(frame: windowRect, configuration: config)
         webView?.navigationDelegate = self
-        
+
         authWindow?.contentView = webView
         authWindow?.makeKeyAndOrderFront(nil)
-        
+
         // Load the OAuth URL
         let request = URLRequest(url: url)
         webView?.load(request)
     }
-    
+
     private func completeAuthentication(success: Bool, error: String? = nil) {
         Task { @MainActor in
             self.isAuthenticating = false
-            
+
             if success {
                 self.isAuthenticated = true
                 self.authError = nil
@@ -182,41 +182,41 @@ class BlueskyOAuthManager: NSObject {
                 self.authError = error ?? "Authentication failed"
                 Log.error("Bluesky OAuth authentication failed: \(error ?? "unknown error")", category: .auth)
             }
-            
+
             // Close auth window
             self.authWindow?.close()
             self.authWindow = nil
             self.webView = nil
         }
     }
-    
+
     private func extractAndStoreCookies() {
         guard let webView = webView else { return }
-        
+
         Log.debug("Extracting cookies from WebView...", category: .auth)
-        
+
         // Get all cookies from the WebView
         webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
             guard let self = self else { return }
-            
+
             Log.debug("Total cookies found: \(cookies.count)", category: .auth)
             for cookie in cookies {
                 Log.debug("Cookie: \(cookie.name) = \(cookie.value.prefix(20))... (domain: \(cookie.domain), path: \(cookie.path))", category: .auth)
             }
-            
+
             // Filter for cookies from our Railway domain
             let railwayCookies = cookies.filter { cookie in
                 cookie.domain.contains("railway.app") || cookie.domain.contains("clientserver-production-be44")
             }
-            
+
             Log.debug("Railway domain cookies found: \(railwayCookies.count)", category: .auth)
-            
+
             if !railwayCookies.isEmpty {
                 // Look specifically for the 'auth' cookie first
                 let authCookie = railwayCookies.first { cookie in
                     cookie.name.lowercased() == "auth"
                 }
-                
+
                 if let authCookie = authCookie {
                     Log.debug("Found 'auth' cookie: \(authCookie.name)", category: .auth)
                     self.sessionCookies = [authCookie]
@@ -224,18 +224,18 @@ class BlueskyOAuthManager: NSObject {
                     self.completeAuthentication(success: true)
                     return
                 }
-                
+
                 // Fallback: look for any auth/session related cookies
                 let authCookies = railwayCookies.filter { cookie in
                     let name = cookie.name.lowercased()
                     return name.contains("auth") ||
-                           name.contains("session") || 
+                           name.contains("session") ||
                            name.contains("jwt") ||
                            name.contains("token") ||
                            name.contains("access") ||
                            name.contains("bearer")
                 }
-                
+
                 if !authCookies.isEmpty {
                     Log.debug("Found auth-related cookies: \(authCookies.map { $0.name })", category: .auth)
                     self.sessionCookies = authCookies
@@ -243,7 +243,7 @@ class BlueskyOAuthManager: NSObject {
                     self.completeAuthentication(success: true)
                     return
                 }
-                
+
                 // If we have Railway cookies but none match our expected patterns,
                 // let's try using all of them
                 Log.debug("Using all Railway cookies as potential auth cookies: \(railwayCookies.map { $0.name })", category: .auth)
@@ -256,7 +256,7 @@ class BlueskyOAuthManager: NSObject {
             }
         }
     }
-    
+
     private func storeCookies(_ cookies: [HTTPCookie]) {
         let cookieData = cookies.map { CookieData(from: $0) }
         do {
@@ -266,14 +266,14 @@ class BlueskyOAuthManager: NSObject {
             Log.error("Failed to store cookies: \(error)", category: .auth)
         }
     }
-    
+
     @MainActor
     private func clearStoredAuth() {
         UserDefaults.standard.removeObject(forKey: "bluesky_auth_cookies_\(blueskyHandle)")
         sessionCookies.removeAll()
         isAuthenticated = false
     }
-    
+
     @MainActor
     func signOut() {
         // Log out via server endpoint using our auth cookies, then clear local state
@@ -323,17 +323,17 @@ class BlueskyOAuthManager: NSObject {
             }
         }
     }
-    
+
     // Create authenticated URLRequest with cookies
     func createAuthenticatedRequest(url: URL) -> URLRequest {
         var request = URLRequest(url: url)
-        
+
         // Add cookies to request
         if !sessionCookies.isEmpty {
             let cookieHeader = HTTPCookie.requestHeaderFields(with: sessionCookies)["Cookie"] ?? ""
             request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
         }
-        
+
         return request
     }
 }
@@ -344,12 +344,12 @@ extension BlueskyOAuthManager: WKNavigationDelegate {
         // Check if we're on a success page or if authentication is complete
         if let url = webView.url?.absoluteString {
             Log.debug("Navigation finished: \(url)", category: .auth)
-            
+
             // Check if we're back at the base domain after OAuth (but not on the initial login page)
-            if url.contains("clientserver-production-be44.up.railway.app") && 
+            if url.contains("clientserver-production-be44.up.railway.app") &&
                !url.contains("oauth/login") &&
                !url.contains("bsky.social") {
-                
+
                 Log.debug("Detected successful OAuth redirect to Railway app - extracting cookies", category: .auth)
                 // Likely completed OAuth flow, extract cookies
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -367,12 +367,12 @@ extension BlueskyOAuthManager: WKNavigationDelegate {
             }
         }
     }
-    
+
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         Log.error("WebView navigation failed: \(error)", category: .auth)
         completeAuthentication(success: false, error: error.localizedDescription)
     }
-    
+
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         Log.error("WebView provisional navigation failed: \(error)", category: .auth)
         completeAuthentication(success: false, error: error.localizedDescription)
@@ -388,7 +388,7 @@ private struct CookieData: Codable {
     let isSecure: Bool
     let isHttpOnly: Bool
     let expiresDate: Date?
-    
+
     init(from cookie: HTTPCookie) {
         self.name = cookie.name
         self.value = cookie.value
@@ -398,7 +398,7 @@ private struct CookieData: Codable {
         self.isHttpOnly = cookie.isHTTPOnly
         self.expiresDate = cookie.expiresDate
     }
-    
+
     func toCookie() -> HTTPCookie? {
         var properties: [HTTPCookiePropertyKey: Any] = [
             .name: name,
@@ -406,19 +406,19 @@ private struct CookieData: Codable {
             .domain: domain,
             .path: path
         ]
-        
+
         if isSecure {
             properties[.secure] = true
         }
-        
+
         if isHttpOnly {
             properties[.init("HttpOnly")] = true
         }
-        
+
         if let expiresDate = expiresDate {
             properties[.expires] = expiresDate
         }
-        
+
         return HTTPCookie(properties: properties)
     }
 }
