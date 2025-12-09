@@ -7,7 +7,7 @@ on:
 
 jobs:
   nightly-build:
-    runs-on: macos-latest
+    runs-on: macos-26
     name: Build Nightly
     
     steps:
