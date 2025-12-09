@@ -62,10 +62,11 @@ struct MarqueeText: View {
     var containerWidth: Double = 200
     var speed: Double = 30 // points per second
     var pauseDuration: Double = 2
-    
+
     @State private var offset: Double = 0
     @State private var textWidth: Double = 0
-    
+    @State private var animationTask: Task<Void, Never>?
+
     var body: some View {
         Text(text)
             .font(font)
@@ -78,32 +79,47 @@ struct MarqueeText: View {
             .frame(width: containerWidth, alignment: .leading)
             .clipped()
             .onAppear(perform: startAnimation)
+            .onDisappear(perform: stopAnimation)
+            .onChange(of: text) { _, _ in
+                // Restart animation when text changes
+                stopAnimation()
+                offset = 0
+                // Small delay to allow textWidth to update
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    startAnimation()
+                }
+            }
     }
-    
+
     private func startAnimation() {
         guard textWidth > containerWidth else { return } // no scroll needed
-        
+
         let scrollDistance = textWidth - containerWidth + 20
         let scrollDuration = scrollDistance / speed
-        
-        func cycle() {
-            offset = 0
-            
-            // Pause at start
-            DispatchQueue.main.asyncAfter(deadline: .now() + pauseDuration) {
+
+        animationTask = Task { @MainActor in
+            while !Task.isCancelled {
+                // Reset to start
+                offset = 0
+
+                // Pause at start
+                try? await Task.sleep(for: .seconds(pauseDuration))
+                guard !Task.isCancelled else { break }
+
                 // Scroll left
                 withAnimation(.linear(duration: scrollDuration)) {
                     offset = -scrollDistance
                 }
-                
-                // Pause at end, then restart
-                DispatchQueue.main.asyncAfter(deadline: .now() + scrollDuration + pauseDuration) {
-                    cycle()
-                }
+
+                // Wait for scroll animation to complete + pause at end
+                try? await Task.sleep(for: .seconds(scrollDuration + pauseDuration))
             }
         }
-        
-        cycle()
+    }
+
+    private func stopAnimation() {
+        animationTask?.cancel()
+        animationTask = nil
     }
 }
 

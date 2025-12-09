@@ -27,27 +27,29 @@ class CustomScrobblingService: ScrobblingService {
     
     var authStatus: AsyncStream<Bool> {
         AsyncStream { continuation in
+            // Yield initial state immediately
+            let initialState = Task { @MainActor in
+                return oauthManager.isAuthenticated
+            }
+
+            Task {
+                let initial = await initialState.value
+                continuation.yield(initial)
+            }
+
+            // Use a polling approach with reasonable interval instead of busy-wait observation
+            // Auth state changes are infrequent (user-initiated), so 1 second polling is fine
             let monitoringTask = Task { @MainActor in
                 var previousState = oauthManager.isAuthenticated
-                continuation.yield(previousState)
 
-                // Using a loop with `withObservationTracking`
                 while !Task.isCancelled {
-                    await withCheckedContinuation { (obsCont: CheckedContinuation<Void, Never>) in
-                        withObservationTracking {
-                            _ = oauthManager.isAuthenticated
-                        } onChange: {
-                            obsCont.resume()
-                        }
-                    }
+                    try? await Task.sleep(for: .seconds(1))
+                    guard !Task.isCancelled else { break }
 
-                    // Value changed
-                    if !Task.isCancelled {
-                        let newState = oauthManager.isAuthenticated
-                        if newState != previousState {
-                            continuation.yield(newState)
-                            previousState = newState
-                        }
+                    let newState = oauthManager.isAuthenticated
+                    if newState != previousState {
+                        continuation.yield(newState)
+                        previousState = newState
                     }
                 }
             }

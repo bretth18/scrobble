@@ -102,11 +102,17 @@ struct AppSelectionView: View {
         .onAppear {
             updateRunningApps()
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didActivateApplicationNotification)) { _ in
-            updateRunningApps()
+        .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didLaunchApplicationNotification)) { notification in
+            // Only update if a music app launched
+            if isMusicAppNotification(notification) {
+                updateRunningApps()
+            }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didTerminateApplicationNotification)) { _ in
-            updateRunningApps()
+        .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didTerminateApplicationNotification)) { notification in
+            // Only update if a music app terminated
+            if isMusicAppNotification(notification) {
+                updateRunningApps()
+            }
         }
     }
     
@@ -114,6 +120,16 @@ struct AppSelectionView: View {
         if let fetcher = scrobbler.mediaRemoteFetcher {
             runningApps = fetcher.getRunningMusicApps()
         }
+    }
+
+    private func isMusicAppNotification(_ notification: NotificationCenter.Publisher.Output) -> Bool {
+        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+              let bundleId = app.bundleIdentifier else {
+            return false
+        }
+        // Check if this is one of our supported music apps
+        let musicBundleIds = SupportedMusicApp.allApps.map { $0.bundleId }.filter { $0 != "any" }
+        return musicBundleIds.contains(bundleId)
     }
 }
 

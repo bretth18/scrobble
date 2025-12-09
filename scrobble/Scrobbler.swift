@@ -48,18 +48,21 @@ class Scrobbler {
     var lastScrobbledTrack: String = ""
     var errorMessage: String?
     var musicAppStatus: String = "Connecting to Music app..."
-    
+
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.scrobbler", qos: .background)
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
     private var pollTimer: Timer?
-    
+
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
     private var scrobbleTimer: Timer?
     private var hasScrobbledCurrentSession = false
-    
+
+    // Track auth monitoring tasks so we can cancel them when services refresh
+    private var authMonitoringTasks: [Task<Void, Never>] = []
+
     private var _mediaRemoteFetcher: NowPlayingFetcher?
     
     // Expose the fetcher for UI components that need to check running apps
@@ -122,37 +125,45 @@ class Scrobbler {
     }
     
     private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
+        // Cancel any existing auth monitoring tasks before creating new ones
+        for task in authMonitoringTasks {
+            task.cancel()
+        }
+        authMonitoringTasks.removeAll()
+
         scrobblingServices.removeAll()
-        
+
         guard let prefManager = preferencesManager else { return }
-        
+
         // Add Last.fm service if enabled
         if prefManager.enableLastFm {
             let lastFmService = LastFmServiceAdapter(lastFmManager: lastFmManager)
             scrobblingServices.append(lastFmService)
         }
-        
+
         // Add custom scrobbling service if enabled
         if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
             let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
             scrobblingServices.append(customService)
         }
-        
+
         // Subscribe to authentication state changes for all services
         for service in scrobblingServices {
-            Task { @MainActor in
+            let task = Task { @MainActor in
                 for await _ in service.authStatus {
+                    guard !Task.isCancelled else { break }
                     Log.debug("Service auth state changed: \(service.serviceName)", category: .auth)
                     self.servicesLastUpdated = Date()
                 }
             }
+            authMonitoringTasks.append(task)
         }
-        
+
         // Trigger UI update
         Task { @MainActor in
             self.servicesLastUpdated = Date()
         }
-        
+
         Log.debug("Initialized \(scrobblingServices.count) scrobbling services")
     }
     
@@ -444,6 +455,10 @@ class Scrobbler {
         DistributedNotificationCenter.default().removeObserver(self)
         pollTimer?.invalidate()
         scrobbleTimer?.invalidate()
+        // Cancel all auth monitoring tasks
+        for task in authMonitoringTasks {
+            task.cancel()
+        }
     }
 }
 
