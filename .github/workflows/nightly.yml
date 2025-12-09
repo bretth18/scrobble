@@ -26,7 +26,7 @@ jobs:
     - name: Archive Nightly App
       run: |
         xcodebuild -scheme scrobble \
-          -bg-xcconfig Configs/Secrets.xcconfig \
+          -xcconfig Configs/Secrets.xcconfig \
           -archivePath $PWD/build/scrobble_nightly.xcarchive \
           -configuration Release \
           archive \

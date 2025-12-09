@@ -24,7 +24,7 @@ jobs:
     - name: Archive App
       run: |
         xcodebuild -scheme scrobble \
-          -bg-xcconfig Configs/Secrets.xcconfig \
+          -xcconfig Configs/Secrets.xcconfig \
           -archivePath $PWD/build/scrobble.xcarchive \
           -configuration Release \
           archive \
