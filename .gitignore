@@ -12,3 +12,4 @@ Configs/Secrets.xcconfig
 .build/
 Packages/
 build/
+build.log
