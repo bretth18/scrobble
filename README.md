@@ -11,6 +11,7 @@ Scrobble was created from a desire to create a reliable, minimal scrobbler for m
 
 <img width="200" height="200" alt="scrobblescreenshot1" src="https://github.com/user-attachments/assets/9581e9cf-2447-4a02-907e-c244f39d2642" />
 
+<img width="200" height="200" alt="scrobblesceenshot2" src="https://github.com/user-attachments/assets/5f6807fb-c066-4281-a252-da6616379b0c" />
 
 
 ## Installation

@@ -483,7 +483,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -497,7 +497,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "scrobble [internal_clg]";
+				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -533,7 +533,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -547,7 +547,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "scrobble [internal_clg]";
+				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
