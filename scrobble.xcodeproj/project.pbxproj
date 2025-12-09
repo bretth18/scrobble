@@ -153,13 +153,9 @@
 				A6F2FEE72EE79A20003826F7 /* Views */,
 				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
-				A64304C52D52FBA1001998B6 /* AppState.swift */,
-				A64304C72D52FBEC001998B6 /* AuthState.swift */,
 				A6F213172C8C065100E1D23B /* Music.h */,
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
-				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A63A2B1A2D271A95000BC92E /* ContentView.swift */,
-				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
@@ -215,6 +211,10 @@
 		A6F2FEE82EE79A26003826F7 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A64304C72D52FBEC001998B6 /* AuthState.swift */,
+				A64304C52D52FBA1001998B6 /* AppState.swift */,
+				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
+				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";

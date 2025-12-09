@@ -44,12 +44,12 @@ struct BillionsMustScrobbleView: View {
         Text("Billions must scrobble!")
             .font(.caption)
             .foregroundColor(.secondary)
-            .textRenderer(WaveRenderer(strength: 10.0, frequency: 0.1, phase:  phase))
-            .onAppear {
-                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                    phase = .pi * 2
-                }
-            }
+//            .textRenderer(WaveRenderer(strength: 10.0, frequency: 0.1, phase:  phase))
+//            .onAppear {
+//                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+//                    phase = .pi * 2
+//                }
+//            }
     }
 }
 

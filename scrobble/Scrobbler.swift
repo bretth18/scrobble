@@ -50,14 +50,13 @@ class Scrobbler {
     var musicAppStatus: String = "Connecting to Music app..."
 
     private var cancellables = Set<AnyCancellable>()
-    private let queue = DispatchQueue(label: "com.lastfm.scrobbler", qos: .background)
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
-    private var pollTimer: Timer?
+    private var pollTask: Task<Void, Never>?
 
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
-    private var scrobbleTimer: Timer?
+    private var scrobbleTask: Task<Void, Never>?
     private var hasScrobbledCurrentSession = false
 
     // Track auth monitoring tasks so we can cancel them when services refresh
@@ -102,8 +101,11 @@ class Scrobbler {
         
         setupMusicAppObserver()
         startPolling()
-        checkNowPlaying()
-        
+
+        // Initial check for now playing
+        Task { @MainActor in
+            await checkNowPlaying()
+        }
     }
     
     private func startPreferencesObservation(_ prefManager: PreferencesManager) {
@@ -194,18 +196,18 @@ class Scrobbler {
         musicAppStatus = "Connected to \(app.displayName)"
         
         // Schedule multiple checks to ensure we catch the new app's state
-        Task {
+        Task { @MainActor in
             try? await Task.sleep(for: .seconds(0.5))
             Log.debug("First check after app switch", category: .scrobble)
-            self.checkNowPlaying()
-            
+            await checkNowPlaying()
+
             try? await Task.sleep(for: .seconds(0.5))
-            Log.debug("🔍 Second check after app switch", category: .scrobble)
-            self.checkNowPlaying()
-            
+            Log.debug("Second check after app switch", category: .scrobble)
+            await checkNowPlaying()
+
             try? await Task.sleep(for: .seconds(1.0))
-            Log.debug("🔍 Final check after app switch", category: .scrobble)
-            self.checkNowPlaying()
+            Log.debug("Final check after app switch", category: .scrobble)
+            await checkNowPlaying()
         }
     }
     
@@ -226,59 +228,55 @@ class Scrobbler {
     }
     
     private func startPolling() {
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
-            self?.checkNowPlaying()
+        pollTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(10))
+                guard !Task.isCancelled else { break }
+                await checkNowPlaying()
+            }
         }
     }
     
     @objc private func handleMusicPlayerNotification(_ notification: Notification) {
-        checkNowPlaying()
+        Task { @MainActor in
+            await checkNowPlaying()
+        }
     }
-    
-    private func checkNowPlaying() {
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            
-            Log.debug("Checking now playing...", category: .scrobble)
-            
-            if let trackInfo = self.getCurrentTrackInfoViaFetcher(){
-                let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
-                
-                Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
-                
-                Task { @MainActor in
-                    // If we're getting the same track info, this is likely just a polling update
-                    let isSameTrack = trackString == self.currentTrack
-                    self.currentTrack = trackString
-                    
-                    self.currentArtwork = trackInfo.artwork
-                    
-                    // Only update now playing status and setup scrobble timer if this is a new track
-                    if !isSameTrack {
-                        Log.debug("New track detected, updating now playing and setting up scrobble timer", category: .scrobble)
-                        // Reset scrobble session flag for new track
-                        self.hasScrobbledCurrentSession = false
-                        
-                        // Update Now Playing (Async)
-                        Task {
-                            await self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                        }
-                        
-                        self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                    } else {
-                        Log.debug("Same track continuing, skipping now playing update", category: .scrobble)
-                    }
-                }
+
+    @MainActor
+    private func checkNowPlaying() async {
+        Log.debug("Checking now playing...", category: .scrobble)
+
+        if let trackInfo = getCurrentTrackInfoViaFetcher() {
+            let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
+
+            Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
+
+            // If we're getting the same track info, this is likely just a polling update
+            let isSameTrack = trackString == currentTrack
+            currentTrack = trackString
+            currentArtwork = trackInfo.artwork
+
+            // Only update now playing status and setup scrobble timer if this is a new track
+            if !isSameTrack {
+                Log.debug("New track detected, updating now playing and setting up scrobble timer", category: .scrobble)
+                // Reset scrobble session flag for new track
+                hasScrobbledCurrentSession = false
+
+                // Update Now Playing (Async)
+                await updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+
+                setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
             } else {
-                Log.debug("No track info found", category: .scrobble)
-                Task { @MainActor in
-                    if self.currentTrack != "No track playing" {
-                        Log.debug("No track playing detected, updating UI and invalidating timers", category: .scrobble)
-                        self.currentTrack = "No track playing"
-                        self.currentArtwork = nil
-                        self.invalidateScrobbleTimer()
-                    }
-                }
+                Log.debug("Same track continuing, skipping now playing update", category: .scrobble)
+            }
+        } else {
+            Log.debug("No track info found", category: .scrobble)
+            if currentTrack != "No track playing" {
+                Log.debug("No track playing detected, updating UI and invalidating timers", category: .scrobble)
+                currentTrack = "No track playing"
+                currentArtwork = nil
+                invalidateScrobbleTimer()
             }
         }
     }
@@ -373,42 +371,40 @@ class Scrobbler {
     
     private func setupScrobbleTimer(artist: String, title: String, album: String) {
         invalidateScrobbleTimer()
-        
+
         // Get the track duration
         if let trackInfo = getCurrentTrackInfoViaFetcher() {
             let duration = trackInfo.duration ?? 0
             Log.debug("Setting up scrobble timer for track with duration: \(duration) seconds", category: .scrobble)
-            
+
             // Only setup timer if track is longer than 30 seconds
             guard duration > 30 else {
                 Log.debug("Track too short to scrobble (\(duration) seconds)", category: .scrobble)
                 return
             }
-            
+
             currentTrackStartTime = Date()
             currentTrackDuration = duration
-            
+
             // Calculate when to scrobble - either half duration or 4 minutes
             let scrobbleDelay = min(duration / 2, 240)
             Log.debug("Will scrobble after \(scrobbleDelay) seconds", category: .scrobble)
-            
-            // Create a timer that runs on the main run loop to ensure it stays active
-            DispatchQueue.main.async {
-                self.scrobbleTimer = Timer(timeInterval: scrobbleDelay, repeats: false) { [weak self] _ in
-                    Log.debug("Scrobble timer fired", category: .scrobble)
-                    self?.scrobbleTrack(artist: artist, title: title, album: album)
-                }
-                // Make sure the timer runs even when scrolling
-                RunLoop.main.add(self.scrobbleTimer!, forMode: .common)
+
+            // Use Task.sleep instead of Timer for modern Swift concurrency
+            scrobbleTask = Task {
+                try? await Task.sleep(for: .seconds(scrobbleDelay))
+                guard !Task.isCancelled else { return }
+                Log.debug("Scrobble timer fired", category: .scrobble)
+                scrobbleTrack(artist: artist, title: title, album: album)
             }
         } else {
             Log.error("Could not get track duration", category: .scrobble)
         }
     }
-    
+
     private func invalidateScrobbleTimer() {
-        scrobbleTimer?.invalidate()
-        scrobbleTimer = nil
+        scrobbleTask?.cancel()
+        scrobbleTask = nil
         currentTrackStartTime = nil
         currentTrackDuration = nil
         // Reset session flag when track stops/changes
@@ -453,8 +449,8 @@ class Scrobbler {
     
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)
-        pollTimer?.invalidate()
-        scrobbleTimer?.invalidate()
+        pollTask?.cancel()
+        scrobbleTask?.cancel()
         // Cancel all auth monitoring tasks
         for task in authMonitoringTasks {
             task.cancel()

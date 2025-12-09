@@ -61,11 +61,16 @@ struct MarqueeText: View {
     var font: Font = .body
     var containerWidth: Double = 200
     var speed: Double = 30 // points per second
-    var pauseDuration: Double = 2
+    var pauseDuration: Double = 1.5
 
     @State private var offset: Double = 0
     @State private var textWidth: Double = 0
     @State private var animationTask: Task<Void, Never>?
+    @State private var isHovering = false
+
+    private var needsScrolling: Bool {
+        textWidth > containerWidth
+    }
 
     var body: some View {
         Text(text)
@@ -73,38 +78,48 @@ struct MarqueeText: View {
             .lineLimit(1)
             .fixedSize()
             .background(GeometryReader { geo in
-                Color.clear.onAppear { textWidth = geo.size.width }
+                Color.clear
+                    .onAppear { textWidth = geo.size.width }
+                    .onChange(of: text) {
+                        // Update width when text changes
+                        textWidth = geo.size.width
+                    }
             })
             .textRenderer(MarqueeRenderer(offset: offset, containerWidth: containerWidth))
             .frame(width: containerWidth, alignment: .leading)
             .clipped()
-            .onAppear(perform: startAnimation)
-            .onDisappear(perform: stopAnimation)
-            .onChange(of: text) { _, _ in
-                // Restart animation when text changes
-                stopAnimation()
-                offset = 0
-                // Small delay to allow textWidth to update
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            .onHover { hovering in
+                isHovering = hovering
+                if hovering && needsScrolling {
                     startAnimation()
+                } else {
+                    stopAnimation()
                 }
+            }
+            .onDisappear {
+                stopAnimation()
             }
     }
 
     private func startAnimation() {
-        guard textWidth > containerWidth else { return } // no scroll needed
+        // Cancel any existing animation first
+        animationTask?.cancel()
+
+        guard needsScrolling else { return }
 
         let scrollDistance = textWidth - containerWidth + 20
         let scrollDuration = scrollDistance / speed
 
         animationTask = Task { @MainActor in
-            while !Task.isCancelled {
+            while !Task.isCancelled && isHovering {
                 // Reset to start
-                offset = 0
+                withAnimation(.easeOut(duration: 0.2)) {
+                    offset = 0
+                }
 
-                // Pause at start
+                // Brief pause at start
                 try? await Task.sleep(for: .seconds(pauseDuration))
-                guard !Task.isCancelled else { break }
+                guard !Task.isCancelled && isHovering else { break }
 
                 // Scroll left
                 withAnimation(.linear(duration: scrollDuration)) {
@@ -113,6 +128,13 @@ struct MarqueeText: View {
 
                 // Wait for scroll animation to complete + pause at end
                 try? await Task.sleep(for: .seconds(scrollDuration + pauseDuration))
+            }
+
+            // Reset position when done
+            if !isHovering {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    offset = 0
+                }
             }
         }
     }
