@@ -1,11 +1,32 @@
-# Scrobble for macOS
+# scrobble
 
 A macOS menu bar application that scrobbles music via the system player to Last.fm.
 
 ## Info
 
-Scrobble was created from a desire to create a reliable, minimal scrobbler for macOS. Before macOS Tahoe, audio track metadata from Apple Music was available via AppleScript calls. This application now utilizes a workaround to access the private `MediaRemote.framework` to access the current track information.
+Scrobble was created from a desire to create a reliable, minimal scrobbler for macOS, compatible with Apple Music. This application utilizes a workaround to access the private `MediaRemote.framework` to read the current track information from the system.
 
+
+## Screenshots
+
+
+## Installation
+
+### Prerequisites
+- macOS 15+
+- Last.fm account
+
+### From GitHub Releases
+
+1. Download the latest release from the [Releases](https://github.com/bretth18/scrobble/releases) page.
+2. Move the `Scrobble.app` to your Applications folder.
+3. Open the app. You may need to approve it in System Preferences > Security & Privacy > General.
+
+## Authentication
+1. Open the settings window from the menu bar (or `CMD,` with the app focused).
+2. Enter your Last.fm username and click "Authenticate".
+3. A browser window will open; log in to Last.fm and authorize the app.
+4. Retry authentication if needed.
 
 
 ## Development

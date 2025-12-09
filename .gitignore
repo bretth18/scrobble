@@ -13,3 +13,5 @@ Configs/Secrets.xcconfig
 Packages/
 build/
 build.log
+
+.claude/
