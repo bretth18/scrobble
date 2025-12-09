@@ -7,8 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */; };
+		A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */; };
+		A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */; };
+		A62299172EE7D46100592239 /* ErrorMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62299162EE7D46100592239 /* ErrorMessageView.swift */; };
+		A62299192EE7D49B00592239 /* FriendCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62299182EE7D49B00592239 /* FriendCardView.swift */; };
+		A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991A2EE7D69100592239 /* MenuButtonsView.swift */; };
+		A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991C2EE7D72900592239 /* ServicesStatusView.swift */; };
+		A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991F2EE80F2C00592239 /* LabeledStepper.swift */; };
+		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
+		A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* ContentView.swift */; };
+		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
+		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
+		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
+		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
+		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
+		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
+		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
+		A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */; };
+		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
+		A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6A580A22E78D8480079DC91 /* MediaPlayer.framework */; };
+		A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */; };
+		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
+		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
-		A6F213022C8C021800E1D23B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ContentView.swift */; };
+		A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ScrobblingView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
 		A6F213072C8C021900E1D23B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213062C8C021900E1D23B /* Preview Assets.xcassets */; };
 		A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */; };
@@ -17,12 +41,53 @@
 		A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */; };
 		A6F2131C2C8C085900E1D23B /* Music.h in Sources */ = {isa = PBXBuildFile; fileRef = A6F213172C8C065100E1D23B /* Music.h */; };
 		A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */; };
+		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
+		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
+		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A6A580AA2E78DB9F0079DC91 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
+		A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyOAuthManager.swift; sourceTree = "<group>"; };
+		A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomScrobblingService.swift; sourceTree = "<group>"; };
+		A62299162EE7D46100592239 /* ErrorMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessageView.swift; sourceTree = "<group>"; };
+		A62299182EE7D49B00592239 /* FriendCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCardView.swift; sourceTree = "<group>"; };
+		A622991A2EE7D69100592239 /* MenuButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuButtonsView.swift; sourceTree = "<group>"; };
+		A622991C2EE7D72900592239 /* ServicesStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStatusView.swift; sourceTree = "<group>"; };
+		A622991F2EE80F2C00592239 /* LabeledStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledStepper.swift; sourceTree = "<group>"; };
+		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		A63A2B1A2D271A95000BC92E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; tabWidth = 3; };
+		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
+		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
+		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
+		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
+		A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthView.swift; sourceTree = "<group>"; };
+		A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingServicesView.swift; sourceTree = "<group>"; };
+		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
+		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
+		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
+		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
+		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
-		A6F213012C8C021800E1D23B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A6F213012C8C021800E1D23B /* ScrobblingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingView.swift; sourceTree = "<group>"; };
 		A6F213032C8C021900E1D23B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6F213062C8C021900E1D23B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A6F213082C8C021900E1D23B /* scrobble.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = scrobble.entitlements; sourceTree = "<group>"; };
@@ -33,6 +98,9 @@
 		A6F213172C8C065100E1D23B /* Music.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Music.h; sourceTree = "<group>"; };
 		A6F213182C8C075F00E1D23B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
+		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
+		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +108,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */,
+				A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */,
 				A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -47,12 +117,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A622991E2EE80F1600592239 /* View Components */ = {
+			isa = PBXGroup;
+			children = (
+				A622991F2EE80F2C00592239 /* LabeledStepper.swift */,
+				A6CC84542EE8470C00236D47 /* MarqueeText.swift */,
+			);
+			path = "View Components";
+			sourceTree = "<group>";
+		};
 		A6F212F32C8C021800E1D23B = {
 			isa = PBXGroup;
 			children = (
 				A6F212FE2C8C021800E1D23B /* scrobble */,
 				A6F212FD2C8C021800E1D23B /* Products */,
 				A6F213142C8C05E800E1D23B /* Frameworks */,
+				A6F2FEEE2EE79E47003826F7 /* Configs */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,17 +147,28 @@
 		A6F212FE2C8C021800E1D23B /* scrobble */ = {
 			isa = PBXGroup;
 			children = (
+				A622991E2EE80F1600592239 /* View Components */,
+				A6F2FEF02EE7A41F003826F7 /* Utils */,
+				A6F2FEE82EE79A26003826F7 /* Models */,
+				A6F2FEE72EE79A20003826F7 /* Views */,
 				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
 				A6F213172C8C065100E1D23B /* Music.h */,
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
-				A6F213012C8C021800E1D23B /* ContentView.swift */,
-				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
-				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
+				A63A2B1A2D271A95000BC92E /* ContentView.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
+				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
+				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
+				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
+				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
+				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
+				A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */,
+				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
+				A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */,
+				A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */,
 			);
 			path = scrobble;
 			sourceTree = "<group>";
@@ -93,9 +184,55 @@
 		A6F213142C8C05E800E1D23B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A6A580A22E78D8480079DC91 /* MediaPlayer.framework */,
 				A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A6F2FEE72EE79A20003826F7 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A62299162EE7D46100592239 /* ErrorMessageView.swift */,
+				A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */,
+				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
+				A62299182EE7D49B00592239 /* FriendCardView.swift */,
+				A622991A2EE7D69100592239 /* MenuButtonsView.swift */,
+				A622991C2EE7D72900592239 /* ServicesStatusView.swift */,
+				A6F213012C8C021800E1D23B /* ScrobblingView.swift */,
+				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
+				A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */,
+				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
+				A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A6F2FEE82EE79A26003826F7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A64304C72D52FBEC001998B6 /* AuthState.swift */,
+				A64304C52D52FBA1001998B6 /* AppState.swift */,
+				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
+				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A6F2FEEE2EE79E47003826F7 /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */,
+			);
+			path = Configs;
+			sourceTree = SOURCE_ROOT;
+		};
+		A6F2FEF02EE7A41F003826F7 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2FEF12EE7A429003826F7 /* Logger.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,6 +245,7 @@
 				A6F212F82C8C021800E1D23B /* Sources */,
 				A6F212F92C8C021800E1D23B /* Frameworks */,
 				A6F212FA2C8C021800E1D23B /* Resources */,
+				A6A580AA2E78DB9F0079DC91 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -126,10 +264,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					A6F212FB2C8C021800E1D23B = {
 						CreatedOnToolsVersion = 15.4;
+						LastSwiftMigration = 2600;
 					};
 				};
 			};
@@ -142,6 +281,9 @@
 				Base,
 			);
 			mainGroup = A6F212F32C8C021800E1D23B;
+			packageReferences = (
+				A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */,
+			);
 			productRefGroup = A6F212FD2C8C021800E1D23B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -158,6 +300,7 @@
 			files = (
 				A6F213072C8C021900E1D23B /* Preview Assets.xcassets in Resources */,
 				A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */,
+				A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,12 +312,35 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
-				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
+				A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */,
+				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
+				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
+				A62299192EE7D49B00592239 /* FriendCardView.swift in Sources */,
+				A62299172EE7D46100592239 /* ErrorMessageView.swift in Sources */,
+				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
+				A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */,
+				A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */,
+				A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */,
+				A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */,
+				A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */,
+				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
+				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
+				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
+				A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
+				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
+				A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */,
+				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
+				A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */,
+				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
+				A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
+				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,
+				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
+				A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +383,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -235,11 +402,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -281,6 +449,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -293,28 +462,39 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
 		A6F2130C2C8C021900E1D23B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
@@ -324,28 +504,47 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		A6F2130D2C8C021900E1D23B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
-				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = scrobble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = scrobble;
@@ -355,10 +554,18 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "scrobble/scrobble-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -385,6 +592,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ejbills/mediaremote-adapter.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6A580A62E78DB7F0079DC91 /* XCRemoteSwiftPackageReference "mediaremote-adapter" */;
+			productName = MediaRemoteAdapter;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A6F212F42C8C021800E1D23B /* Project object */;
 }

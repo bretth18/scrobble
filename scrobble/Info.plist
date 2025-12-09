@@ -2,11 +2,26 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.bretthenderson.scrobble</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>scrobble</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppleEventsUsageDescription</key>
     <string>This app needs to control Apple Music to scrobble tracks.</string>
     <key>NSNetworkVolumesUsageDescription</key>
     <string>This app needs access to network volumes for proper functionality.</string>
     <key>NSSystemAdministrationUsageDescription</key>
     <string>This app requires system administration access for proper functionality.</string>
+    <key>LastFmApiKey</key>
+    <string>$(LASTFM_API_KEY)</string>
+    <key>LastFmApiSecret</key>
+    <string>$(LASTFM_API_SECRET)</string>
 </dict>
 </plist>

@@ -1,0 +1,91 @@
+name: Nightly Build
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+
+jobs:
+  nightly-build:
+    runs-on: macos-26
+    name: Build Nightly
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Secrets
+      run: |
+        mkdir -p Configs
+        echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> Configs/Secrets.xcconfig
+        echo "LASTFM_API_SECRET=${{ secrets.LASTFM_API_SECRET }}" >> Configs/Secrets.xcconfig
+        # Nightly builds might use the same key for now, or you could add NIGHTLY secrets if desired
+
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app
+
+    - name: Archive Nightly App
+      run: |
+        xcodebuild -scheme scrobble \
+          -xcconfig Configs/Secrets.xcconfig \
+          -archivePath $PWD/build/scrobble_nightly.xcarchive \
+          -configuration Release \
+          archive \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO
+
+    - name: Export Nightly App
+      run: |
+        cat <<EOF > ExportOptions.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>method</key>
+            <string>mac-application</string>
+            <key>destination</key>
+            <string>export</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+        </dict>
+        </plist>
+        EOF
+
+        xcodebuild -exportArchive \
+          -archivePath $PWD/build/scrobble_nightly.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath $PWD/build \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO
+
+    - name: Rename and Patch Nightly App
+      run: |
+        cd build
+        mv scrobble.app "Scrobble Nightly.app"
+        
+        # Update Bundle ID
+        /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier computerdata.scrobble.nightly" "Scrobble Nightly.app/Contents/Info.plist"
+        
+        # Update Display Name
+        /usr/libexec/PlistBuddy -c "Set :CFBundleName Scrobble Nightly" "Scrobble Nightly.app/Contents/Info.plist"
+        
+        # Verify changes
+        /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "Scrobble Nightly.app/Contents/Info.plist"
+
+    - name: Re-sign Nightly App
+      run: |
+        cd build
+        # Re-sign with Ad-Hoc identity to fix the signature invalidated by Info.plist changes
+        # We need to include entitlements to ensure Apple Events work
+        codesign --force --deep --sign - --entitlements ../scrobble/scrobble.entitlements "Scrobble Nightly.app"
+
+    - name: Zip Nightly Application
+      run: |
+        cd build
+        zip -r scrobble-nightly.zip "Scrobble Nightly.app"
+
+    - name: Upload Nightly Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: scrobble-nightly-build
+        path: build/scrobble-nightly.zip
+        retention-days: 5

@@ -12,7 +12,9 @@ import MusicKit
 import ScriptingBridge
 import CommonCrypto
 import Network
+import Network
 import AppKit
+import Observation
 
 
 @objc enum MusicEPlS: Int {
@@ -34,31 +36,184 @@ import AppKit
 
 
 
-class Scrobbler: ObservableObject {
-    @Published var currentTrack: String = "No track playing"
-    @Published var isScrobbling: Bool = false
-    @Published var lastScrobbledTrack: String = ""
-    @Published var errorMessage: String?
-    @Published var musicAppStatus: String = "Connecting to Music app..."
-    
+@Observable
+class Scrobbler {
+    let lastFmManager: LastFmManagerType
+    private var scrobblingServices: [ScrobblingService] = []
+    @MainActor var servicesLastUpdated = Date() // This will trigger UI updates when services change
+
+    var currentTrack: String = "No track playing"
+    var currentArtwork: NSImage? = nil
+    var isScrobbling: Bool = false
+    var lastScrobbledTrack: String = ""
+    var errorMessage: String?
+    var musicAppStatus: String = "Connecting to Music app..."
+
     private var cancellables = Set<AnyCancellable>()
-    private let queue = DispatchQueue(label: "com.lastfm.scrobbler", qos: .background)
-    private let lastFmManager: LastFmManager
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
-    private var pollTimer: Timer?
-    
+    private var pollTask: Task<Void, Never>?
+
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
-    private var scrobbleTimer: Timer?
+    private var scrobbleTask: Task<Void, Never>?
+    private var hasScrobbledCurrentSession = false
 
+    // Track auth monitoring tasks so we can cancel them when services refresh
+    private var authMonitoringTasks: [Task<Void, Never>] = []
+
+    private var _mediaRemoteFetcher: NowPlayingFetcher?
     
-    init(lastFmManager: LastFmManager? = nil) {
-        self.lastFmManager = lastFmManager ?? LastFmManager(apiKey: "", apiSecret: "", username: "", password: "")
-
+    // Expose the fetcher for UI components that need to check running apps
+    var mediaRemoteFetcher: NowPlayingFetcher? {
+        return _mediaRemoteFetcher
+    }
+    
+    // Add reference to preferences manager to monitor app changes
+    private var preferencesManager: PreferencesManager?
+    
+    init(lastFmManager: LastFmManagerType, preferencesManager: PreferencesManager? = nil) {
+        self.lastFmManager = lastFmManager
+        
+        self.preferencesManager = preferencesManager
+        
+        // Initialize scrobbling services
+        setupScrobblingServices(preferencesManager: preferencesManager)
+        
+        // Monitor preferences changes for scrobbling service settings
+        if let prefManager = preferencesManager {
+            startPreferencesObservation(prefManager)
+        }
+        
+        // Initialize with the selected app from preferences
+        if let prefManager = preferencesManager {
+            self._mediaRemoteFetcher = NowPlayingFetcher(targetApp: prefManager.selectedMusicApp)
+        } else {
+            // Fallback to default Apple Music
+            let defaultApp = SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.music" })!
+            self._mediaRemoteFetcher = NowPlayingFetcher(targetApp: defaultApp)
+        }
+        
+        if self._mediaRemoteFetcher != nil {
+            self._mediaRemoteFetcher?.setupAndStart()
+            Log.debug("MediaRemoteTestFetcher initialized successfully")
+        }
+        
         setupMusicAppObserver()
         startPolling()
-        checkNowPlaying()
+
+        // Initial check for now playing
+        Task { @MainActor in
+            await checkNowPlaying()
+        }
+    }
+    
+    private func startPreferencesObservation(_ prefManager: PreferencesManager) {
+        // Recursive observation loop
+        withObservationTracking {
+            // Read the properties we care about to register dependency
+            _ = prefManager.enableLastFm
+            _ = prefManager.enableCustomScrobbler
+            _ = prefManager.blueskyHandle
+        } onChange: { [weak self] in
+            Log.debug("Scrobbler: Preferences changed, scheduling refresh")
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.refreshScrobblingServices()
+                // Re-register observation
+                self.startPreferencesObservation(prefManager)
+            }
+        }
+    }
+    
+    private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
+        // Cancel any existing auth monitoring tasks before creating new ones
+        for task in authMonitoringTasks {
+            task.cancel()
+        }
+        authMonitoringTasks.removeAll()
+
+        scrobblingServices.removeAll()
+
+        guard let prefManager = preferencesManager else { return }
+
+        // Add Last.fm service if enabled
+        if prefManager.enableLastFm {
+            let lastFmService = LastFmServiceAdapter(lastFmManager: lastFmManager)
+            scrobblingServices.append(lastFmService)
+        }
+
+        // Add custom scrobbling service if enabled
+        if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
+            let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
+            scrobblingServices.append(customService)
+        }
+
+        // Subscribe to authentication state changes for all services
+        for service in scrobblingServices {
+            let task = Task { @MainActor in
+                for await _ in service.authStatus {
+                    guard !Task.isCancelled else { break }
+                    Log.debug("Service auth state changed: \(service.serviceName)", category: .auth)
+                    self.servicesLastUpdated = Date()
+                }
+            }
+            authMonitoringTasks.append(task)
+        }
+
+        // Trigger UI update
+        Task { @MainActor in
+            self.servicesLastUpdated = Date()
+        }
+
+        Log.debug("Initialized \(scrobblingServices.count) scrobbling services")
+    }
+    
+    // Method to refresh services when preferences change
+    func refreshScrobblingServices() {
+        setupScrobblingServices(preferencesManager: preferencesManager)
+    }
+    
+    // Get all available services for UI
+    func getScrobblingServices() -> [ScrobblingService] {
+        return scrobblingServices
+    }
+    
+    // Method to change the target music app
+    func setTargetMusicApp(_ app: SupportedMusicApp) {
+        Log.debug("Scrobbler switching to target app: \(app.displayName)", category: .scrobble)
+        
+        // Clear current track display immediately
+        Task { @MainActor in
+            self.currentTrack = "Switching to \(app.displayName)..."
+            self.currentArtwork = nil
+        }
+        
+        // Switch the fetcher
+        _mediaRemoteFetcher?.setTargetApp(app)
+        
+        // Update the status to reflect the change
+        musicAppStatus = "Connected to \(app.displayName)"
+        
+        // Schedule multiple checks to ensure we catch the new app's state
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.5))
+            Log.debug("First check after app switch", category: .scrobble)
+            await checkNowPlaying()
+
+            try? await Task.sleep(for: .seconds(0.5))
+            Log.debug("Second check after app switch", category: .scrobble)
+            await checkNowPlaying()
+
+            try? await Task.sleep(for: .seconds(1.0))
+            Log.debug("Final check after app switch", category: .scrobble)
+            await checkNowPlaying()
+        }
+    }
+    
+    // Debug method to get current target app
+    func getCurrentTargetApp() -> SupportedMusicApp? {
+        return _mediaRemoteFetcher?.currentTargetApp
     }
     
     private func setupMusicAppObserver() {
@@ -73,181 +228,233 @@ class Scrobbler: ObservableObject {
     }
     
     private func startPolling() {
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
-            self?.checkNowPlaying()
+        pollTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(10))
+                guard !Task.isCancelled else { break }
+                await checkNowPlaying()
+            }
         }
     }
     
     @objc private func handleMusicPlayerNotification(_ notification: Notification) {
-        checkNowPlaying()
-    }
-    
-    private func checkNowPlaying() {
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            
-            if let trackInfo = self.getCurrentTrackInfo() {
-                let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
-                print("Current track: \(trackString)")
-                
-                DispatchQueue.main.async {
-                    // If we're getting the same track info, this is likely just a polling update
-                    let isSameTrack = trackString == self.currentTrack
-                    self.currentTrack = trackString
-                    
-                    // Always update now playing status
-                    self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                    
-                    // Only setup new scrobble timer if this is a new track
-                    if !isSameTrack {
-                        print("New track detected, setting up scrobble timer")
-                        self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-                    }
-                }
-            } else {
-                DispatchQueue.main.async {
-                    if self.currentTrack != "No track playing" {
-                        print("No track playing, invalidating timers")
-                        self.currentTrack = "No track playing"
-                        self.invalidateScrobbleTimer()
-                    }
-                }
-            }
+        Task { @MainActor in
+            await checkNowPlaying()
         }
     }
-    
-    private func getCurrentTrackInfo() -> (name: String, artist: String, album: String, duration: TimeInterval?)? {
-        let script = """
-        tell application "Music"
-            if player state is playing then
-                set trackName to name of current track
-                set trackArtist to artist of current track
-                set trackAlbum to album of current track
-                set trackDuration to duration of current track
-                return trackName & "|" & trackArtist & "|" & trackAlbum & "|" & trackDuration
-            else
-                return ""
-            end if
-        end tell
-        """
 
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        guard let result = appleScript?.executeAndReturnError(&error).stringValue,
-              !result.isEmpty else {
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Error getting track info: \(error)"
-                }
+    @MainActor
+    private func checkNowPlaying() async {
+        Log.debug("Checking now playing...", category: .scrobble)
+
+        if let trackInfo = getCurrentTrackInfoViaFetcher() {
+            let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
+
+            Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
+
+            // If we're getting the same track info, this is likely just a polling update
+            let isSameTrack = trackString == currentTrack
+            currentTrack = trackString
+            currentArtwork = trackInfo.artwork
+
+            // Only update now playing status and setup scrobble timer if this is a new track
+            if !isSameTrack {
+                Log.debug("New track detected, updating now playing and setting up scrobble timer", category: .scrobble)
+                // Reset scrobble session flag for new track
+                hasScrobbledCurrentSession = false
+
+                // Update Now Playing (Async)
+                await updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+
+                setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+            } else {
+                Log.debug("Same track continuing, skipping now playing update", category: .scrobble)
             }
+        } else {
+            Log.debug("No track info found", category: .scrobble)
+            if currentTrack != "No track playing" {
+                Log.debug("No track playing detected, updating UI and invalidating timers", category: .scrobble)
+                currentTrack = "No track playing"
+                currentArtwork = nil
+                invalidateScrobbleTimer()
+            }
+        }
+    }
+    
+
+    private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
+        Log.debug("Fetching current track info via MediaRemoteTestFetcher", category: .scrobble)
+        guard let fetcher = _mediaRemoteFetcher else {
+            Log.debug("MediaRemoteTestFetcher not initialized", category: .scrobble)
             return nil
         }
         
-        let components = result.components(separatedBy: "|")
-        guard components.count == 4,
-              !components[0].isEmpty,
-              !components[1].isEmpty,
-              !components[2].isEmpty else {
+        Log.debug("Current target app: \(fetcher.currentTargetApp?.displayName ?? "none")", category: .scrobble)
+        
+        let trackInfo = fetcher.fetchCurrentTrackInfo()
+        
+        Log.debug("Track info from fetcher: isPlaying=\(trackInfo.isPlaying), title='\(trackInfo.title)', artist='\(trackInfo.artist)', app='\(trackInfo.application)'", category: .scrobble)
+        
+        guard trackInfo.isPlaying else {
+            Log.debug("No track currently playing (isPlaying = false) in MediaRemoteTestFetcher", category: .scrobble)
             return nil
         }
-        
-        let duration = TimeInterval(components[3]) ?? 0
-        
-        
-        return (name: components[0], artist: components[1], album: components[2], duration: duration)
+        guard !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
+            Log.debug("No track currently playing (empty title/artist) in MediaRemoteTestFetcher", category: .scrobble)
+            return nil
+        }
+        Log.debug("Returning valid track info: \(trackInfo.artist) - \(trackInfo.title)", category: .scrobble)
+        return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, artwork: trackInfo.artwork)
     }
     
     private func scrobbleTrack(artist: String, title: String, album: String) {
-        print("Attempting to scrobble: \(artist) - \(title)")
+        // Prevent duplicate scrobbles for the current play session
+        if hasScrobbledCurrentSession {
+            Log.debug("Preventing duplicate scrobble for current play session: \(artist) - \(title)", category: .scrobble)
+            return
+        }
+        
+        Log.debug("Attempting to scrobble: \(artist) - \(title)", category: .scrobble)
         isScrobbling = true
         errorMessage = nil
         
-         lastFmManager.scrobble(artist: artist, track: title, album: album)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                self?.isScrobbling = false
-                switch completion {
-                case .finished:
-                    print("Scrobble request completed")
-                case .failure(let error):
-                    self?.errorMessage = "Scrobble error: \(error.localizedDescription)"
-                    print("Scrobble error: \(error)")
+        // Mark this session as scrobbled
+        hasScrobbledCurrentSession = true
+        
+        Task {
+            // Scrobble to all enabled services in parallel
+            await withTaskGroup(of: (String, Bool).self) { group in
+                for service in self.scrobblingServices {
+                    group.addTask {
+                        do {
+                            let result = try await service.scrobble(artist: artist, track: title, album: album)
+                            return (service.serviceName, result)
+                        } catch {
+                            Log.error("Scrobble error for \(service.serviceName): \(error)", category: .scrobble)
+                            return (service.serviceName, false)
+                        }
+                    }
                 }
-            }, receiveValue: { [weak self] success in
-                if success {
-                    self?.lastScrobbledTrack = "\(artist) - \(title)"
-                    print("Successfully scrobbled: \(artist) - \(title)")
-                } else {
-                    self?.errorMessage = "Failed to scrobble: \(artist) - \(title)"
-                    print("Failed to scrobble: \(artist) - \(title)")
+                
+                var successes: [String] = []
+                var failures: [String] = []
+
+                for await (name, success) in group {
+                    if success {
+                        successes.append(name)
+                    } else {
+                        failures.append(name)
+                    }
                 }
-            })
-            .store(in: &cancellables)
+
+                // Capture results before passing to MainActor
+                let successList = successes
+                let failureList = failures
+
+                await MainActor.run {
+                    self.isScrobbling = false
+
+                    if !successList.isEmpty {
+                        self.lastScrobbledTrack = "\(artist) - \(title)"
+                        Log.debug("Successfully scrobbled to: \(successList.joined(separator: ", "))", category: .scrobble)
+                    }
+
+                    if !failureList.isEmpty {
+                        let failureNames = failureList.joined(separator: ", ")
+                        self.errorMessage = "Failed to scrobble to: \(failureNames)"
+                        Log.error("Failed to scrobble to: \(failureNames)", category: .scrobble)
+                    }
+                }
+            }
+        }
     }
     
     private func setupScrobbleTimer(artist: String, title: String, album: String) {
         invalidateScrobbleTimer()
-        
+
         // Get the track duration
-        if let trackInfo = getCurrentTrackInfo() {
+        if let trackInfo = getCurrentTrackInfoViaFetcher() {
             let duration = trackInfo.duration ?? 0
-            print("Setting up scrobble timer for track with duration: \(duration) seconds")
-            
+            Log.debug("Setting up scrobble timer for track with duration: \(duration) seconds", category: .scrobble)
+
             // Only setup timer if track is longer than 30 seconds
             guard duration > 30 else {
-                print("Track too short to scrobble (\(duration) seconds)")
+                Log.debug("Track too short to scrobble (\(duration) seconds)", category: .scrobble)
                 return
             }
-            
+
             currentTrackStartTime = Date()
             currentTrackDuration = duration
-            
+
             // Calculate when to scrobble - either half duration or 4 minutes
             let scrobbleDelay = min(duration / 2, 240)
-            print("Will scrobble after \(scrobbleDelay) seconds")
-            
-            // Create a timer that runs on the main run loop to ensure it stays active
-            DispatchQueue.main.async {
-                self.scrobbleTimer = Timer(timeInterval: scrobbleDelay, repeats: false) { [weak self] _ in
-                    print("Scrobble timer fired")
-                    self?.scrobbleTrack(artist: artist, title: title, album: album)
-                }
-                // Make sure the timer runs even when scrolling
-                RunLoop.main.add(self.scrobbleTimer!, forMode: .common)
+            Log.debug("Will scrobble after \(scrobbleDelay) seconds", category: .scrobble)
+
+            // Use Task.sleep instead of Timer for modern Swift concurrency
+            scrobbleTask = Task {
+                try? await Task.sleep(for: .seconds(scrobbleDelay))
+                guard !Task.isCancelled else { return }
+                Log.debug("Scrobble timer fired", category: .scrobble)
+                scrobbleTrack(artist: artist, title: title, album: album)
             }
         } else {
-            print("Could not get track duration")
+            Log.error("Could not get track duration", category: .scrobble)
+        }
+    }
+
+    private func invalidateScrobbleTimer() {
+        scrobbleTask?.cancel()
+        scrobbleTask = nil
+        currentTrackStartTime = nil
+        currentTrackDuration = nil
+        // Reset session flag when track stops/changes
+        hasScrobbledCurrentSession = false
+    }
+    
+    private func updateNowPlaying(artist: String, title: String, album: String) async {
+        // Update now playing for all enabled services
+        await withTaskGroup(of: (String, Bool).self) { group in
+            for service in self.scrobblingServices {
+                group.addTask {
+                    do {
+                        let result = try await service.updateNowPlaying(artist: artist, track: title, album: album)
+                        return (service.serviceName, result)
+                    } catch {
+                        Log.error("Now playing error for \(service.serviceName): \(error)", category: .scrobble)
+                        return (service.serviceName, false)
+                    }
+                }
+            }
+            
+            var successes: [String] = []
+            var failures: [String] = []
+            
+            for await (name, success) in group {
+                if success {
+                    successes.append(name)
+                } else {
+                    failures.append(name)
+                }
+            }
+            
+            // Optional: Update UI or Log on MainActor
+            if !successes.isEmpty {
+                Log.debug("Successfully updated now playing for: \(successes.joined(separator: ", "))", category: .scrobble)
+            }
+            if !failures.isEmpty {
+                 Log.error("Failed to update now playing for: \(failures.joined(separator: ", "))", category: .scrobble)
+            }
         }
     }
     
-    private func invalidateScrobbleTimer() {
-        scrobbleTimer?.invalidate()
-        scrobbleTimer = nil
-        currentTrackStartTime = nil
-        currentTrackDuration = nil
-    }
-    
-    private func updateNowPlaying(artist: String, title: String, album: String) {
-        lastFmManager.updateNowPlaying(artist: artist, track: title, album: album)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let error) = completion {
-                    print("Failed to update now playing: \(error)")
-                }
-            }, receiveValue: { success in
-                if success {
-                    print("Successfully updated now playing status")
-                }
-            })
-            .store(in: &cancellables)
-    }
-    
-    
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)
-        pollTimer?.invalidate()
-        scrobbleTimer?.invalidate()
+        pollTask?.cancel()
+        scrobbleTask?.cancel()
+        // Cancel all auth monitoring tasks
+        for task in authMonitoringTasks {
+            task.cancel()
+        }
     }
 }
 
@@ -256,6 +463,7 @@ extension Scrobbler {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let timestamp = dateFormatter.string(from: Date())
-        print("[\(timestamp)] \(message)")
+        Log.debug("[\(timestamp)] \(message)", category: .scrobble)
     }
 }
+

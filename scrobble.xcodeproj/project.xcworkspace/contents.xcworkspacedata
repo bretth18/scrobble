@@ -4,4 +4,13 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:MediaRemoteBridge.h">
+   </FileRef>
+   <FileRef
+      location = "group:MediaRemoteBridge.m">
+   </FileRef>
+   <FileRef
+      location = "group:NowPlayingFetcher.swift">
+   </FileRef>
 </Workspace>

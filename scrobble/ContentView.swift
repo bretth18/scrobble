@@ -2,87 +2,54 @@
 //  ContentView.swift
 //  scrobble
 //
-//  Created by Brett Henderson on 9/6/24.
+//  Created by Brett Henderson on 1/2/25.
 //
 
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var scrobbler: Scrobbler
-    @EnvironmentObject var preferencesManager: PreferencesManager
-
-    @State private var showingPreferences = false
+    @Environment(Scrobbler.self) var scrobbler
+    @Environment(PreferencesManager.self) var preferencesManager
     
     var body: some View {
-            VStack(spacing: 10) {
-                HStack {
-                    Text("SCROBBLE")
-                        .font(.headline)
+        TabView {
+            ScrobblingView()
+                .tabItem {
+                    Label("Scrobbling", systemImage: "music.note")
                 }
-
-                
-                HStack {
-                    Text("Status:")
-                        .font(.caption2)
-                    Text(scrobbler.musicAppStatus)
-                        .font(.subheadline)
-                        .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green : .red)
+            
+            AppSelectionView()
+                .tabItem {
+                    Label("Apps", systemImage: "app.badge")
                 }
-                .padding()
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(.ultraThinMaterial)
-                }
-                
-                
-                VStack(alignment: .leading) {
-                    HStack(alignment: .center) {
-                        Text("Now Playing:")
-                            .font(.subheadline)
-                        Text(scrobbler.currentTrack)
-                            .font(.body)
+            
+            // Use type-safe casting to check for desktop manager
+            if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                FriendsView(lastFmManager: desktopManager)
+                    .tabItem {
+                        Label("Friends", systemImage: "person.2")
                     }
-                    
-                    Spacer()
-                    
-                    HStack(alignment: .center) {
-                        Text("Last Scrobbled:")
-                            .font(.subheadline)
-                        Text(scrobbler.lastScrobbledTrack)
-                            .font(.body)
+            } else {
+                FriendsView(lastFmManager: scrobbler.lastFmManager)
+                    .tabItem {
+                        Label("Friends", systemImage: "person.2")
                     }
-                }
-                .padding()
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(.ultraThickMaterial)
-                        .shadow(radius: 1)
-                }
-                
-                if scrobbler.isScrobbling {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                }
-                
-                if let errorMessage = scrobbler.errorMessage {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                
-                Button("Open Preferences") {
-                    NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-                }
-                
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
             }
-            .padding()
-            .frame(width: 250)
         }
+        .tabViewStyle(.tabBarOnly)
+        .frame(minWidth: 300, minHeight: 400)
+    }
 }
-
 #Preview {
-    ContentView().environmentObject(Scrobbler())
+    let prefManager = PreferencesManager()
+    let authState = AuthState()
+    let lastFmManager = LastFmDesktopManager(
+        apiKey: prefManager.apiKey,
+        apiSecret: prefManager.apiSecret,
+        username: prefManager.username,
+        authState: authState
+    )
+    ContentView()
+        .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environment(prefManager)
 }

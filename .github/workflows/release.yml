@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Secrets
+      run: |
+        mkdir -p Configs
+        echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> Configs/Secrets.xcconfig
+        echo "LASTFM_API_SECRET=${{ secrets.LASTFM_API_SECRET }}" >> Configs/Secrets.xcconfig
+
+    - name: Archive App
+      run: |
+        xcodebuild -scheme scrobble \
+          -xcconfig Configs/Secrets.xcconfig \
+          -archivePath $PWD/build/scrobble.xcarchive \
+          -configuration Release \
+          archive \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO
+
+    - name: Export App
+      run: |
+        # Creates a simple export options plist
+        cat <<EOF > ExportOptions.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>method</key>
+            <string>mac-application</string>
+            <key>destination</key>
+            <string>export</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+        </dict>
+        </plist>
+        EOF
+
+        xcodebuild -exportArchive \
+          -archivePath $PWD/build/scrobble.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath $PWD/build \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO
+
+    - name: Zip Application
+      run: |
+        cd build
+        zip -r scrobble.zip scrobble.app
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/scrobble.zip
+        generate_release_notes: true
