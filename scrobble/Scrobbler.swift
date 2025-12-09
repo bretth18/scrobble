@@ -40,7 +40,7 @@ import Observation
 class Scrobbler {
     let lastFmManager: LastFmManagerType
     private var scrobblingServices: [ScrobblingService] = []
-    var servicesLastUpdated = Date() // This will trigger UI updates when services change
+    @MainActor var servicesLastUpdated = Date() // This will trigger UI updates when services change
 
     var currentTrack: String = "No track playing"
     var currentArtwork: NSImage? = nil
@@ -135,21 +135,21 @@ class Scrobbler {
         // Add custom scrobbling service if enabled
         if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
             let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
-            
-            // Subscribe to authentication state changes to trigger UI updates
-            customService.authenticationPublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] isAuthenticated in
-                    Log.debug("Custom service authentication state changed to: \(isAuthenticated)", category: .auth)
-                    self?.servicesLastUpdated = Date()
-                }
-                .store(in: &cancellables)
-            
             scrobblingServices.append(customService)
         }
         
+        // Subscribe to authentication state changes for all services
+        for service in scrobblingServices {
+            Task { @MainActor in
+                for await _ in service.authStatus {
+                    Log.debug("Service auth state changed: \(service.serviceName)", category: .auth)
+                    self.servicesLastUpdated = Date()
+                }
+            }
+        }
+        
         // Trigger UI update
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.servicesLastUpdated = Date()
         }
         
@@ -171,7 +171,7 @@ class Scrobbler {
         Log.debug("Scrobbler switching to target app: \(app.displayName)", category: .scrobble)
         
         // Clear current track display immediately
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.currentTrack = "Switching to \(app.displayName)..."
             self.currentArtwork = nil
         }
@@ -183,18 +183,16 @@ class Scrobbler {
         musicAppStatus = "Connected to \(app.displayName)"
         
         // Schedule multiple checks to ensure we catch the new app's state
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            
+        Task {
+            try? await Task.sleep(for: .seconds(0.5))
             Log.debug("First check after app switch", category: .scrobble)
             self.checkNowPlaying()
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            
+            try? await Task.sleep(for: .seconds(0.5))
             Log.debug("🔍 Second check after app switch", category: .scrobble)
             self.checkNowPlaying()
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            
+            try? await Task.sleep(for: .seconds(1.0))
             Log.debug("🔍 Final check after app switch", category: .scrobble)
             self.checkNowPlaying()
         }
@@ -237,7 +235,7 @@ class Scrobbler {
                 
                 Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
                 
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     // If we're getting the same track info, this is likely just a polling update
                     let isSameTrack = trackString == self.currentTrack
                     self.currentTrack = trackString
@@ -249,7 +247,12 @@ class Scrobbler {
                         Log.debug("New track detected, updating now playing and setting up scrobble timer", category: .scrobble)
                         // Reset scrobble session flag for new track
                         self.hasScrobbledCurrentSession = false
-                        self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+                        
+                        // Update Now Playing (Async)
+                        Task {
+                            await self.updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+                        }
+                        
                         self.setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
                     } else {
                         Log.debug("Same track continuing, skipping now playing update", category: .scrobble)
@@ -257,7 +260,7 @@ class Scrobbler {
                 }
             } else {
                 Log.debug("No track info found", category: .scrobble)
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     if self.currentTrack != "No track playing" {
                         Log.debug("No track playing detected, updating UI and invalidating timers", category: .scrobble)
                         self.currentTrack = "No track playing"
@@ -269,139 +272,7 @@ class Scrobbler {
         }
     }
     
-    private func getCurrentTrackInfo() -> (name: String, artist: String, album: String, duration: TimeInterval?)? {
-        let script = """
-        tell application "Music"
-            if player state is playing then
-                set trackName to name of current track
-                set trackArtist to artist of current track
-                set trackAlbum to album of current track
-                set trackDuration to duration of current track
-                return trackName & "|" & trackArtist & "|" & trackAlbum & "|" & trackDuration
-            else
-                return ""
-            end if
-        end tell
-        """
 
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        guard let result = appleScript?.executeAndReturnError(&error).stringValue,
-              !result.isEmpty else {
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Error getting track info: \(error)"
-                }
-            }
-            return nil
-        }
-        
-        let components = result.components(separatedBy: "|")
-        guard components.count == 4,
-              !components[0].isEmpty,
-              !components[1].isEmpty,
-              !components[2].isEmpty else {
-            return nil
-        }
-        
-        let duration = TimeInterval(components[3]) ?? 0
-        
-        
-        return (name: components[0], artist: components[1], album: components[2], duration: duration)
-    }
-    
-    private func getCurrentTrackInfoNew() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String)? {
-        let script = """
-            use framework "Foundation"
-            use framework "AppKit"
-            use scripting additions
-
-            on getNowPlayingInfoAsString()
-                set mediaRemoteBundle to current application's NSBundle's bundleWithPath:"/System/Library/PrivateFrameworks/MediaRemote.framework"
-                mediaRemoteBundle's load()
-                
-                set MRNowPlayingRequest to current application's NSClassFromString("MRNowPlayingRequest")
-                if MRNowPlayingRequest is missing value then
-                    error "MRNowPlayingRequest class not found."
-                end if
-                
-                set nowItem to MRNowPlayingRequest's localNowPlayingItem()
-                if nowItem is missing value then return ""
-                
-                set infoDict to nowItem's nowPlayingInfo()
-                
-                -- Fetch metadata
-                set title to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoTitle"
-                if title is missing value then set title to ""
-                set artist to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoArtist"
-                if artist is missing value then set artist to ""
-                set album to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoAlbum"
-                if album is missing value then set album to ""
-                set duration to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoDuration"
-                if duration is missing value then set duration to 0
-                set rate to infoDict's valueForKey:"kMRMediaRemoteNowPlayingInfoPlaybackRate"
-                if rate is missing value then set rate to 0
-                
-                -- App name
-                set appName to MRNowPlayingRequest's localNowPlayingPlayerPath()'s client()'s displayName()
-                if appName is missing value then set appName to ""
-                
-                -- Playback state
-                set isPlaying to "false"
-                if (rate as real) > 0 then set isPlaying to "true"
-                
-                -- Join as pipe-separated string
-                set resultString to (title as text) & "|" & (artist as text) & "|" & (album as text) & "|" & (duration as string) & "|" & (appName as text) & "|" & isPlaying
-                
-                return resultString
-            end getNowPlayingInfoAsString
-            getNowPlayingInfoAsString()
-            """
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        
-        guard let result = appleScript?.executeAndReturnError(&error).stringValue,
-              !result.isEmpty else {
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Error getting track info: \(error)"
-                }
-            }
-            return nil
-        }
-        
-        let components = result.components(separatedBy: "|")
-        guard components.count == 6,
-                !components[0].isEmpty,
-                !components[1].isEmpty,
-                !components[2].isEmpty,
-                !components[4].isEmpty,
-              !components[5].isEmpty else {
-            return nil
-        }
-        
-        let name = components[0]
-        let artist = components[1]
-        let album = components[2]
-        let duration = TimeInterval(components[3]) ?? 0
-        let application = components[4]
-        let isPlaying = components[5] == "true"
-
-        
-        
-        // Only return info if something is actually playing
-        guard isPlaying else {
-            return nil
-        }
-        
-        return (name: name, artist: artist, album: album, duration: duration, application: application)
-        
-    }
-    
-
-    
     private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
         Log.debug("Fetching current track info via MediaRemoteTestFetcher", category: .scrobble)
         guard let fetcher = _mediaRemoteFetcher else {
@@ -441,63 +312,51 @@ class Scrobbler {
         // Mark this session as scrobbled
         hasScrobbledCurrentSession = true
         
-        // Scrobble to all enabled services
-        let publishers = scrobblingServices.map { service in
-            service.scrobble(artist: artist, track: title, album: album)
-                .map { success in (service: service, success: success) }
-                .catch { error in
-                    Log.error("Scrobble error for \(service.serviceName): \(error)", category: .scrobble)
-                    return Just((service: service, success: false))
+        Task {
+            // Scrobble to all enabled services in parallel
+            await withTaskGroup(of: (String, Bool).self) { group in
+                for service in self.scrobblingServices {
+                    group.addTask {
+                        do {
+                            let result = try await service.scrobble(artist: artist, track: title, album: album)
+                            return (service.serviceName, result)
+                        } catch {
+                            Log.error("Scrobble error for \(service.serviceName): \(error)", category: .scrobble)
+                            return (service.serviceName, false)
+                        }
+                    }
                 }
-        }
-        
-        if publishers.isEmpty {
-            // Fallback to original Last.fm manager if no services configured
-            lastFmManager.scrobble(artist: artist, track: title, album: album)
-                .receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { [weak self] completion in
-                    self?.isScrobbling = false
-                    switch completion {
-                    case .finished:
-                        Log.debug("Scrobble request completed", category: .scrobble)
-                    case .failure(let error):
-                        self?.errorMessage = "Scrobble error: \(error.localizedDescription)"
-                        Log.error("Scrobble error: \(error)", category: .scrobble)
-                    }
-                }, receiveValue: { [weak self] success in
+                
+                var successes: [String] = []
+                var failures: [String] = []
+
+                for await (name, success) in group {
                     if success {
-                        self?.lastScrobbledTrack = "\(artist) - \(title)"
-                        Log.debug("Successfully scrobbled: \(artist) - \(title)", category: .scrobble)
+                        successes.append(name)
                     } else {
-                        self?.errorMessage = "Failed to scrobble: \(artist) - \(title)"
-                        Log.error("Failed to scrobble: \(artist) - \(title)", category: .scrobble)
+                        failures.append(name)
                     }
-                })
-                .store(in: &cancellables)
-        } else {
-            // Use new multi-service approach
-            Publishers.MergeMany(publishers)
-                .collect()
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] results in
-                    self?.isScrobbling = false
-                    
-                    let successfulScrobbles = results.filter { $0.success }
-                    let failedScrobbles = results.filter { !$0.success }
-                    
-                    if !successfulScrobbles.isEmpty {
-                        self?.lastScrobbledTrack = "\(artist) - \(title)"
-                        let successNames = successfulScrobbles.map { $0.service.serviceName }.joined(separator: ", ")
-                        Log.debug("Successfully scrobbled to: \(successNames)", category: .scrobble)
+                }
+
+                // Capture results before passing to MainActor
+                let successList = successes
+                let failureList = failures
+
+                await MainActor.run {
+                    self.isScrobbling = false
+
+                    if !successList.isEmpty {
+                        self.lastScrobbledTrack = "\(artist) - \(title)"
+                        Log.debug("Successfully scrobbled to: \(successList.joined(separator: ", "))", category: .scrobble)
                     }
-                    
-                    if !failedScrobbles.isEmpty {
-                        let failureNames = failedScrobbles.map { $0.service.serviceName }.joined(separator: ", ")
-                        self?.errorMessage = "Failed to scrobble to: \(failureNames)"
+
+                    if !failureList.isEmpty {
+                        let failureNames = failureList.joined(separator: ", ")
+                        self.errorMessage = "Failed to scrobble to: \(failureNames)"
                         Log.error("Failed to scrobble to: \(failureNames)", category: .scrobble)
                     }
                 }
-                .store(in: &cancellables)
+            }
         }
     }
     
@@ -545,53 +404,41 @@ class Scrobbler {
         hasScrobbledCurrentSession = false
     }
     
-    private func updateNowPlaying(artist: String, title: String, album: String) {
+    private func updateNowPlaying(artist: String, title: String, album: String) async {
         // Update now playing for all enabled services
-        let publishers = scrobblingServices.map { service in
-            service.updateNowPlaying(artist: artist, track: title, album: album)
-                .map { success in (service: service, success: success) }
-                .catch { error in
-                    Log.error("Now playing error for \(service.serviceName): \(error)", category: .scrobble)
-                    return Just((service: service, success: false))
-                }
-        }
-        
-        if publishers.isEmpty {
-            // Fallback to original Last.fm manager if no services configured
-            lastFmManager.updateNowPlaying(artist: artist, track: title, album: album)
-                .receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        Log.error("Failed to update now playing: \(error)", category: .scrobble)
-                    }
-                }, receiveValue: { success in
-                    if success {
-                        Log.debug("Successfully updated now playing status", category: .scrobble)
-                    }
-                })
-                .store(in: &cancellables)
-        } else {
-            // Use new multi-service approach
-            Publishers.MergeMany(publishers)
-                .collect()
-                .receive(on: DispatchQueue.main)
-                .sink { results in
-                    let successfulUpdates = results.filter { $0.success }
-                    if !successfulUpdates.isEmpty {
-                        let successNames = successfulUpdates.map { $0.service.serviceName }.joined(separator: ", ")
-                        Log.debug("Successfully updated now playing for: \(successNames)", category: .scrobble)
-                    }
-                    
-                    let failedUpdates = results.filter { !$0.success }
-                    if !failedUpdates.isEmpty {
-                        let failureNames = failedUpdates.map { $0.service.serviceName }.joined(separator: ", ")
-                        Log.error("Failed to update now playing for: \(failureNames)", category: .scrobble)
+        await withTaskGroup(of: (String, Bool).self) { group in
+            for service in self.scrobblingServices {
+                group.addTask {
+                    do {
+                        let result = try await service.updateNowPlaying(artist: artist, track: title, album: album)
+                        return (service.serviceName, result)
+                    } catch {
+                        Log.error("Now playing error for \(service.serviceName): \(error)", category: .scrobble)
+                        return (service.serviceName, false)
                     }
                 }
-                .store(in: &cancellables)
+            }
+            
+            var successes: [String] = []
+            var failures: [String] = []
+            
+            for await (name, success) in group {
+                if success {
+                    successes.append(name)
+                } else {
+                    failures.append(name)
+                }
+            }
+            
+            // Optional: Update UI or Log on MainActor
+            if !successes.isEmpty {
+                Log.debug("Successfully updated now playing for: \(successes.joined(separator: ", "))", category: .scrobble)
+            }
+            if !failures.isEmpty {
+                 Log.error("Failed to update now playing for: \(failures.joined(separator: ", "))", category: .scrobble)
+            }
         }
     }
-    
     
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)

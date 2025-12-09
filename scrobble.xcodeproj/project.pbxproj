@@ -14,6 +14,7 @@
 		A62299192EE7D49B00592239 /* FriendCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62299182EE7D49B00592239 /* FriendCardView.swift */; };
 		A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991A2EE7D69100592239 /* MenuButtonsView.swift */; };
 		A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991C2EE7D72900592239 /* ServicesStatusView.swift */; };
+		A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991F2EE80F2C00592239 /* LabeledStepper.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
 		A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* ContentView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
@@ -25,7 +26,7 @@
 		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
 		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
 		A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6A580A22E78D8480079DC91 /* MediaPlayer.framework */; };
-		A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */; };
+		A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */; };
 		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
@@ -65,6 +66,7 @@
 		A62299182EE7D49B00592239 /* FriendCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCardView.swift; sourceTree = "<group>"; };
 		A622991A2EE7D69100592239 /* MenuButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuButtonsView.swift; sourceTree = "<group>"; };
 		A622991C2EE7D72900592239 /* ServicesStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStatusView.swift; sourceTree = "<group>"; };
+		A622991F2EE80F2C00592239 /* LabeledStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledStepper.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; tabWidth = 3; };
@@ -78,7 +80,7 @@
 		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
 		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
 		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
-		A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingTestFetcher.swift; sourceTree = "<group>"; };
+		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ScrobblingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingView.swift; sourceTree = "<group>"; };
@@ -111,6 +113,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A622991E2EE80F1600592239 /* View Components */ = {
+			isa = PBXGroup;
+			children = (
+				A622991F2EE80F2C00592239 /* LabeledStepper.swift */,
+			);
+			path = "View Components";
+			sourceTree = "<group>";
+		};
 		A6F212F32C8C021800E1D23B = {
 			isa = PBXGroup;
 			children = (
@@ -132,6 +142,7 @@
 		A6F212FE2C8C021800E1D23B /* scrobble */ = {
 			isa = PBXGroup;
 			children = (
+				A622991E2EE80F1600592239 /* View Components */,
 				A6F2FEF02EE7A41F003826F7 /* Utils */,
 				A6F2FEE82EE79A26003826F7 /* Models */,
 				A6F2FEE72EE79A20003826F7 /* Views */,
@@ -149,7 +160,7 @@
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
-				A6A580A42E78D9340079DC91 /* NowPlayingTestFetcher.swift */,
+				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
 				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
 				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
 				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
@@ -302,7 +313,7 @@
 				A62299172EE7D46100592239 /* ErrorMessageView.swift in Sources */,
 				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */,
-				A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */,
+				A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */,
 				A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */,
 				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
@@ -321,6 +332,7 @@
 				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
+				A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -6,16 +6,14 @@
 //
 
 import SwiftUI
-import Combine
 import Observation
 
 struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
-    
+
     @State private var showingBlueskyHelp = false
-    @State private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
@@ -37,21 +35,25 @@ struct PreferencesView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    
                     Text("Billions must scrobble!")
                         .font(.caption)
+                        .italic()
                         .foregroundColor(.secondary)
                 }
                 
                 Section("Display") {
                     VStack {
-                        Stepper(
-                            "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
-                            value: $preferencesManager.numberOfFriendsDisplayed,
-                            in: 1...10
-                        )
+                        LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
+//                        Stepper(
+//                            "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
+//                            value: $preferencesManager.numberOfFriendsDisplayed,
+//                            in: 1...10
+//                        )
+           
                         
-                        Stepper(
-                            "Friend recent tracks: \(preferencesManager.numberOfFriendsRecentTracksDisplayed)",
+                        LabeledStepper(
+                            "Friend recent tracks",
                             value: $preferencesManager.numberOfFriendsRecentTracksDisplayed,
                             in: 1...20
                         )
@@ -75,7 +77,7 @@ struct PreferencesView: View {
                                 case .needsAuth:
                                     Label("Not connected", systemImage: "exclamationmark.triangle.fill")
                                         .foregroundStyle(.yellow)
-                                case .failed(let message):
+                                case .failed( _):
                                     Label("Auth failed", systemImage: "xmark.octagon.fill")
                                         .foregroundStyle(.red)
                                 case .unknown:
@@ -152,21 +154,17 @@ struct PreferencesView: View {
                                     Button("Authenticate with Bluesky") {
                                         // Refresh services first to ensure the custom service exists
                                         scrobbler.refreshScrobblingServices()
-                                        
+
                                         // Then attempt authentication
                                         if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                                            customService.authenticate()
-                                                .sink(
-                                                    receiveCompletion: { completion in
-                                                        if case .failure(let error) = completion {
-                                                            print("Custom auth failed: \(error)")
-                                                        }
-                                                    },
-                                                    receiveValue: { success in
-                                                        print("Custom auth result: \(success)")
-                                                    }
-                                                )
-                                                .store(in: &cancellables) // You'll need to add this property
+                                            Task {
+                                                do {
+                                                    let success = try await customService.authenticate()
+                                                    print("Custom auth result: \(success)")
+                                                } catch {
+                                                    print("Custom auth failed: \(error)")
+                                                }
+                                            }
                                         }
                                     }
                                     .buttonStyle(.bordered)

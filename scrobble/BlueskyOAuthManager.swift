@@ -6,21 +6,21 @@
 //
 
 import Foundation
-import Combine
 import AppKit
 import WebKit
+import Observation
 
 
-class BlueskyOAuthManager: NSObject, ObservableObject {
-    @Published var isAuthenticated = false
-    @Published var isAuthenticating = false
-    @Published var authError: String?
-    
+@Observable
+class BlueskyOAuthManager: NSObject {
+    @MainActor var isAuthenticated = false
+    @MainActor var isAuthenticating = false
+    @MainActor var authError: String?
+
     private let blueskyHandle: String
     private let baseURL = "https://clientserver-production-be44.up.railway.app"
     private var authWindow: NSWindow?
     private var webView: WKWebView?
-    private var cancellables = Set<AnyCancellable>()
     
     // Session management
     private var sessionCookies: [HTTPCookie] = []
@@ -37,24 +37,30 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
             do {
                 let cookies = try JSONDecoder().decode([CookieData].self, from: cookieData)
                 sessionCookies = cookies.compactMap { $0.toCookie() }
-                
+
                 print("🔄 Found \(sessionCookies.count) stored cookies for \(blueskyHandle)")
-                
+
                 // For now, assume stored cookies are valid
                 // TODO: Implement proper session validation once you have a test endpoint
                 if !sessionCookies.isEmpty {
                     print("✅ Assuming stored auth is valid")
-                    isAuthenticated = true
+                    Task { @MainActor in
+                        self.isAuthenticated = true
+                    }
                 } else {
                     print("❌ No valid cookies found")
-                    clearStoredAuth()
+                    Task { @MainActor in
+                        await self.clearStoredAuth()
+                    }
                 }
-                
+
                 // Uncomment this when you have a proper auth test endpoint:
                 // testAuthenticationStatus()
             } catch {
                 print("Failed to decode stored cookies: \(error)")
-                clearStoredAuth()
+                Task { @MainActor in
+                    await self.clearStoredAuth()
+                }
             }
         } else {
             print("🔍 No stored cookies found for \(blueskyHandle)")
@@ -63,76 +69,72 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
     
     private func testAuthenticationStatus() {
         print("🔍 Testing stored authentication status...")
-        
+
         // Make a test request to see if our session is still valid
         // Try using a simple endpoint that should work with authentication
         guard let testURL = URL(string: "\(baseURL)/api/test") else {
             print("❌ Invalid test URL")
-            clearStoredAuth()
+            Task { @MainActor in
+                await self.clearStoredAuth()
+            }
             return
         }
-        
+
         var request = URLRequest(url: testURL)
-        
+
         // Add cookies to request
         let cookieHeader = HTTPCookie.requestHeaderFields(with: sessionCookies)["Cookie"] ?? ""
         request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
-        
+
         print("🔍 Testing auth with cookies: \(sessionCookies.map { $0.name })")
-        
-        URLSession.shared.dataTaskPublisher(for: request)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    switch completion {
-                    case .failure(let error):
-                        print("❌ Auth test failed: \(error.localizedDescription)")
-                        // Don't immediately clear auth - the endpoint might not exist
-                        // Instead, assume auth is valid if we have cookies
-                        if !(self?.sessionCookies.isEmpty ?? true) {
-                            print("🔄 Assuming auth is valid since we have stored cookies")
-                            self?.isAuthenticated = true
-                        } else {
-                            self?.clearStoredAuth()
-                        }
-                    case .finished:
-                        break
-                    }
-                },
-                receiveValue: { [weak self] response in
-                    if let httpResponse = response.response as? HTTPURLResponse {
-                        let isAuth = (200...299).contains(httpResponse.statusCode)
-                        print("🔍 Auth test response: \(httpResponse.statusCode) - authenticated: \(isAuth)")
-                        self?.isAuthenticated = isAuth
-                        if !isAuth && httpResponse.statusCode != 404 {
-                            // Only clear auth if it's actually an auth failure, not a missing endpoint
-                            self?.clearStoredAuth()
-                        } else if httpResponse.statusCode == 404 {
-                            // If the test endpoint doesn't exist, assume auth is valid if we have cookies
-                            print("🔄 Test endpoint not found, assuming auth is valid")
-                            self?.isAuthenticated = !(self?.sessionCookies.isEmpty ?? true)
-                        }
+
+        Task { @MainActor in
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    let isAuth = (200...299).contains(httpResponse.statusCode)
+                    print("🔍 Auth test response: \(httpResponse.statusCode) - authenticated: \(isAuth)")
+                    self.isAuthenticated = isAuth
+                    if !isAuth && httpResponse.statusCode != 404 {
+                        // Only clear auth if it's actually an auth failure, not a missing endpoint
+                        await self.clearStoredAuth()
+                    } else if httpResponse.statusCode == 404 {
+                        // If the test endpoint doesn't exist, assume auth is valid if we have cookies
+                        print("🔄 Test endpoint not found, assuming auth is valid")
+                        self.isAuthenticated = !self.sessionCookies.isEmpty
                     }
                 }
-            )
-            .store(in: &cancellables)
+            } catch {
+                print("❌ Auth test failed: \(error.localizedDescription)")
+                // Don't immediately clear auth - the endpoint might not exist
+                // Instead, assume auth is valid if we have cookies
+                if !self.sessionCookies.isEmpty {
+                    print("🔄 Assuming auth is valid since we have stored cookies")
+                    self.isAuthenticated = true
+                } else {
+                    await self.clearStoredAuth()
+                }
+            }
+        }
     }
     
-    func startAuthentication() {
+    @MainActor
+    func startAuthentication() async {
         guard !isAuthenticating else { return }
-        
+
         isAuthenticating = true
         authError = nil
-        
+
         // Create the OAuth login URL
         let oauthURL = "\(baseURL)/oauth/login?handle=\(blueskyHandle)"
-        
+
         guard let url = URL(string: oauthURL) else {
             authError = "Invalid OAuth URL"
             isAuthenticating = false
             return
         }
-        
+
         // Create a new window with WebKit view
         createAuthWindow(with: url)
     }
@@ -168,7 +170,7 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
     }
     
     private func completeAuthentication(success: Bool, error: String? = nil) {
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isAuthenticating = false
             
             if success {
@@ -265,12 +267,14 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
         }
     }
     
+    @MainActor
     private func clearStoredAuth() {
         UserDefaults.standard.removeObject(forKey: "bluesky_auth_cookies_\(blueskyHandle)")
         sessionCookies.removeAll()
         isAuthenticated = false
     }
     
+    @MainActor
     func signOut() {
         // Log out via server endpoint using our auth cookies, then clear local state
         let logoutURLString = "\(baseURL)/oauth/logout"
@@ -287,8 +291,27 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
 
         print("🔐 Logging out via \(logoutURLString) with cookies: \(sessionCookies.map { $0.name })")
 
-        let clearLocalState: () -> Void = { [weak self] in
-            guard let self = self else { return }
+        Task {
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+
+                if let http = response as? HTTPURLResponse {
+                    print("🔍 Logout response status: \(http.statusCode)")
+                    if http.statusCode == 405 {
+                        // Some servers use GET for logout, retry with GET
+                        var getRequest = self.createAuthenticatedRequest(url: logoutURL)
+                        getRequest.httpMethod = "GET"
+                        let (_, resp2) = try await URLSession.shared.data(for: getRequest)
+                        if let http2 = resp2 as? HTTPURLResponse {
+                            print("🔍 Logout (GET) response status: \(http2.statusCode)")
+                        }
+                    }
+                }
+            } catch {
+                print("⚠️ Logout request failed: \(error.localizedDescription)")
+            }
+
+            // Clear local state (already on MainActor from signOut)
             self.clearStoredAuth()
             // Also clear WebKit default data store if needed
             let dataStore = WKWebsiteDataStore.default()
@@ -299,36 +322,6 @@ class BlueskyOAuthManager: NSObject, ObservableObject {
                 print("🧹 WebKit data cleared for sign out")
             }
         }
-
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-
-            if let error = error {
-                print("⚠️ Logout request failed: \(error.localizedDescription)")
-                DispatchQueue.main.async { clearLocalState() }
-                return
-            }
-
-            if let http = response as? HTTPURLResponse {
-                print("🔍 Logout response status: \(http.statusCode)")
-                if http.statusCode == 405 {
-                    // Some servers use GET for logout, retry with GET
-                    var getRequest = self.createAuthenticatedRequest(url: logoutURL)
-                    getRequest.httpMethod = "GET"
-                    URLSession.shared.dataTask(with: getRequest) { _, resp2, err2 in
-                        if let err2 = err2 {
-                            print("⚠️ Logout (GET) failed: \(err2.localizedDescription)")
-                        } else if let http2 = resp2 as? HTTPURLResponse {
-                            print("🔍 Logout (GET) response status: \(http2.statusCode)")
-                        }
-                        DispatchQueue.main.async { clearLocalState() }
-                    }.resume()
-                    return
-                }
-            }
-
-            DispatchQueue.main.async { clearLocalState() }
-        }.resume()
     }
     
     // Create authenticated URLRequest with cookies

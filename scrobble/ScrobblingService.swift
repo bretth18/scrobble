@@ -19,17 +19,17 @@ protocol ScrobblingService {
     /// Whether this service is currently authenticated and ready to scrobble
     var isAuthenticated: Bool { get }
     
-    /// Publisher that emits authentication status changes
-    var authenticationPublisher: AnyPublisher<Bool, Never> { get }
+    /// Stream that emits authentication status changes
+    var authStatus: AsyncStream<Bool> { get }
     
     /// Scrobble a track that has been played
-    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
+    func scrobble(artist: String, track: String, album: String) async throws -> Bool
     
     /// Update now playing status
-    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
+    func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool
     
     /// Start authentication process if needed
-    func authenticate() -> AnyPublisher<Bool, Error>
+    func authenticate() async throws -> Bool
     
     /// Sign out and clear authentication
     func signOut()
@@ -38,8 +38,6 @@ protocol ScrobblingService {
 /// Adapter to make existing LastFmManagerType conform to ScrobblingService
 class LastFmServiceAdapter: ScrobblingService {
     private let lastFmManager: LastFmManagerType
-    private let authStatusSubject = CurrentValueSubject<Bool, Never>(false)
-    private var cancellables = Set<AnyCancellable>()
     
     var serviceId: String { "lastfm" }
     var serviceName: String { "Last.fm" }
@@ -51,61 +49,91 @@ class LastFmServiceAdapter: ScrobblingService {
         return false
     }
     
-    var authenticationPublisher: AnyPublisher<Bool, Never> {
-        authStatusSubject.eraseToAnyPublisher()
+    
+    
+    var authStatus: AsyncStream<Bool> {
+        AsyncStream { continuation in
+            guard let desktopManager = lastFmManager as? LastFmDesktopManager else {
+                continuation.yield(false)
+                continuation.finish()
+                return
+            }
+
+            let monitoringTask = Task {
+                // Initial value
+                continuation.yield(desktopManager.authStatus == .authenticated)
+
+                // Subscribe to updates via AsyncSequence
+                for await status in desktopManager.authStatusSubject.values {
+                    let isAuth = (status == .authenticated)
+                    continuation.yield(isAuth)
+                }
+            }
+
+            continuation.onTermination = { _ in
+                monitoringTask.cancel()
+            }
+        }
     }
     
     init(lastFmManager: LastFmManagerType) {
         self.lastFmManager = lastFmManager
+    }
+    
+    func scrobble(artist: String, track: String, album: String) async throws -> Bool {
+        print("🎵 Last.fm: Scrobbling \(artist) - \(track)")
         
-        // Monitor auth status changes if it's a desktop manager
-        if let desktopManager = lastFmManager as? LastFmDesktopManager {
-            desktopManager.authStatusSubject
-                .map { status in
-                    switch status {
-                    case .authenticated:
-                        return true
-                    default:
-                        return false
+        return try await withCheckedThrowingContinuation { continuation in
+            var cancellable: AnyCancellable?
+            cancellable = lastFmManager.scrobble(artist: artist, track: track, album: album)
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        break // Wait for value
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                        cancellable = nil
                     }
-                }
-                .sink { [weak self] isAuth in
-                    self?.authStatusSubject.send(isAuth)
-                }
-                .store(in: &cancellables)
+                }, receiveValue: { success in
+                    continuation.resume(returning: success)
+                    cancellable = nil
+                })
         }
     }
     
-    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-        print("🎵 Last.fm: Scrobbling \(artist) - \(track)")
-        return lastFmManager.scrobble(artist: artist, track: track, album: album)
-    }
-    
-    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
+    func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
         print("🔔 Last.fm: Updating now playing \(artist) - \(track)")
-        return lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+             var cancellable: AnyCancellable?
+             cancellable = lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
+                 .sink(receiveCompletion: { completion in
+                     switch completion {
+                     case .finished:
+                         break
+                     case .failure(let error):
+                         continuation.resume(throwing: error)
+                         cancellable = nil
+                     }
+                 }, receiveValue: { success in
+                     continuation.resume(returning: success)
+                     cancellable = nil
+                 })
+         }
     }
     
-    func authenticate() -> AnyPublisher<Bool, Error> {
+    func authenticate() async throws -> Bool {
         if let desktopManager = lastFmManager as? LastFmDesktopManager {
             desktopManager.startAuth()
-            return desktopManager.authStatusSubject
-                .compactMap { status in
-                    switch status {
-                    case .authenticated:
-                        return true
-                    case .failed:
-                        return false
-                    default:
-                        return nil
-                    }
-                }
-                .first()
-                .setFailureType(to: Error.self)
-                .eraseToAnyPublisher()
+
+            for await status in desktopManager.authStatusSubject.values {
+                if status == .authenticated { return true }
+                if case .failed = status { return false }
+            }
+            return false
         }
-        
-        return Fail(error: ScrobblerError.authenticationFailed).eraseToAnyPublisher()
+
+        throw ScrobblerError.authenticationFailed
     }
     
     func signOut() {

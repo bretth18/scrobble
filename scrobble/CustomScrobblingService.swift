@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Combine
+
 
 
 enum CustomScrobbleRequestBody {
@@ -19,64 +19,88 @@ class CustomScrobblingService: ScrobblingService {
     
     private let oauthManager: BlueskyOAuthManager
     private let baseURL = "https://clientserver-production-be44.up.railway.app"
-    private var cancellables = Set<AnyCancellable>()
     
+    @MainActor
     var isAuthenticated: Bool {
         oauthManager.isAuthenticated
     }
     
-    var authenticationPublisher: AnyPublisher<Bool, Never> {
-        oauthManager.$isAuthenticated.eraseToAnyPublisher()
+    var authStatus: AsyncStream<Bool> {
+        AsyncStream { continuation in
+            let monitoringTask = Task { @MainActor in
+                var previousState = oauthManager.isAuthenticated
+                continuation.yield(previousState)
+
+                // Using a loop with `withObservationTracking`
+                while !Task.isCancelled {
+                    await withCheckedContinuation { (obsCont: CheckedContinuation<Void, Never>) in
+                        withObservationTracking {
+                            _ = oauthManager.isAuthenticated
+                        } onChange: {
+                            obsCont.resume()
+                        }
+                    }
+
+                    // Value changed
+                    if !Task.isCancelled {
+                        let newState = oauthManager.isAuthenticated
+                        if newState != previousState {
+                            continuation.yield(newState)
+                            previousState = newState
+                        }
+                    }
+                }
+            }
+
+            continuation.onTermination = { _ in
+                monitoringTask.cancel()
+            }
+        }
     }
     
     init(blueskyHandle: String) {
         self.oauthManager = BlueskyOAuthManager(blueskyHandle: blueskyHandle)
     }
     
-    func authenticate() -> AnyPublisher<Bool, Error> {
-        return Future { [weak self] promise in
-            guard let self = self else {
-                promise(.failure(ScrobblerError.apiError("Service deallocated")))
-                return
-            }
-            
-            // Start authentication
-            self.oauthManager.startAuthentication()
-            
-            // Monitor authentication result - listen for changes in isAuthenticating to false
-            self.oauthManager.$isAuthenticating
-                .filter { !$0 } // Wait for authentication to complete (isAuthenticating becomes false)
-                .first()
-                .delay(for: 0.1, scheduler: RunLoop.main) // Small delay to ensure state is settled
-                .sink { _ in
-                    // Check final authentication state
-                    if self.oauthManager.isAuthenticated {
-                        Log.debug("Custom scrobbling service authentication successful", category: .scrobble)
-                        promise(.success(true))
-                    } else {
-                        let errorMessage = self.oauthManager.authError ?? "Authentication failed"
-                        Log.error("Custom scrobbling service authentication failed: \(errorMessage)", category: .scrobble)
-                        promise(.failure(ScrobblerError.apiError(errorMessage)))
-                    }
-                }
-                .store(in: &self.cancellables)
+    func authenticate() async throws -> Bool {
+        await oauthManager.startAuthentication()
+        
+        // Wait for authentication to complete
+        // We can just watch the stream we made!
+        for await isAuth in authStatus {
+            if isAuth { return true }
+            // Check for error state?
+             let error = await oauthManager.authError
+             if error != nil {
+                 throw ScrobblerError.apiError(error ?? "Unknown error")
+             }
+             // Timeout or cancellation handling might be needed here practically
+             // but for this implementation we wait. 
+             // Actually we should inspect `isAuthenticating`.
+             let authenticating = await oauthManager.isAuthenticating
+             if !authenticating && !isAuth {
+                 return false // Finished but failed
+             }
         }
-        .eraseToAnyPublisher()
+        return false
     }
     
     func signOut() {
-        oauthManager.signOut()
-        // Note: The servicesLastUpdated will be triggered by the authenticationPublisher subscription
+        // Sign out on main actor
+        Task { @MainActor in
+            oauthManager.signOut()
+        }
     }
     
-    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-        guard isAuthenticated else {
+    func scrobble(artist: String, track: String, album: String) async throws -> Bool {
+        let isAuth = await isAuthenticated
+        guard isAuth else {
             Log.debug("Custom scrobbler: Not authenticated", category: .scrobble)
-            return Fail(error: ScrobblerError.authenticationRequired).eraseToAnyPublisher()
+            throw ScrobblerError.authenticationRequired
         }
         
         Log.debug("Custom scrobbler: Scrobbling \(artist) - \(track)", category: .scrobble)
-        return makeScrobbleRequest(
+        return try await makeScrobbleRequest(
             method: "track.scrobble",
             artist: artist,
             track: track,
@@ -85,14 +109,15 @@ class CustomScrobblingService: ScrobblingService {
         )
     }
     
-    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
-        guard isAuthenticated else {
+    func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
+        let isAuth = await isAuthenticated
+        guard isAuth else {
             Log.error("Custom scrobbler: Not authenticated for now playing update", category: .scrobble)
-            return Fail(error: ScrobblerError.authenticationRequired).eraseToAnyPublisher()
+            throw ScrobblerError.authenticationRequired
         }
         
         Log.debug("Custom scrobbler: Updating now playing \(artist) - \(track)", category: .scrobble)
-        return makeScrobbleRequest(
+        return try await makeScrobbleRequest(
             method: "track.updateNowPlaying",
             artist: artist,
             track: track,
@@ -106,23 +131,20 @@ class CustomScrobblingService: ScrobblingService {
         track: String,
         album: String,
         timestamp: Int? = nil
-    ) -> AnyPublisher<Bool, Error> {
+    ) async throws -> Bool {
         
         Log.debug("Custom scrobbler: Making \(method) request to \(baseURL)", category: .scrobble)
         
         guard let url = URL(string: "\(baseURL)/api/\(method)") else {
             Log.error("❌ Custom scrobbler: Invalid URL \(baseURL)/api/\(method)", category: .scrobble)
-            return Fail(error: ScrobblerError.invalidURL).eraseToAnyPublisher()
+            throw ScrobblerError.invalidURL
         }
         
         // Create authenticated request
         var request = oauthManager.createAuthenticatedRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Log the request headers for debugging
-        Log.debug("🔧 Custom scrobbler: Request headers: \(request.allHTTPHeaderFields ?? [:])", category: .scrobble)
-        
+               
         // Create scrobble object matching the expected API format
         var scrobbleObject: [String: Any] = [
             "artist": artist,
@@ -131,72 +153,34 @@ class CustomScrobblingService: ScrobblingService {
         ]
         
         if let timestamp = timestamp {
-            // The API expects timestamp as a string
             scrobbleObject["timestamp"] = String(timestamp)
-            Log.debug("Custom scrobbler: Adding timestamp \(timestamp) as string", category: .scrobble)
         }
         
-        // The API expects an array of scrobble objects
-        let requestBody: Any
-        if method == "track.scrobble" {
-            requestBody = [scrobbleObject]
-        } else {
-            requestBody = scrobbleObject
-        }
-        
-        Log.debug("Custom scrobbler: Request body: \(requestBody)", category: .scrobble)
+        let requestBody: Any = (method == "track.scrobble") ? [scrobbleObject] : scrobbleObject
         
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
         } catch {
             Log.error("Custom scrobbler: Failed to serialize request body: \(error)", category: .scrobble)
-            return Fail(error: error).eraseToAnyPublisher()
+            throw error
         }
         
-        return URLSession.shared.dataTaskPublisher(for: request)
-            .map { data, response in
-                Log.debug("📡 Custom scrobbler: Raw response received", category: .scrobble)
-                return (data, response)
-            }
-            .tryMap { data, response -> Bool in
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    Log.error("❌ Custom scrobbler: Invalid response type", category: .scrobble)
-                    throw ScrobblerError.apiError("Invalid response type")
-                }
-                
-                Log.debug("📡 Custom scrobbler: Received HTTP \(httpResponse.statusCode)", category: .scrobble)
-                Log.debug("📡 Custom scrobbler: Response headers: \(httpResponse.allHeaderFields)", category: .scrobble)
-                
-                // Always log the response body for debugging
-                let responseString = String(data: data, encoding: .utf8) ?? "No response body"
-                Log.debug("📡 Custom scrobbler: Response body: \(responseString)", category: .scrobble)
-                
-                // Check for successful status codes
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    // Try to parse error message from response
-                    if let errorData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let errorMessage = errorData["error"] as? String {
-                        Log.error("❌ Custom scrobbler: API error: \(errorMessage)", category: .scrobble)
-                        throw ScrobblerError.apiError(errorMessage)
-                    } else {
-                        Log.error("❌ Custom scrobbler: HTTP error \(httpResponse.statusCode)", category: .scrobble)
-                        Log.error("❌ Custom scrobbler: Full response body: \(responseString)", category: .scrobble)
-                        throw ScrobblerError.apiError("HTTP error \(httpResponse.statusCode): \(responseString)")
-                    }
-                }
-                
-                // For successful responses, try to parse the result
-                if let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    // Log successful response for debugging
-                    Log.debug("✅ Custom scrobbler: Success response: \(jsonResponse)", category: .scrobble)
-                    return true
-                } else {
-                    // Even if we can't parse JSON, a 2xx status code indicates success
-                    Log.debug("✅ Custom scrobbler: Success (non-JSON response): \(responseString)", category: .scrobble)
-                    return true
-                }
-            }
-            .eraseToAnyPublisher()
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+             Log.error("❌ Custom scrobbler: Invalid response type", category: .scrobble)
+             throw ScrobblerError.apiError("Invalid response type")
+        }
+        
+        Log.debug("📡 Custom scrobbler: Received HTTP \(httpResponse.statusCode)", category: .scrobble)
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let responseString = String(data: data, encoding: .utf8) ?? "No response body"
+             Log.error("❌ Custom scrobbler: HTTP error \(httpResponse.statusCode): \(responseString)", category: .scrobble)
+             throw ScrobblerError.apiError("HTTP error \(httpResponse.statusCode): \(responseString)")
+        }
+        
+        return true
     }
 }
 
