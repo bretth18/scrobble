@@ -10,6 +10,7 @@ import Combine
 import AppKit
 import WebKit
 
+
 class BlueskyOAuthManager: NSObject, ObservableObject {
     @Published var isAuthenticated = false
     @Published var isAuthenticating = false

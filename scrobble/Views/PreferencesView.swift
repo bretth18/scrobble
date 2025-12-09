@@ -11,7 +11,7 @@ import Observation
 
 struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
-    @EnvironmentObject var scrobbler: Scrobbler
+    @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
     
     @State private var showingBlueskyHelp = false
@@ -246,7 +246,7 @@ struct PreferencesView: View {
     
     PreferencesView()
         .environment(prefManager)
-        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
 }
 

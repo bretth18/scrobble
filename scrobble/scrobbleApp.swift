@@ -13,7 +13,7 @@ import Observation
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var preferencesManager = PreferencesManager()
-    @StateObject private var scrobbler: Scrobbler
+    @State private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState
     
@@ -32,7 +32,8 @@ struct scrobbleApp: App {
             username: prefManager.username,
             authState: auth
         )
-        _scrobbler = StateObject(wrappedValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        // Scrobbler is now @Observable so we initialize it as State
+        _scrobbler = State(initialValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         
         // Monitor preferences changes to refresh scrobbling services
         setupPreferencesObserver()
@@ -50,8 +51,8 @@ struct scrobbleApp: App {
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: 10) {
-                ContentView()
-                    .environmentObject(scrobbler)
+            ContentView()
+                    .environment(scrobbler)
                     .environment(preferencesManager)
                     .environment(authState)
                 
@@ -70,13 +71,13 @@ struct scrobbleApp: App {
 
         WindowGroup("Scrobbler", id: "scrobbler") {
             ContentView()
-                .environmentObject(scrobbler)
+                .environment(scrobbler)
                 .environment(preferencesManager)
                 .environment(appState)
                 .environment(authState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        LastFMAuthSheetView(lastFmManager: desktopManager)
+                            LastFMAuthSheetView(lastFmManager: desktopManager)
                             .environment(authState)
                     }
                 }
@@ -88,7 +89,7 @@ struct scrobbleApp: App {
         Settings {
                 PreferencesView()
                     .environment(preferencesManager)
-                    .environmentObject(scrobbler)
+                    .environment(scrobbler)
                     .environment(authState)
                     .sheet(isPresented: $authState.showingAuthSheet) {
                         if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {

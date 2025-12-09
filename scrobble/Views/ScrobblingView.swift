@@ -140,7 +140,7 @@ struct ScrobblingViewNowPlayingCardView: View {
 }
     
     struct ScrobblingView: View {
-        @EnvironmentObject var scrobbler: Scrobbler
+        @Environment(Scrobbler.self) var scrobbler
         @Environment(PreferencesManager.self) var preferencesManager
         @State private var servicesRefreshTrigger = UUID()
     
@@ -196,13 +196,13 @@ struct ScrobblingViewNowPlayingCardView: View {
                             .font(.caption2.monospaced())
                             .foregroundStyle(.secondary.opacity(0.7))
                         
-                        ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
-                            .environmentObject(scrobbler)
+                            ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
+                                .environment(scrobbler)
                     }
                     .padding()
                     .glassEffect(in: .rect(cornerRadius: 8))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .onReceive(scrobbler.$servicesLastUpdated) { _ in
+                    .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
                         print("📱 ScrobblingView received servicesLastUpdated change")
                         servicesRefreshTrigger = UUID()
                     }
@@ -290,6 +290,6 @@ struct ScrobblingViewNowPlayingCardView: View {
         authState: authState
     )
     ScrobblingView()
-        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(prefManager)
 }

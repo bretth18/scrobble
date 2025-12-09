@@ -12,7 +12,9 @@ import MusicKit
 import ScriptingBridge
 import CommonCrypto
 import Network
+import Network
 import AppKit
+import Observation
 
 
 @objc enum MusicEPlS: Int {
@@ -34,17 +36,18 @@ import AppKit
 
 
 
-class Scrobbler: ObservableObject {
+@Observable
+class Scrobbler {
     let lastFmManager: LastFmManagerType
     private var scrobblingServices: [ScrobblingService] = []
-    @Published var servicesLastUpdated = Date() // This will trigger UI updates when services change
+    var servicesLastUpdated = Date() // This will trigger UI updates when services change
 
-    @Published var currentTrack: String = "No track playing"
-    @Published var currentArtwork: NSImage? = nil
-    @Published var isScrobbling: Bool = false
-    @Published var lastScrobbledTrack: String = ""
-    @Published var errorMessage: String?
-    @Published var musicAppStatus: String = "Connecting to Music app..."
+    var currentTrack: String = "No track playing"
+    var currentArtwork: NSImage? = nil
+    var isScrobbling: Bool = false
+    var lastScrobbledTrack: String = ""
+    var errorMessage: String?
+    var musicAppStatus: String = "Connecting to Music app..."
     
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "com.lastfm.scrobbler", qos: .background)

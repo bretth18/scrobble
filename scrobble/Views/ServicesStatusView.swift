@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ServicesStatusView: View {
-    @EnvironmentObject var scrobbler: Scrobbler
+    @Environment(Scrobbler.self) var scrobbler
     let refreshTrigger: UUID
     
     var body: some View {

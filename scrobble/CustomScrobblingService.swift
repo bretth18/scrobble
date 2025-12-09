@@ -47,7 +47,7 @@ class CustomScrobblingService: ScrobblingService {
             self.oauthManager.$isAuthenticating
                 .filter { !$0 } // Wait for authentication to complete (isAuthenticating becomes false)
                 .first()
-                .delay(for: .milliseconds(100), scheduler: RunLoop.main) // Small delay to ensure state is settled
+                .delay(for: 0.1, scheduler: RunLoop.main) // Small delay to ensure state is settled
                 .sink { _ in
                     // Check final authentication state
                     if self.oauthManager.isAuthenticated {

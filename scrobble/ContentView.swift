@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var scrobbler: Scrobbler
+    @Environment(Scrobbler.self) var scrobbler
     @Environment(PreferencesManager.self) var preferencesManager
     
     var body: some View {
@@ -50,6 +50,6 @@ struct ContentView: View {
         authState: authState
     )
     ContentView()
-        .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(prefManager)
 }

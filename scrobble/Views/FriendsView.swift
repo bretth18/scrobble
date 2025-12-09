@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FriendsView: View {
-    @EnvironmentObject var scrobbler: Scrobbler
+    @Environment(Scrobbler.self) var scrobbler
     @Environment(PreferencesManager.self) var preferencesManager
     @State private var model: FriendsModel
     
@@ -77,9 +77,9 @@ struct FriendsView: View {
 
 #Preview {
     @Previewable @State var preferencesManager = PreferencesManager()
-    @Previewable @StateObject var scrobbler = Scrobbler(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", authState: AuthState()))
+    @Previewable @State var scrobbler = Scrobbler(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", authState: AuthState()))
     
     FriendsView(lastFmManager: scrobbler.lastFmManager)
         .environment(preferencesManager)
-        .environmentObject(scrobbler)
+        .environment(scrobbler)
 }
