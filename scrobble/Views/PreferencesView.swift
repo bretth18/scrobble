@@ -8,6 +8,51 @@
 import SwiftUI
 import Observation
 
+struct WaveRenderer: TextRenderer {
+    var strength: Double
+    var frequency: Double
+    var phase: Double  // animate this from 0 to 2π repeatedly
+
+    var animatableData: AnimatablePair<Double, Double> {
+        get { AnimatablePair(strength, phase) }
+        set {
+            strength = newValue.first
+            phase = newValue.second
+        }
+    }
+
+    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
+        for line in layout {
+            for run in line {
+                for (index, glyph) in run.enumerated() {
+                    let yOffset = strength * sin(Double(index) * frequency + phase)
+     
+                    var copy = context
+                    copy.translateBy(x: 0, y: yOffset)
+                    copy.draw(glyph, options: .disablesSubpixelQuantization)
+                }
+            }
+        }
+    }
+}
+
+struct BillionsMustScrobbleView: View {
+    @State private var phase: Double = 0
+
+
+    var body: some View {
+        Text("Billions must scrobble!")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .textRenderer(WaveRenderer(strength: 10.0, frequency: 0.1, phase:  phase))
+            .onAppear {
+                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                    phase = .pi * 2
+                }
+            }
+    }
+}
+
 struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
@@ -26,9 +71,15 @@ struct PreferencesView: View {
                 Section("About") {
                     
                     HStack(alignment: .center) {
-                        Text("scrobbler v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
+                        Text("scrobble v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
                             .font(.headline)
                             .fontWeight(.bold)
+                        
+                        Text("[build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown")]")
+                            .font(.caption2)
+                            .foregroundColor(.secondary.opacity(0.5))
+                        
+                        Spacer()
                         
                         Text("by COMPUTER DATA")
                             .font(.caption)
@@ -36,10 +87,7 @@ struct PreferencesView: View {
                     }
                     
                     
-                    Text("Billions must scrobble!")
-                        .font(.caption)
-                        .italic()
-                        .foregroundColor(.secondary)
+                    BillionsMustScrobbleView()
                 }
                 
                 Section("Display") {
@@ -61,133 +109,7 @@ struct PreferencesView: View {
                 }
                 
                 Section("Scrobbling Services") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Last.fm Service
-                        HStack {
-                            Toggle("Enable Last.fm", isOn: $preferencesManager.enableLastFm)
-                                .toggleStyle(.switch)
-                            
-                            Spacer()
-                            
-                            Group {
-                                switch (scrobbler.lastFmManager as? LastFmDesktopManager)?.authStatus ?? .unknown {
-                                case .authenticated:
-                                    Label("Connected", systemImage: "checkmark.seal.fill")
-                                        .foregroundStyle(.green)
-                                case .needsAuth:
-                                    Label("Not connected", systemImage: "exclamationmark.triangle.fill")
-                                        .foregroundStyle(.yellow)
-                                case .failed( _):
-                                    Label("Auth failed", systemImage: "xmark.octagon.fill")
-                                        .foregroundStyle(.red)
-                                case .unknown:
-                                    Label("Checking...", systemImage: "hourglass")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .font(.caption)
-                        }
-                        
-                        if preferencesManager.enableLastFm {
-                            VStack(alignment: .leading, spacing: 4) {
-                                TextField("Last.fm Username", text: $preferencesManager.username)
-                                    .textFieldStyle(.roundedBorder)
-                                
-                                HStack {
-                                    if authState.isAuthenticated {
-                                        Button("Sign Out") {
-                                            if let manager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                                                manager.logout()
-                                            }
-                                        }
-                                        .buttonStyle(.bordered)
-                                    } else {
-                                        Button("Authenticate") {
-                                            if let manager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                                                if manager.currentAuthToken.isEmpty {
-                                                    manager.startAuth()
-                                                } else {
-                                                    authState.showingAuthSheet = true
-                                                }
-                                            }
-                                        }
-                                        .buttonStyle(.bordered)
-                                    }
-                                }
-                            }
-                            .padding(.leading, 16)
-                        }
-                        
-                        Divider()
-                        
-                        // Custom Scrobbling Service
-                        HStack {
-                            Toggle("Enable Custom Scrobbler", isOn: $preferencesManager.enableCustomScrobbler)
-                                .toggleStyle(.switch)
-                            
-                            Spacer()
-                            
-                            // Show authentication status for custom scrobbler
-                            if preferencesManager.enableCustomScrobbler {
-                                let _ = scrobbler.servicesLastUpdated // Force refresh when services update
-                                if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                                    if customService.isAuthenticated {
-                                        Label("Connected", systemImage: "checkmark.seal.fill")
-                                            .foregroundStyle(.green)
-                                    } else {
-                                        Label("Not connected", systemImage: "exclamationmark.triangle.fill")
-                                            .foregroundStyle(.yellow)
-                                    }
-                                } else {
-                                    Label("Disabled", systemImage: "minus.circle.fill")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        
-                        if preferencesManager.enableCustomScrobbler {
-                            VStack(alignment: .leading, spacing: 4) {
-                                TextField("Bluesky Handle (e.g. computerdata.co)", text: $preferencesManager.blueskyHandle)
-                                    .textFieldStyle(.roundedBorder)
-                                
-                                HStack {
-                                    Button("Authenticate with Bluesky") {
-                                        // Refresh services first to ensure the custom service exists
-                                        scrobbler.refreshScrobblingServices()
-
-                                        // Then attempt authentication
-                                        if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                                            Task {
-                                                do {
-                                                    let success = try await customService.authenticate()
-                                                    print("Custom auth result: \(success)")
-                                                } catch {
-                                                    print("Custom auth failed: \(error)")
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .disabled(preferencesManager.blueskyHandle.isEmpty)
-                                    
-                                    if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                                        let _ = scrobbler.servicesLastUpdated // Force refresh
-                                        if customService.isAuthenticated {
-                                            Button("Sign Out") {
-                                                customService.signOut()
-                                            }
-                                            .buttonStyle(.bordered)
-                                        }
-                                    }
-                                }
-                                
-                                Text("Catalog Scrobbler uses Bluesky OAuth authentication (atproto)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.leading, 16)
-                        }
-                    }
+                    ScrobblingServicesView()
                 }
                 
                 Section("Music App") {
@@ -222,7 +144,7 @@ struct PreferencesView: View {
                     .padding()
             }
             
-            Text("Your credentials are stored securely on-device")
+            Text("credentials are stored securely on-device")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .padding(.bottom)

@@ -158,132 +158,133 @@ struct ScrobblingView: View {
     private let cornerRadius: CGFloat = 10
 
     var body: some View {
-        GlassEffectContainer(spacing: 10) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("SCROBBLE")
-                        .font(.headline)
-                    Text(
-                        "v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
-                    )
-                    .font(.caption2)
-                    .foregroundStyle(.secondary.opacity(0.5))
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("SCROBBLE")
+                    .font(.headline)
+                Text(
+                    "v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary.opacity(0.5))
+            }
+            .padding(.horizontal)
+            .padding(.top)
 
-                //                    HStack {
-                //                        Text("status:")
-                //                            .font(.caption2.monospaced())
-                //                            .foregroundStyle(.secondary.opacity(0.7))
-                //                        Spacer()
-                //                        Text(scrobbler.musicAppStatus)
-                //                            .textCase(.lowercase)
-                //                            .font(.subheadline)
-                //                            .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
-                //                    }
-                //                    .padding()
-                //                    .glassEffect(in: .rect(cornerRadius: 8))
-                //                    .frame(maxWidth: .infinity, alignment: .leading)
+            //                    HStack {
+            //                        Text("status:")
+            //                            .font(.caption2.monospaced())
+            //                            .foregroundStyle(.secondary.opacity(0.7))
+            //                        Spacer()
+            //                        Text(scrobbler.musicAppStatus)
+            //                            .textCase(.lowercase)
+            //                            .font(.subheadline)
+            //                            .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
+            //                    }
+            //                    .padding()
+            //                    .glassEffect(in: .rect(cornerRadius: 8))
+            //                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Current Target App Display
-                HStack {
-                    Label(
-                        "monitoring:",
-                        systemImage: preferencesManager.selectedMusicApp.icon
-                    )
+            // Current Target App Display
+            HStack {
+                Label(
+                    "monitoring:",
+                    systemImage: preferencesManager.selectedMusicApp.icon
+                )
+                .font(.caption2.monospaced())
+                .foregroundStyle(.secondary.opacity(0.7))
+                Spacer()
+                Text(
+                    preferencesManager.selectedMusicApp.displayName
+                        .lowercased()
+                )
+                .font(.subheadline)
+                .foregroundColor(.accentColor.opacity(0.8))
+            }
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Scrobbling Services Status
+            VStack(alignment: .leading, spacing: 6) {
+                Text("scrobbling to:")
                     .font(.caption2.monospaced())
                     .foregroundStyle(.secondary.opacity(0.7))
-                    Spacer()
-                    Text(
-                        preferencesManager.selectedMusicApp.displayName
-                            .lowercased()
-                    )
-                    .font(.subheadline)
-                    .foregroundColor(.accentColor.opacity(0.8))
-                }
-                .glassEffect(in: .rect(cornerRadius: 8))
-                .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Scrobbling Services Status
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("scrobbling to:")
-                        .font(.caption2.monospaced())
+                ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
+                    .environment(scrobbler)
+            }
+            .padding()
+            .glassEffect(in: .rect(cornerRadius: 8))
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
+                print(
+                    "📱 ScrobblingView received servicesLastUpdated change"
+                )
+                servicesRefreshTrigger = UUID()
+            }
+
+            VStack(alignment: .leading) {
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Now Playing:")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary.opacity(0.7))
 
-                    ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
-                        .environment(scrobbler)
-                }
-                .padding()
-                .glassEffect(in: .rect(cornerRadius: 8))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
-                    print(
-                        "📱 ScrobblingView received servicesLastUpdated change"
-                    )
-                    servicesRefreshTrigger = UUID()
-                }
+                    Text(scrobbler.currentTrack)
 
-                VStack(alignment: .leading) {
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Now Playing:")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary.opacity(0.7))
-
-                        Text(scrobbler.currentTrack)
-
-                        if let currentArtwork = scrobbler.currentArtwork {
-                            Image(nsImage: currentArtwork)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 50, height: 50)
-                                .cornerRadius(8)
-                                .glassEffect(.clear)
-                        }
-
-                        //
-                        //                            Spacer()
-
-                        Text("Last Scrobbled:")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary.opacity(0.7))
-
-                        HStack(alignment: .center) {
-                            Text(scrobbler.lastScrobbledTrack)
-                                .font(.body)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                //                .frame(minWidth: 200)
-                .padding()
-                .background {
                     if let currentArtwork = scrobbler.currentArtwork {
                         Image(nsImage: currentArtwork)
                             .resizable()
-                            .scaledToFill()
-                            .blur(radius: 30)
-                            .opacity(0.3)
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                            .cornerRadius(8)
+                            .glassEffect(.clear)
+                    }
 
+                    Text("Last Scrobbled:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary.opacity(0.7))
+
+                    HStack(alignment: .center) {
+                        Text(scrobbler.lastScrobbledTrack)
+                            .font(.body)
                     }
                 }
-                .glassEffect(in: .rect(cornerRadius: 8))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding()
+            .background {
+                if let currentArtwork = scrobbler.currentArtwork {
+                    Image(nsImage: currentArtwork)
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: 30)
+                        .opacity(0.3)
 
-                if scrobbler.isScrobbling {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
                 }
+            }
+            .glassEffect(in: .rect(cornerRadius: 8))
+            .padding(.horizontal)
 
-                if let errorMessage = scrobbler.errorMessage {
-
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-
+            if scrobbler.isScrobbling {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .padding(.horizontal)
             }
 
-            .padding()
+            if let errorMessage = scrobbler.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.horizontal)
+            }
+
+            Spacer()
+
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
 
     }
 }

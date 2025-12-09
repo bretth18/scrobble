@@ -16,10 +16,13 @@ struct AppSelectionView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Select Music App")
                 .font(.headline)
-            
+                .padding(.horizontal)
+                .padding(.top)
+
             Text("Choose which app to monitor for scrobbling:")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .padding(.horizontal)
             
             LazyVGrid(columns: [
                 GridItem(.flexible()),
@@ -36,7 +39,8 @@ struct AppSelectionView: View {
                     }
                 }
             }
-            
+            .padding(.horizontal)
+
             if !runningApps.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
@@ -47,17 +51,18 @@ struct AppSelectionView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     Text(runningApps.map { $0.displayName }.joined(separator: ", "))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal)
             }
-            
+
             Divider()
+                .padding(.horizontal)
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Image(systemName: "info.circle")
                         .foregroundStyle(Color.accentColor)
@@ -65,16 +70,17 @@ struct AppSelectionView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
-                
-                HStack(spacing: 8) {
+
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Image(systemName: preferencesManager.selectedMusicApp.icon)
                         .foregroundStyle(Color.accentColor)
-                    
+                        .aspectRatio(contentMode: .fill)
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text(preferencesManager.selectedMusicApp.displayName)
                             .font(.body)
                             .fontWeight(.medium)
-                        
+
                         if !preferencesManager.selectedMusicApp.alternativeNames.isEmpty {
                             Text("Also recognizes: \(preferencesManager.selectedMusicApp.alternativeNames.joined(separator: ", "))")
                                 .font(.caption)
@@ -82,15 +88,17 @@ struct AppSelectionView: View {
                                 .lineLimit(2, reservesSpace: true)
                         }
                     }
-                    
-                    Spacer()
+
                 }
                 .padding(8)
                 .background(Color.accentColor.opacity(0.1))
                 .glassEffect(in: .rect(cornerRadius: 8))
             }
+            .padding(.horizontal)
+
+            Spacer()
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             updateRunningApps()
         }

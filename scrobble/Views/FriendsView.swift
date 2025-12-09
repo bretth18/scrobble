@@ -52,6 +52,9 @@ struct FriendsView: View {
                     .padding(.horizontal)
                 }
                 .scrollEdgeEffectStyle(.soft, for: .all)
+                .refreshable {
+                    model.refreshData()
+                }
             }
             
             if let error = model.errorMessage {

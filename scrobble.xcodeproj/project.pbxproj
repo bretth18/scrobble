@@ -24,6 +24,7 @@
 		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
 		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
+		A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */; };
 		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
 		A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6A580A22E78D8480079DC91 /* MediaPlayer.framework */; };
 		A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */; };
@@ -76,6 +77,7 @@
 		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthView.swift; sourceTree = "<group>"; };
+		A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingServicesView.swift; sourceTree = "<group>"; };
 		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
 		A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaRemoteBridge.m; sourceTree = "<group>"; };
 		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -202,6 +204,7 @@
 				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
 				A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
+				A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -325,6 +328,7 @@
 				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
 				A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */,
 				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
+				A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
 				A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
@@ -497,7 +501,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
@@ -547,7 +551,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
