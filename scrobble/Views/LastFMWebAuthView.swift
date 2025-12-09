@@ -1,5 +1,5 @@
 //
-//  LastFmWebAuthView.swift
+//  LastFMWebAuthView.swift
 //  scrobble
 //
 //  Created by Assistant on 2/4/25.
@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 import Observation
 
-struct LastFmWebAuthView: View {
+struct LastFMWebAuthView: View {
     var lastFmManager: LastFmDesktopManager
     @Environment(AuthState.self) var authState
     @State private var webPage = WebPage()
@@ -89,7 +89,7 @@ struct LastFmWebAuthView: View {
         isLoading = true
         authState.authError = nil
         
-        let authURL = "https://www.last.fm/api/auth/?api_key=\(lastFmManager.apiKey)&token=\(lastFmManager.currentAuthToken)"
+        let authURL = "https://www.last.fm/api/auth/?api_key=\(lastFmManager.apiKey)&token=\(lastFmManager.currentAuthToken)&cb=scrobble://auth"
         
         if let url = URL(string: authURL) {
             let request = URLRequest(url: url)
@@ -183,6 +183,6 @@ struct LastFmWebAuthView: View {
 #Preview {
     let authState = AuthState()
     let manager = LastFmDesktopManager(apiKey: "test", apiSecret: "test", username: "test", authState: authState)
-    return LastFmWebAuthView(lastFmManager: manager)
+    return LastFMWebAuthView(lastFmManager: manager)
         .environment(authState)
 }

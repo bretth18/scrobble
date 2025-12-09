@@ -1,0 +1,58 @@
+//
+//  ServicesStatusView.swift
+//  scrobble
+//
+//  Created by Brett Henderson on 12/8/25.
+//
+
+import SwiftUI
+
+struct ServicesStatusView: View {
+    @EnvironmentObject var scrobbler: Scrobbler
+    let refreshTrigger: UUID
+    
+    var body: some View {
+        // The refreshTrigger will force this view to rebuild when ContentView updates it
+        let services = scrobbler.getScrobblingServices()
+        
+        let _ = print("ServicesStatusView updating with trigger \(refreshTrigger), found \(services.count) services")
+        let _ = services.forEach { service in
+            print("  - \(service.serviceName): authenticated = \(service.isAuthenticated)")
+        }
+        
+        if services.isEmpty {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("no services enabled")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+        } else {
+            ForEach(services, id: \.serviceId) { service in
+                HStack(spacing: 6) {
+                    Image(systemName: service.isAuthenticated ? "checkmark.circle.fill" : "circle.fill")
+                        .foregroundStyle(service.isAuthenticated ? .green.opacity(0.8) : .secondary.opacity(0.5))
+                        .font(.caption)
+                    
+                    Text(service.serviceName.lowercased())
+                        .font(.caption)
+                        .foregroundStyle(service.isAuthenticated ? .primary : .secondary)
+                    
+                    Spacer()
+                    
+                    if !service.isAuthenticated {
+                        Text("not authenticated")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary.opacity(0.7))
+                    }
+                }
+            }
+        }
+    }
+}
+
+//#Preview {
+//    ServicesStatusView(re)
+//}

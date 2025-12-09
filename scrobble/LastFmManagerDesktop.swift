@@ -85,6 +85,39 @@ class LastFmDesktopManager: LastFmManagerType {
         self.authState = authState
         
         checkSavedAuth()
+        setupNotificationObservers()
+    }
+    
+    private func setupNotificationObservers() {
+        NotificationCenter.default.publisher(for: NSNotification.Name("LastFmAuthSuccess"))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                if let token = notification.userInfo?["token"] as? String {
+                    print("Received auth success notification with token: \(token)")
+                    
+                    // Verify tokens match if we have one expected
+                    if let current = self?.currentAuthToken, !current.isEmpty, current != token {
+                        print("Warning: Received callback token \(token) differs from expected \(current)")
+                    }
+                    
+                    // If we received a token, we can assume it's the right one or update ours
+                    if self?.currentAuthToken.isEmpty == true {
+                        self?.currentAuthToken = token
+                    }
+                    
+                    self?.completeAuthorization(authorized: true)
+                }
+            }
+            .store(in: &cancellables)
+            
+        NotificationCenter.default.publisher(for: NSNotification.Name("LastFmAuthFailure"))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                if let error = notification.userInfo?["error"] as? String {
+                    self?.handleAuthFailure("Last.fm reported error: \(error)")
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func checkSavedAuth() {

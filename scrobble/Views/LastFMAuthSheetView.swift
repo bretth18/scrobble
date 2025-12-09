@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 import Observation
 
-struct LastFmAuthSheet: View {
+struct LastFMAuthSheetView: View {
     var lastFmManager: LastFmDesktopManager
     @Environment(AuthState.self) var authState
     
@@ -41,7 +41,7 @@ struct LastFmAuthSheet: View {
                 .padding()
                 .frame(width: 400, height: 200)
             } else {
-                LastFmWebAuthView(lastFmManager: lastFmManager)
+                LastFMWebAuthView(lastFmManager: lastFmManager)
                     .environment(authState)
             }
         }
@@ -51,6 +51,6 @@ struct LastFmAuthSheet: View {
 #Preview {
     let authState = AuthState()
     let manager = LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", password: "", authState: authState)
-    return LastFmAuthSheet(lastFmManager: manager)
+    return LastFMAuthSheetView(lastFmManager: manager)
         .environment(authState)
 }

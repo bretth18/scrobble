@@ -50,14 +50,14 @@ struct scrobbleApp: App {
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: 10) {
-                MainView()
+                ContentView()
                     .environmentObject(scrobbler)
                     .environment(preferencesManager)
                     .environment(authState)
                 
                 Divider()
                 
-                MenuButtons()
+                MenuButtonsView()
                     .environment(authState)
                     .environment(appState)
             }
@@ -69,14 +69,14 @@ struct scrobbleApp: App {
         .menuBarExtraStyle(.window)
 
         WindowGroup("Scrobbler", id: "scrobbler") {
-            MainView()
+            ContentView()
                 .environmentObject(scrobbler)
                 .environment(preferencesManager)
                 .environment(appState)
                 .environment(authState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                        LastFmAuthSheet(lastFmManager: desktopManager)
+                        LastFMAuthSheetView(lastFmManager: desktopManager)
                             .environment(authState)
                     }
                 }
@@ -92,7 +92,7 @@ struct scrobbleApp: App {
                     .environment(authState)
                     .sheet(isPresented: $authState.showingAuthSheet) {
                         if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                            LastFmAuthSheet(lastFmManager: desktopManager)
+                            LastFMAuthSheetView(lastFmManager: desktopManager)
                                 .environment(authState)
                         }
                     }
@@ -153,54 +153,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 object: nil,
                 userInfo: ["error": error]
             )
-        }
-    }
-}
-
-struct MenuButtons: View {
-    @Environment(AppState.self) var appState
-    
-    @Environment(\.openWindow) var openWindow
-    
-    var body: some View {
-        GlassEffectContainer(spacing: 10) {
-            HStack(alignment: .center) {
-                Button {
-                    openWindow(id: "scrobbler")
-                } label: {
-                    Label("Window", systemImage: "rectangle.expand.vertical" )
-                        .foregroundStyle(.secondary.opacity(0.7))
-                        .font(.caption2)
-                }
-                .buttonStyle(.glass)
-                
-                Spacer()
-                
-//                Button {
-//                    openWindow(id: "settings")
-//                } label: {
-//                    Label("Preferences", systemImage: "gearshape" )
-//                        .foregroundStyle(.secondary.opacity(0.7))
-//                        .font(.caption2)
-//                    
-//                }
-//                .buttonStyle(.glass)
-//                .foregroundStyle(.tertiary)
-                
-                
-                Button {
-                    NSApplication.shared.terminate(nil)
-                } label: {
-                    Label("Quit", systemImage: "xmark.circle" )
-                        .foregroundStyle(.secondary.opacity(0.7))
-                        .font(.caption2)
-                    
-                }
-                .buttonStyle(.glass)
-                .foregroundStyle(.tertiary)
-                
-            }
-            .padding(.horizontal)
         }
     }
 }

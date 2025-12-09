@@ -162,6 +162,10 @@ struct Friend: Codable {
     }
 }
 
+ let mockFriend: Friend = Friend(name: "test", realname: "Test User", url: "https://example.com", image: [Friend.Image(text: "https://example.com/image.jpg", size: "medium")], country: "USA", playcount: "100", registered: Friend.Registered(unixtime: "1234567890"), subscriber: "0")
+
+
+
 struct FriendsResponse: Codable {
     let friends: Friends
     
