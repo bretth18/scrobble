@@ -386,6 +386,8 @@ class LastFmDesktopManager: LastFmManagerType {
         parameters["api_sig"] = signature
         parameters["format"] = "json"
         
+        print("Getting friends with parameters: \(parameters)")
+        
         return makeRequest(parameters: parameters)
             .decode(type: FriendsResponse.self, decoder: JSONDecoder())
             .map { $0.friends.user }

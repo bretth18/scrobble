@@ -9,10 +9,10 @@ import SwiftUI
 
 struct FriendsView: View {
     @EnvironmentObject var scrobbler: Scrobbler
-    @StateObject private var viewModel: FriendsViewModel
+    @State private var model: FriendsModel
     
     init(lastFmManager: LastFmManagerType) {
-        _viewModel = StateObject(wrappedValue: FriendsViewModel(lastFmManager: lastFmManager))
+        _model = State(initialValue: FriendsModel(lastFmManager: lastFmManager))
     }
     
     var body: some View {
@@ -21,29 +21,29 @@ struct FriendsView: View {
                 Text("Friends Activity")
                     .font(.headline)
                 Spacer()
-                Button(action: { viewModel.refreshData() }) {
+                Button(action: { model.refreshData() }) {
                     Image(systemName: "arrow.clockwise")
                 }
-                .disabled(viewModel.isLoading)
+                .disabled(model.isLoading)
                 .buttonStyle(.glass)
             }
             .padding(.horizontal)
             .padding(.top)
             .scrollEdgeEffectStyle(.soft, for: .bottom)
             
-            if viewModel.isLoading {
+            if model.isLoading && model.friends.isEmpty {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle())
-            } else if viewModel.friends.isEmpty {
+            } else if model.friends.isEmpty {
                 Text("No friends found")
                     .foregroundColor(.secondary)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 16) {
-                        ForEach(viewModel.friends, id: \.name) { friend in
+                        ForEach(model.friends, id: \.name) { friend in
                             FriendCardView(
                                 friend: friend,
-                                recentTracks: viewModel.friendTracks[friend.name] ?? []
+                                recentTracks: model.friendTracks[friend.name] ?? []
                             )
                             .frame(maxWidth: .infinity)
                         }
@@ -53,7 +53,7 @@ struct FriendsView: View {
                 .scrollEdgeEffectStyle(.soft, for: .all)
             }
             
-            if let error = viewModel.errorMessage {
+            if let error = model.errorMessage {
                 Text(error)
                     .foregroundColor(.red)
                     .font(.caption)
@@ -62,7 +62,7 @@ struct FriendsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            viewModel.updateLastFmManager(scrobbler.lastFmManager)
+            model.updateLastFmManager(scrobbler.lastFmManager)
         }
     }
 }

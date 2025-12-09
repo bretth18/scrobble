@@ -35,6 +35,8 @@
 		A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */; };
 		A6F2131C2C8C085900E1D23B /* Music.h in Sources */ = {isa = PBXBuildFile; fileRef = A6F213172C8C065100E1D23B /* Music.h */; };
 		A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */; };
+		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
+		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -83,6 +85,8 @@
 		A6F213172C8C065100E1D23B /* Music.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Music.h; sourceTree = "<group>"; };
 		A6F213182C8C075F00E1D23B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
+		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
+		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -109,6 +113,7 @@
 				A6F212FE2C8C021800E1D23B /* scrobble */,
 				A6F212FD2C8C021800E1D23B /* Products */,
 				A6F213142C8C05E800E1D23B /* Frameworks */,
+				A6F2FEEE2EE79E47003826F7 /* Configs */,
 			);
 			sourceTree = "<group>";
 		};
@@ -132,6 +137,7 @@
 				A6F213172C8C065100E1D23B /* Music.h */,
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
 				A63A2B162D27177D000BC92E /* FriendsViewModel.swift */,
+				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
 				A6F213012C8C021800E1D23B /* ContentView.swift */,
 				A65DF1BA2D3AE7B6006AD060 /* ViewComponents */,
@@ -188,6 +194,14 @@
 			);
 			path = Models;
 			sourceTree = "<group>";
+		};
+		A6F2FEEE2EE79E47003826F7 /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */,
+			);
+			path = Configs;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -257,6 +271,7 @@
 			files = (
 				A6F213072C8C021900E1D23B /* Preview Assets.xcassets in Resources */,
 				A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */,
+				A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,6 +290,7 @@
 				A6F213022C8C021800E1D23B /* ContentView.swift in Sources */,
 				A6A580A52E78D9340079DC91 /* NowPlayingTestFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */,
+				A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */,
 				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
@@ -421,6 +437,7 @@
 		};
 		A6F2130C2C8C021900E1D23B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -470,6 +487,7 @@
 		};
 		A6F2130D2C8C021900E1D23B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
