@@ -30,7 +30,7 @@ jobs:
           -archivePath $PWD/build/scrobble_nightly.xcarchive \
           -configuration Release \
           archive \
-          CODE_SIGN_IDENTITY="" \
+          CODE_SIGN_IDENTITY="-" \
           CODE_SIGNING_REQUIRED=NO
 
     - name: Export Nightly App
@@ -44,6 +44,8 @@ jobs:
             <string>mac-application</string>
             <key>destination</key>
             <string>export</string>
+            <key>signingStyle</key>
+            <string>manual</string>
         </dict>
         </plist>
         EOF
@@ -52,7 +54,7 @@ jobs:
           -archivePath $PWD/build/scrobble_nightly.xcarchive \
           -exportOptionsPlist ExportOptions.plist \
           -exportPath $PWD/build \
-          CODE_SIGN_IDENTITY="" \
+          CODE_SIGN_IDENTITY="-" \
           CODE_SIGNING_REQUIRED=NO
 
     - name: Rename and Patch Nightly App
