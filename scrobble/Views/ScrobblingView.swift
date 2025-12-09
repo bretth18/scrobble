@@ -231,7 +231,12 @@ struct ScrobblingView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary.opacity(0.7))
 
-                    Text(scrobbler.currentTrack)
+                    MarqueeText(
+                        text: "\(scrobbler.currentTrack)",
+                        font: .body,
+                        containerWidth: 200
+                    )
+//                    Text(scrobbler.currentTrack)
 
                     if let currentArtwork = scrobbler.currentArtwork {
                         Image(nsImage: currentArtwork)
@@ -247,8 +252,13 @@ struct ScrobblingView: View {
                         .foregroundStyle(.secondary.opacity(0.7))
 
                     HStack(alignment: .center) {
-                        Text(scrobbler.lastScrobbledTrack)
-                            .font(.body)
+                        MarqueeText(
+                            text: "\(scrobbler.lastScrobbledTrack)",
+                            font: .body,
+                            containerWidth: 200
+                        )
+//                        Text(scrobbler.lastScrobbledTrack)
+//                            .font(.body)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
