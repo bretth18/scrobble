@@ -10,7 +10,6 @@
 		A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */; };
 		A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */; };
 		A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */; };
-		A63A2B172D27177D000BC92E /* FriendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B162D27177D000BC92E /* FriendsViewModel.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
 		A63A2B1B2D271A95000BC92E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* MainView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
@@ -37,6 +36,7 @@
 		A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */; };
 		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
+		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -57,7 +57,6 @@
 		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
 		A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyOAuthManager.swift; sourceTree = "<group>"; };
 		A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomScrobblingService.swift; sourceTree = "<group>"; };
-		A63A2B162D27177D000BC92E /* FriendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewModel.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; };
@@ -87,6 +86,7 @@
 		A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
 		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -128,6 +128,7 @@
 		A6F212FE2C8C021800E1D23B /* scrobble */ = {
 			isa = PBXGroup;
 			children = (
+				A6F2FEF02EE7A41F003826F7 /* Utils */,
 				A6F2FEE82EE79A26003826F7 /* Models */,
 				A6F2FEE72EE79A20003826F7 /* Views */,
 				A6F213182C8C075F00E1D23B /* Info.plist */,
@@ -136,7 +137,6 @@
 				A64304C72D52FBEC001998B6 /* AuthState.swift */,
 				A6F213172C8C065100E1D23B /* Music.h */,
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
-				A63A2B162D27177D000BC92E /* FriendsViewModel.swift */,
 				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
 				A6F213012C8C021800E1D23B /* ContentView.swift */,
@@ -202,6 +202,14 @@
 			);
 			path = Configs;
 			sourceTree = SOURCE_ROOT;
+		};
+		A6F2FEF02EE7A41F003826F7 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2FEF12EE7A429003826F7 /* Logger.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -282,7 +290,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A63A2B172D27177D000BC92E /* FriendsViewModel.swift in Sources */,
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
 				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
@@ -301,6 +308,7 @@
 				A658009A2E78A56E00A30A42 /* LastFmWebAuthView.swift in Sources */,
 				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
+				A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,

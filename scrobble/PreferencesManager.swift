@@ -28,6 +28,10 @@ class PreferencesManager {
         didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
     }
     
+    var numberOfFriendsRecentTracksDisplayed: Int = 5 {
+        didSet { UserDefaults.standard.set(numberOfFriendsRecentTracksDisplayed, forKey: "numberOfFriendsRecentTracksDisplayed")}
+    }
+    
     var selectedMusicApp: SupportedMusicApp = SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })! {
         didSet { 
             UserDefaults.standard.set(selectedMusicApp.bundleId, forKey: "selectedMusicAppBundleId")
@@ -65,6 +69,11 @@ class PreferencesManager {
         let savedShown = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed")
         if savedShown > 0 {
             self.numberOfFriendsDisplayed = savedShown
+        }
+        
+        let savedRecentTracks = UserDefaults.standard.integer(forKey: "numberOfFriendsRecentTracksDisplayed")
+        if savedRecentTracks > 0 {
+            self.numberOfFriendsRecentTracksDisplayed = savedRecentTracks
         }
         
         self.mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"

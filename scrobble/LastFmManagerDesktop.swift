@@ -478,7 +478,6 @@ private struct LastFmErrorResponse: Codable {
     let message: String
 }
 
-// Add this to your ScrobblerError enum
 extension ScrobblerError {
     static let authorizationCancelled = ScrobblerError.apiError("Authorization was cancelled by user")
 }

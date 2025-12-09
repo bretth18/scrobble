@@ -43,11 +43,19 @@ struct PreferencesView: View {
                 }
                 
                 Section("Display") {
-                    Stepper(
-                        "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
-                        value: $preferencesManager.numberOfFriendsDisplayed,
-                        in: 1...10
-                    )
+                    VStack {
+                        Stepper(
+                            "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
+                            value: $preferencesManager.numberOfFriendsDisplayed,
+                            in: 1...10
+                        )
+                        
+                        Stepper(
+                            "Friend recent tracks: \(preferencesManager.numberOfFriendsRecentTracksDisplayed)",
+                            value: $preferencesManager.numberOfFriendsRecentTracksDisplayed,
+                            in: 1...20
+                        )
+                    }
                 }
                 
                 Section("Scrobbling Services") {

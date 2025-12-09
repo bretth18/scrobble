@@ -74,8 +74,12 @@ class FriendsModel {
         // Clear old tracks just in case, or keep them? 
         // Better to update incrementally or clear? Let's keep existing if refreshing.
         
+        // get limit from pref manager
+        let limit = preferencesManager?.numberOfFriendsRecentTracksDisplayed ?? 3
+        
+        
         for friend in friends {
-            lastFmManager.getRecentTracks(for: friend.name, page: 1, limit: 1)
+            lastFmManager.getRecentTracks(for: friend.name, page: 1, limit: limit)
                 .receive(on: DispatchQueue.main)
                 .sink(receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {

@@ -51,11 +51,11 @@ class CustomScrobblingService: ScrobblingService {
                 .sink { _ in
                     // Check final authentication state
                     if self.oauthManager.isAuthenticated {
-                        print("Custom scrobbling service authentication successful")
+                        Log.debug("Custom scrobbling service authentication successful", category: .scrobble)
                         promise(.success(true))
                     } else {
                         let errorMessage = self.oauthManager.authError ?? "Authentication failed"
-                        print("Custom scrobbling service authentication failed: \(errorMessage)")
+                        Log.error("Custom scrobbling service authentication failed: \(errorMessage)", category: .scrobble)
                         promise(.failure(ScrobblerError.apiError(errorMessage)))
                     }
                 }
@@ -71,11 +71,11 @@ class CustomScrobblingService: ScrobblingService {
     
     func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
         guard isAuthenticated else {
-            print("❌ Custom scrobbler: Not authenticated")
+            Log.debug("Custom scrobbler: Not authenticated", category: .scrobble)
             return Fail(error: ScrobblerError.authenticationRequired).eraseToAnyPublisher()
         }
         
-        print("🎵 Custom scrobbler: Scrobbling \(artist) - \(track)")
+        Log.debug("Custom scrobbler: Scrobbling \(artist) - \(track)", category: .scrobble)
         return makeScrobbleRequest(
             method: "track.scrobble",
             artist: artist,
@@ -87,11 +87,11 @@ class CustomScrobblingService: ScrobblingService {
     
     func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
         guard isAuthenticated else {
-            print("❌ Custom scrobbler: Not authenticated for now playing update")
+            Log.error("Custom scrobbler: Not authenticated for now playing update", category: .scrobble)
             return Fail(error: ScrobblerError.authenticationRequired).eraseToAnyPublisher()
         }
         
-        print("🔔 Custom scrobbler: Updating now playing \(artist) - \(track)")
+        Log.debug("Custom scrobbler: Updating now playing \(artist) - \(track)", category: .scrobble)
         return makeScrobbleRequest(
             method: "track.updateNowPlaying",
             artist: artist,
@@ -108,10 +108,10 @@ class CustomScrobblingService: ScrobblingService {
         timestamp: Int? = nil
     ) -> AnyPublisher<Bool, Error> {
         
-        print("🔗 Custom scrobbler: Making \(method) request to \(baseURL)")
+        Log.debug("Custom scrobbler: Making \(method) request to \(baseURL)", category: .scrobble)
         
         guard let url = URL(string: "\(baseURL)/api/\(method)") else {
-            print("❌ Custom scrobbler: Invalid URL \(baseURL)/api/\(method)")
+            Log.error("❌ Custom scrobbler: Invalid URL \(baseURL)/api/\(method)", category: .scrobble)
             return Fail(error: ScrobblerError.invalidURL).eraseToAnyPublisher()
         }
         
@@ -121,7 +121,7 @@ class CustomScrobblingService: ScrobblingService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Log the request headers for debugging
-        print("🔧 Custom scrobbler: Request headers: \(request.allHTTPHeaderFields ?? [:])")
+        Log.debug("🔧 Custom scrobbler: Request headers: \(request.allHTTPHeaderFields ?? [:])", category: .scrobble)
         
         // Create scrobble object matching the expected API format
         var scrobbleObject: [String: Any] = [
@@ -133,7 +133,7 @@ class CustomScrobblingService: ScrobblingService {
         if let timestamp = timestamp {
             // The API expects timestamp as a string
             scrobbleObject["timestamp"] = String(timestamp)
-            print("🕐 Custom scrobbler: Adding timestamp \(timestamp) as string")
+            Log.debug("Custom scrobbler: Adding timestamp \(timestamp) as string", category: .scrobble)
         }
         
         // The API expects an array of scrobble objects
@@ -144,43 +144,43 @@ class CustomScrobblingService: ScrobblingService {
             requestBody = scrobbleObject
         }
         
-        print("📤 Custom scrobbler: Request body: \(requestBody)")
+        Log.debug("Custom scrobbler: Request body: \(requestBody)", category: .scrobble)
         
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
         } catch {
-            print("❌ Custom scrobbler: Failed to serialize request body: \(error)")
+            Log.error("Custom scrobbler: Failed to serialize request body: \(error)", category: .scrobble)
             return Fail(error: error).eraseToAnyPublisher()
         }
         
         return URLSession.shared.dataTaskPublisher(for: request)
             .map { data, response in
-                print("📡 Custom scrobbler: Raw response received")
+                Log.debug("📡 Custom scrobbler: Raw response received", category: .scrobble)
                 return (data, response)
             }
             .tryMap { data, response -> Bool in
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    print("❌ Custom scrobbler: Invalid response type")
+                    Log.error("❌ Custom scrobbler: Invalid response type", category: .scrobble)
                     throw ScrobblerError.apiError("Invalid response type")
                 }
                 
-                print("📡 Custom scrobbler: Received HTTP \(httpResponse.statusCode)")
-                print("📡 Custom scrobbler: Response headers: \(httpResponse.allHeaderFields)")
+                Log.debug("📡 Custom scrobbler: Received HTTP \(httpResponse.statusCode)", category: .scrobble)
+                Log.debug("📡 Custom scrobbler: Response headers: \(httpResponse.allHeaderFields)", category: .scrobble)
                 
                 // Always log the response body for debugging
                 let responseString = String(data: data, encoding: .utf8) ?? "No response body"
-                print("📡 Custom scrobbler: Response body: \(responseString)")
+                Log.debug("📡 Custom scrobbler: Response body: \(responseString)", category: .scrobble)
                 
                 // Check for successful status codes
                 guard (200...299).contains(httpResponse.statusCode) else {
                     // Try to parse error message from response
                     if let errorData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                        let errorMessage = errorData["error"] as? String {
-                        print("❌ Custom scrobbler: API error: \(errorMessage)")
+                        Log.error("❌ Custom scrobbler: API error: \(errorMessage)", category: .scrobble)
                         throw ScrobblerError.apiError(errorMessage)
                     } else {
-                        print("❌ Custom scrobbler: HTTP error \(httpResponse.statusCode)")
-                        print("❌ Custom scrobbler: Full response body: \(responseString)")
+                        Log.error("❌ Custom scrobbler: HTTP error \(httpResponse.statusCode)", category: .scrobble)
+                        Log.error("❌ Custom scrobbler: Full response body: \(responseString)", category: .scrobble)
                         throw ScrobblerError.apiError("HTTP error \(httpResponse.statusCode): \(responseString)")
                     }
                 }
@@ -188,11 +188,11 @@ class CustomScrobblingService: ScrobblingService {
                 // For successful responses, try to parse the result
                 if let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     // Log successful response for debugging
-                    print("✅ Custom scrobbler: Success response: \(jsonResponse)")
+                    Log.debug("✅ Custom scrobbler: Success response: \(jsonResponse)", category: .scrobble)
                     return true
                 } else {
                     // Even if we can't parse JSON, a 2xx status code indicates success
-                    print("✅ Custom scrobbler: Success (non-JSON response): \(responseString)")
+                    Log.debug("✅ Custom scrobbler: Success (non-JSON response): \(responseString)", category: .scrobble)
                     return true
                 }
             }
