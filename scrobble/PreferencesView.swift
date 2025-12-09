@@ -10,13 +10,15 @@ import Combine
 import Observation
 
 struct PreferencesView: View {
-    @EnvironmentObject var preferencesManager: PreferencesManager
+    @Environment(PreferencesManager.self) var preferencesManager
     @EnvironmentObject var scrobbler: Scrobbler
     @Environment(AuthState.self) var authState
     
+    @State private var showingBlueskyHelp = false
     @State private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
+        @Bindable var preferencesManager = preferencesManager
         VStack() {
             
 
@@ -235,7 +237,7 @@ struct PreferencesView: View {
     )
     
     PreferencesView()
-        .environmentObject(prefManager)
+        .environment(prefManager)
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
 }

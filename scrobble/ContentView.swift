@@ -141,7 +141,7 @@ struct ContentViewNowPlayingCardView: View {
     
     struct ContentView: View {
         @EnvironmentObject var scrobbler: Scrobbler
-        @EnvironmentObject var preferencesManager: PreferencesManager
+        @Environment(PreferencesManager.self) var preferencesManager
         @State private var servicesRefreshTrigger = UUID()
     
         @State private var showingPreferences = false
@@ -401,5 +401,5 @@ struct ServicesStatusView: View {
     )
     ContentView()
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
-        .environmentObject(prefManager)
+        .environment(prefManager)
 }

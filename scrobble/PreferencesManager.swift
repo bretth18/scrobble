@@ -8,24 +8,29 @@
 import Foundation
 import AppKit
 
-class PreferencesManager: ObservableObject {
-    let apiKey = Secrets.lastFmApiKey
-    let apiSecret = Secrets.lastFmApiSecret
-    
+import Observation
 
-    @Published var username: String {
+@Observable
+class PreferencesManager {
+    // Standard access for secrets
+    var apiKey: String { Secrets.lastFmApiKey }
+    var apiSecret: String { Secrets.lastFmApiSecret }
+    
+    var username: String = "" {
         didSet { UserDefaults.standard.set(username, forKey: "lastFmUsername") }
     }
-    @Published var password: String {
+    
+    var password: String = "" {
         didSet { UserDefaults.standard.set(password, forKey: "lastFmPassword") }
     }
-    @Published var numberOfFriendsDisplayed: Int {
+    
+    var numberOfFriendsDisplayed: Int = 10 {
         didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
     }
-    @Published var selectedMusicApp: SupportedMusicApp {
+    
+    var selectedMusicApp: SupportedMusicApp = SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })! {
         didSet { 
             UserDefaults.standard.set(selectedMusicApp.bundleId, forKey: "selectedMusicAppBundleId")
-            // Only sync with mediaAppSource after initialization is complete
             if _isInitialized {
                 mediaAppSource = selectedMusicApp.displayName
             }
@@ -33,54 +38,53 @@ class PreferencesManager: ObservableObject {
     }
     
     // Keep for backwards compatibility
-    @Published var mediaAppSource: String {
+    var mediaAppSource: String = "Apple Music" {
         didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource") }
     }
     
     // Custom scrobbler settings
-    @Published var enableCustomScrobbler: Bool {
+    var enableCustomScrobbler: Bool = false {
         didSet { UserDefaults.standard.set(enableCustomScrobbler, forKey: "enableCustomScrobbler") }
     }
     
-    @Published var blueskyHandle: String {
+    var blueskyHandle: String = "" {
         didSet { UserDefaults.standard.set(blueskyHandle, forKey: "blueskyHandle") }
     }
     
     // Last.fm settings
-    @Published var enableLastFm: Bool {
+    var enableLastFm: Bool = true {
         didSet { UserDefaults.standard.set(enableLastFm, forKey: "enableLastFm") }
     }
     
     private var _isInitialized = false
     
     init() {
-//        apiKey = UserDefaults.standard.string(forKey: "lastFmApiKey") ?? ""
-//        apiSecret = UserDefaults.standard.string(forKey: "lastFmApiSecret") ?? ""
-        username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
-        password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
-        numberOfFriendsDisplayed = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed") ?? 3
+        self.username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
+        self.password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
         
-        // Initialize mediaAppSource first to avoid initialization order issues
-        mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
+        let savedShown = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed")
+        if savedShown > 0 {
+            self.numberOfFriendsDisplayed = savedShown
+        }
         
-        // Initialize custom scrobbler settings
-        enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
-        blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
+        self.mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
         
-        // Initialize Last.fm settings (default to enabled for backward compatibility)
-        enableLastFm = UserDefaults.standard.object(forKey: "enableLastFm") != nil ? 
-                       UserDefaults.standard.bool(forKey: "enableLastFm") : true
+        self.enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
+        self.blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
         
-        // Then initialize selectedMusicApp
+        // Initialize Last.fm settings
+        if UserDefaults.standard.object(forKey: "enableLastFm") != nil {
+            self.enableLastFm = UserDefaults.standard.bool(forKey: "enableLastFm")
+        }
+        
         let savedBundleId = UserDefaults.standard.string(forKey: "selectedMusicAppBundleId") ?? "com.apple.Music"
-        selectedMusicApp = SupportedMusicApp.findApp(byBundleId: savedBundleId) ?? SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })!
+        self.selectedMusicApp = SupportedMusicApp.findApp(byBundleId: savedBundleId) ?? SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })!
         
-        // Sync mediaAppSource with selectedMusicApp if they don't match
+        // Sync mediaAppSource
         if mediaAppSource != selectedMusicApp.displayName {
             mediaAppSource = selectedMusicApp.displayName
         }
         
-        // Mark as initialized so didSet handlers work properly going forward
         _isInitialized = true
     }
     

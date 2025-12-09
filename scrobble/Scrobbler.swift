@@ -77,14 +77,7 @@ class Scrobbler: ObservableObject {
         
         // Monitor preferences changes for scrobbling service settings
         if let prefManager = preferencesManager {
-            prefManager.$enableLastFm
-                .combineLatest(prefManager.$enableCustomScrobbler, prefManager.$blueskyHandle)
-                .dropFirst() // Skip initial values
-                .sink { [weak self] _, _, _ in
-                    print("Scrobbling preferences changed, refreshing services...")
-                    self?.refreshScrobblingServices()
-                }
-                .store(in: &cancellables)
+            startPreferencesObservation(prefManager)
         }
         
         // Initialize with the selected app from preferences
@@ -101,24 +94,28 @@ class Scrobbler: ObservableObject {
             print("MediaRemoteTestFetcher initialized successfully")
         }
         
-        
-        
-        // Attempt to initialize MediaRemote in-process shim (optional)
-//        self.mediaRemoteFetcher = NowPlayingFetcher()
-//        if mediaRemoteFetcher != nil {
-//            // Optionally listen for now playing notifications to trigger quicker updates
-//            _ = mediaRemoteFetcher?.startNotifications { _ in
-//                self.checkNowPlaying()
-//            }
-//            
-//            print("MediaRemoteFetcher initialized successfully")
-//        }
-//        
-        
         setupMusicAppObserver()
         startPolling()
         checkNowPlaying()
         
+    }
+    
+    private func startPreferencesObservation(_ prefManager: PreferencesManager) {
+        // Recursive observation loop
+        withObservationTracking {
+            // Read the properties we care about to register dependency
+            _ = prefManager.enableLastFm
+            _ = prefManager.enableCustomScrobbler
+            _ = prefManager.blueskyHandle
+        } onChange: { [weak self] in
+            print("Scrobbler: Preferences changed, scheduling refresh")
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.refreshScrobblingServices()
+                // Re-register observation
+                self.startPreferencesObservation(prefManager)
+            }
+        }
     }
     
     private func setupScrobblingServices(preferencesManager: PreferencesManager?) {

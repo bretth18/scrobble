@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FriendsView: View {
     @EnvironmentObject var scrobbler: Scrobbler
+    @Environment(PreferencesManager.self) var preferencesManager
     @State private var model: FriendsModel
     
     init(lastFmManager: LastFmManagerType) {
@@ -62,7 +63,11 @@ struct FriendsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
+            model.preferencesManager = preferencesManager
             model.updateLastFmManager(scrobbler.lastFmManager)
+        }
+        .onChange(of: preferencesManager.numberOfFriendsDisplayed) { _, _ in
+            model.refreshData()
         }
     }
 }
@@ -173,7 +178,10 @@ struct FriendCardView: View {
 
 
 #Preview {
-    @EnvironmentObject @Previewable var scrobbler: Scrobbler
+    @Previewable @State var preferencesManager = PreferencesManager()
+    @Previewable @StateObject var scrobbler = Scrobbler(lastFmManager: LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", authState: AuthState()))
+    
     FriendsView(lastFmManager: scrobbler.lastFmManager)
-     
+        .environment(preferencesManager)
+        .environmentObject(scrobbler)
 }

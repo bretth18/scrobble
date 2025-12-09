@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AppSelectionView: View {
-    @EnvironmentObject var preferencesManager: PreferencesManager
+    @Environment(PreferencesManager.self) var preferencesManager
     @EnvironmentObject var scrobbler: Scrobbler
     @State private var runningApps: [SupportedMusicApp] = []
     
@@ -157,6 +157,6 @@ struct AppSelectionButton: View {
         authState: authState
     )
     AppSelectionView()
-        .environmentObject(prefManager)
+        .environment(prefManager)
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
 }

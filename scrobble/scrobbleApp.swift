@@ -12,7 +12,7 @@ import Observation
 @main
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var preferencesManager = PreferencesManager()
+    @State private var preferencesManager = PreferencesManager()
     @StateObject private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState
@@ -21,7 +21,7 @@ struct scrobbleApp: App {
     
     init() {
         let prefManager = PreferencesManager()
-        _preferencesManager = StateObject(wrappedValue: prefManager)
+        _preferencesManager = State(initialValue: prefManager)
         
         let auth = AuthState()
         _authState = State(initialValue: auth)
@@ -52,7 +52,7 @@ struct scrobbleApp: App {
             VStack(spacing: 10) {
                 MainView()
                     .environmentObject(scrobbler)
-                    .environmentObject(preferencesManager)
+                    .environment(preferencesManager)
                     .environment(authState)
                 
                 Divider()
@@ -71,7 +71,7 @@ struct scrobbleApp: App {
         WindowGroup("Scrobbler", id: "scrobbler") {
             MainView()
                 .environmentObject(scrobbler)
-                .environmentObject(preferencesManager)
+                .environment(preferencesManager)
                 .environment(appState)
                 .environment(authState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
@@ -87,7 +87,7 @@ struct scrobbleApp: App {
         
         Settings {
                 PreferencesView()
-                    .environmentObject(preferencesManager)
+                    .environment(preferencesManager)
                     .environmentObject(scrobbler)
                     .environment(authState)
                     .sheet(isPresented: $authState.showingAuthSheet) {

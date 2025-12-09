@@ -16,6 +16,8 @@ class FriendsModel {
     var isLoading = false
     var errorMessage: String?
     
+    var preferencesManager: PreferencesManager?
+    
     private var lastFmManager: LastFmManagerType
     private var cancellables = Set<AnyCancellable>()
     
@@ -38,7 +40,10 @@ class FriendsModel {
         isLoading = true
         errorMessage = nil
         
-        lastFmManager.getFriends(page: 1, limit: 10)
+        let limit = preferencesManager?.numberOfFriendsDisplayed ?? 10
+        print("FriendsModel: Fetching \(limit) friends")
+        
+        lastFmManager.getFriends(page: 1, limit: limit)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 guard let self = self else { return }

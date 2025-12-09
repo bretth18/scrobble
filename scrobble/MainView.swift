@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var scrobbler: Scrobbler
-    @EnvironmentObject var preferencesManager: PreferencesManager
+    @Environment(PreferencesManager.self) var preferencesManager
     
     var body: some View {
         TabView {
@@ -51,5 +51,5 @@ struct MainView: View {
     )
     MainView()
         .environmentObject(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
-        .environmentObject(prefManager)
+        .environment(prefManager)
 }
