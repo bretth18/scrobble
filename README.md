@@ -9,6 +9,9 @@ Scrobble was created from a desire to create a reliable, minimal scrobbler for m
 
 ## Screenshots
 
+<img width="200" height="200" alt="scrobblescreenshot1" src="https://github.com/user-attachments/assets/9581e9cf-2447-4a02-907e-c244f39d2642" />
+
+
 
 ## Installation
 
@@ -36,8 +39,7 @@ Scrobble was created from a desire to create a reliable, minimal scrobbler for m
 
 ### Setup
 1. Clone the repository.
-2. Run `make setup` to generate a dummy `Secrets.swift`.
-3. Open `scrobble.xcodeproj`.
+2. Open `scrobble.xcodeproj`.
 
 ### Secrets
 To work with the real API, create a file named `Configs/Secrets.xcconfig` (this file is gitignored) and add your keys:
@@ -52,6 +54,3 @@ Run `make build` or use Xcode.
 
 ### CI/CD
 GitHub Actions is configured to build and release the app on push to `main`.
-You must set the following repository secrets:
-- `LASTFM_API_KEY`
-- `LASTFM_API_SECRET`
