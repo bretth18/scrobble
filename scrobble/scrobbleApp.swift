@@ -44,7 +44,7 @@ struct scrobbleApp: App {
         DispatchQueue.main.async {
             // Note: We can't store this in the struct since it's not mutable
             // The scrobbler will handle its own refresh logic
-            print("Preferences observer setup completed")
+            Log.debug("Preferences observer setup completed", category: .general)
         }
     }
     

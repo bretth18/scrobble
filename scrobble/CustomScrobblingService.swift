@@ -138,7 +138,7 @@ class CustomScrobblingService: ScrobblingService {
         Log.debug("Custom scrobbler: Making \(method) request to \(baseURL)", category: .scrobble)
         
         guard let url = URL(string: "\(baseURL)/api/\(method)") else {
-            Log.error("❌ Custom scrobbler: Invalid URL \(baseURL)/api/\(method)", category: .scrobble)
+            Log.error("Custom scrobbler: Invalid URL \(baseURL)/api/\(method)", category: .scrobble)
             throw ScrobblerError.invalidURL
         }
         
@@ -170,15 +170,15 @@ class CustomScrobblingService: ScrobblingService {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-             Log.error("❌ Custom scrobbler: Invalid response type", category: .scrobble)
+             Log.error("Custom scrobbler: Invalid response type", category: .scrobble)
              throw ScrobblerError.apiError("Invalid response type")
         }
         
-        Log.debug("📡 Custom scrobbler: Received HTTP \(httpResponse.statusCode)", category: .scrobble)
+        Log.debug("Custom scrobbler: Received HTTP \(httpResponse.statusCode)", category: .scrobble)
         
         guard (200...299).contains(httpResponse.statusCode) else {
             let responseString = String(data: data, encoding: .utf8) ?? "No response body"
-             Log.error("❌ Custom scrobbler: HTTP error \(httpResponse.statusCode): \(responseString)", category: .scrobble)
+             Log.error("Custom scrobbler: HTTP error \(httpResponse.statusCode): \(responseString)", category: .scrobble)
              throw ScrobblerError.apiError("HTTP error \(httpResponse.statusCode): \(responseString)")
         }
         

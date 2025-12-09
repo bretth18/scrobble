@@ -81,7 +81,7 @@ final class NowPlayingFetcher {
     }
     
     func setTargetApp(_ app: SupportedMusicApp) {
-        print("🎯 Switching target app from \(currentTargetApp?.displayName ?? "none") to \(app.displayName)")
+        Log.debug("Switching target app from \(currentTargetApp?.displayName ?? "none") to \(app.displayName)", category: .scrobble)
         
         // Immediately clear current state when switching apps
         clearCurrentState()
@@ -98,7 +98,7 @@ final class NowPlayingFetcher {
     }
     
     private func clearCurrentState() {
-        print("🧹 Clearing current playback state")
+        Log.debug("Clearing current playback state", category: .scrobble)
         currentTrackDuration = 0
         currentTrackTitle = ""
         currentTrackArtist = ""
@@ -110,13 +110,13 @@ final class NowPlayingFetcher {
     }
     
     func reloadWithNewBundleId(_ bundleId: String?) {
-        print("🔄 Reloading MediaController with bundleId: \(bundleId ?? "nil (any app)")")
+        Log.debug("Reloading MediaController with bundleId: \(bundleId ?? "nil (any app)")", category: .scrobble)
         
         // More aggressive cleanup - wait longer for complete termination
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
             
-            print("🏗️ Creating new MediaController instance")
+            Log.debug("Creating new MediaController instance", category: .scrobble)
             
             // Create completely new controller instance
             self.mediaController = MediaController(bundleIdentifier: bundleId)
@@ -127,22 +127,22 @@ final class NowPlayingFetcher {
             // Start listening
             self.setupAndStart()
             
-            print("✅ MediaController reloaded and started for app: \(self.currentTargetApp?.displayName ?? "any")")
+            Log.debug("MediaController reloaded and started for app: \(self.currentTargetApp?.displayName ?? "any")", category: .scrobble)
             
             // Force an immediate check after a brief delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                print("🔍 Current state after reload: \(self.getCurrentState())")
+                Log.debug("Current state after reload: \(self.getCurrentState())", category: .scrobble)
             }
         }
     }
     
     func setupAndStart() {
-        print("🚀 Starting MediaController listening")
+        Log.debug("Starting MediaController listening", category: .scrobble)
         mediaController.startListening()
     }
     
     func stop() {
-        print("🛑 Stopping MediaController")
+        Log.debug("Stopping MediaController", category: .scrobble)
         mediaController.stopListening()
     }
     
@@ -150,7 +150,7 @@ final class NowPlayingFetcher {
     func forceUpdate() {
         // This doesn't actually force an update from MediaController,
         // but we can trigger the UI to refresh by calling the callback with current state
-        print("🔄 Forcing UI update with current state")
+        Log.debug("Forcing UI update with current state", category: .scrobble)
     }
 
     func fetchCurrentTrackInfo() -> (isPlaying: Bool, title: String, artist: String, album: String, duration: TimeInterval, application: String, artwork: NSImage?, artworkBase64: String?) {

@@ -38,17 +38,17 @@ class BlueskyOAuthManager: NSObject {
                 let cookies = try JSONDecoder().decode([CookieData].self, from: cookieData)
                 sessionCookies = cookies.compactMap { $0.toCookie() }
 
-                print("🔄 Found \(sessionCookies.count) stored cookies for \(blueskyHandle)")
+                Log.debug("Found \(sessionCookies.count) stored cookies for \(blueskyHandle)", category: .auth)
 
                 // For now, assume stored cookies are valid
                 // TODO: Implement proper session validation once you have a test endpoint
                 if !sessionCookies.isEmpty {
-                    print("✅ Assuming stored auth is valid")
+                    Log.debug("Assuming stored auth is valid", category: .auth)
                     Task { @MainActor in
                         self.isAuthenticated = true
                     }
                 } else {
-                    print("❌ No valid cookies found")
+                    Log.error("No valid cookies found", category: .auth)
                     Task { @MainActor in
                         await self.clearStoredAuth()
                     }
@@ -57,23 +57,23 @@ class BlueskyOAuthManager: NSObject {
                 // Uncomment this when you have a proper auth test endpoint:
                 // testAuthenticationStatus()
             } catch {
-                print("Failed to decode stored cookies: \(error)")
+                Log.error("Failed to decode stored cookies: \(error)", category: .auth)
                 Task { @MainActor in
                     await self.clearStoredAuth()
                 }
             }
         } else {
-            print("🔍 No stored cookies found for \(blueskyHandle)")
+            Log.debug("No stored cookies found for \(blueskyHandle)", category: .auth)
         }
     }
     
     private func testAuthenticationStatus() {
-        print("🔍 Testing stored authentication status...")
+        Log.debug("Testing stored authentication status...", category: .auth)
 
         // Make a test request to see if our session is still valid
         // Try using a simple endpoint that should work with authentication
         guard let testURL = URL(string: "\(baseURL)/api/test") else {
-            print("❌ Invalid test URL")
+            Log.error("Invalid test URL", category: .auth)
             Task { @MainActor in
                 await self.clearStoredAuth()
             }
@@ -86,7 +86,7 @@ class BlueskyOAuthManager: NSObject {
         let cookieHeader = HTTPCookie.requestHeaderFields(with: sessionCookies)["Cookie"] ?? ""
         request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
 
-        print("🔍 Testing auth with cookies: \(sessionCookies.map { $0.name })")
+        Log.debug("Testing auth with cookies: \(sessionCookies.map { $0.name })", category: .auth)
 
         Task { @MainActor in
             do {
@@ -94,23 +94,23 @@ class BlueskyOAuthManager: NSObject {
 
                 if let httpResponse = response as? HTTPURLResponse {
                     let isAuth = (200...299).contains(httpResponse.statusCode)
-                    print("🔍 Auth test response: \(httpResponse.statusCode) - authenticated: \(isAuth)")
+                    Log.debug("Auth test response: \(httpResponse.statusCode) - authenticated: \(isAuth)", category: .auth)
                     self.isAuthenticated = isAuth
                     if !isAuth && httpResponse.statusCode != 404 {
                         // Only clear auth if it's actually an auth failure, not a missing endpoint
                         await self.clearStoredAuth()
                     } else if httpResponse.statusCode == 404 {
                         // If the test endpoint doesn't exist, assume auth is valid if we have cookies
-                        print("🔄 Test endpoint not found, assuming auth is valid")
+                        Log.debug("Test endpoint not found, assuming auth is valid", category: .auth)
                         self.isAuthenticated = !self.sessionCookies.isEmpty
                     }
                 }
             } catch {
-                print("❌ Auth test failed: \(error.localizedDescription)")
+                Log.error("Auth test failed: \(error.localizedDescription)", category: .auth)
                 // Don't immediately clear auth - the endpoint might not exist
                 // Instead, assume auth is valid if we have cookies
                 if !self.sessionCookies.isEmpty {
-                    print("🔄 Assuming auth is valid since we have stored cookies")
+                    Log.debug("Assuming auth is valid since we have stored cookies", category: .auth)
                     self.isAuthenticated = true
                 } else {
                     await self.clearStoredAuth()
@@ -176,11 +176,11 @@ class BlueskyOAuthManager: NSObject {
             if success {
                 self.isAuthenticated = true
                 self.authError = nil
-                print("Bluesky OAuth authentication successful")
+                Log.debug("Bluesky OAuth authentication successful", category: .auth)
             } else {
                 self.isAuthenticated = false
                 self.authError = error ?? "Authentication failed"
-                print("Bluesky OAuth authentication failed: \(error ?? "unknown error")")
+                Log.error("Bluesky OAuth authentication failed: \(error ?? "unknown error")", category: .auth)
             }
             
             // Close auth window
@@ -193,15 +193,15 @@ class BlueskyOAuthManager: NSObject {
     private func extractAndStoreCookies() {
         guard let webView = webView else { return }
         
-        print("Extracting cookies from WebView...")
+        Log.debug("Extracting cookies from WebView...", category: .auth)
         
         // Get all cookies from the WebView
         webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
             guard let self = self else { return }
             
-            print("Total cookies found: \(cookies.count)")
+            Log.debug("Total cookies found: \(cookies.count)", category: .auth)
             for cookie in cookies {
-                print("Cookie: \(cookie.name) = \(cookie.value.prefix(20))... (domain: \(cookie.domain), path: \(cookie.path))")
+                Log.debug("Cookie: \(cookie.name) = \(cookie.value.prefix(20))... (domain: \(cookie.domain), path: \(cookie.path))", category: .auth)
             }
             
             // Filter for cookies from our Railway domain
@@ -209,7 +209,7 @@ class BlueskyOAuthManager: NSObject {
                 cookie.domain.contains("railway.app") || cookie.domain.contains("clientserver-production-be44")
             }
             
-            print("Railway domain cookies found: \(railwayCookies.count)")
+            Log.debug("Railway domain cookies found: \(railwayCookies.count)", category: .auth)
             
             if !railwayCookies.isEmpty {
                 // Look specifically for the 'auth' cookie first
@@ -218,7 +218,7 @@ class BlueskyOAuthManager: NSObject {
                 }
                 
                 if let authCookie = authCookie {
-                    print("Found 'auth' cookie: \(authCookie.name)")
+                    Log.debug("Found 'auth' cookie: \(authCookie.name)", category: .auth)
                     self.sessionCookies = [authCookie]
                     self.storeCookies([authCookie])
                     self.completeAuthentication(success: true)
@@ -237,7 +237,7 @@ class BlueskyOAuthManager: NSObject {
                 }
                 
                 if !authCookies.isEmpty {
-                    print("Found auth-related cookies: \(authCookies.map { $0.name })")
+                    Log.debug("Found auth-related cookies: \(authCookies.map { $0.name })", category: .auth)
                     self.sessionCookies = authCookies
                     self.storeCookies(authCookies)
                     self.completeAuthentication(success: true)
@@ -246,12 +246,12 @@ class BlueskyOAuthManager: NSObject {
                 
                 // If we have Railway cookies but none match our expected patterns,
                 // let's try using all of them
-                print("Using all Railway cookies as potential auth cookies: \(railwayCookies.map { $0.name })")
+                Log.debug("Using all Railway cookies as potential auth cookies: \(railwayCookies.map { $0.name })", category: .auth)
                 self.sessionCookies = railwayCookies
                 self.storeCookies(railwayCookies)
                 self.completeAuthentication(success: true)
             } else {
-                print("No Railway domain cookies found")
+                Log.error("No Railway domain cookies found", category: .auth)
                 self.completeAuthentication(success: false, error: "No authentication cookies found")
             }
         }
@@ -263,7 +263,7 @@ class BlueskyOAuthManager: NSObject {
             let data = try JSONEncoder().encode(cookieData)
             UserDefaults.standard.set(data, forKey: "bluesky_auth_cookies_\(blueskyHandle)")
         } catch {
-            print("Failed to store cookies: \(error)")
+            Log.error("Failed to store cookies: \(error)", category: .auth)
         }
     }
     
@@ -279,7 +279,7 @@ class BlueskyOAuthManager: NSObject {
         // Log out via server endpoint using our auth cookies, then clear local state
         let logoutURLString = "\(baseURL)/oauth/logout"
         guard let logoutURL = URL(string: logoutURLString) else {
-            print("❌ Invalid logout URL")
+            Log.error("Invalid logout URL", category: .auth)
             clearStoredAuth()
             return
         }
@@ -289,26 +289,26 @@ class BlueskyOAuthManager: NSObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        print("🔐 Logging out via \(logoutURLString) with cookies: \(sessionCookies.map { $0.name })")
+        Log.debug("Logging out via \(logoutURLString) with cookies: \(sessionCookies.map { $0.name })", category: .auth)
 
         Task {
             do {
                 let (_, response) = try await URLSession.shared.data(for: request)
 
                 if let http = response as? HTTPURLResponse {
-                    print("🔍 Logout response status: \(http.statusCode)")
+                    Log.debug("Logout response status: \(http.statusCode)", category: .auth)
                     if http.statusCode == 405 {
                         // Some servers use GET for logout, retry with GET
                         var getRequest = self.createAuthenticatedRequest(url: logoutURL)
                         getRequest.httpMethod = "GET"
                         let (_, resp2) = try await URLSession.shared.data(for: getRequest)
                         if let http2 = resp2 as? HTTPURLResponse {
-                            print("🔍 Logout (GET) response status: \(http2.statusCode)")
+                            Log.debug("Logout (GET) response status: \(http2.statusCode)", category: .auth)
                         }
                     }
                 }
             } catch {
-                print("⚠️ Logout request failed: \(error.localizedDescription)")
+                Log.error("Logout request failed: \(error.localizedDescription)", category: .auth)
             }
 
             // Clear local state (already on MainActor from signOut)
@@ -319,7 +319,7 @@ class BlueskyOAuthManager: NSObject {
                 ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
                 modifiedSince: Date(timeIntervalSince1970: 0)
             ) {
-                print("🧹 WebKit data cleared for sign out")
+                Log.debug("WebKit data cleared for sign out", category: .auth)
             }
         }
     }
@@ -343,38 +343,38 @@ extension BlueskyOAuthManager: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Check if we're on a success page or if authentication is complete
         if let url = webView.url?.absoluteString {
-            print("Navigation finished: \(url)")
+            Log.debug("Navigation finished: \(url)", category: .auth)
             
             // Check if we're back at the base domain after OAuth (but not on the initial login page)
             if url.contains("clientserver-production-be44.up.railway.app") && 
                !url.contains("oauth/login") &&
                !url.contains("bsky.social") {
                 
-                print("Detected successful OAuth redirect to Railway app - extracting cookies")
+                Log.debug("Detected successful OAuth redirect to Railway app - extracting cookies", category: .auth)
                 // Likely completed OAuth flow, extract cookies
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     self.extractAndStoreCookies()
                 }
             } else if url.contains("bsky.social") {
-                print("On Bluesky OAuth page - waiting for user to complete authentication")
+                Log.debug("On Bluesky OAuth page - waiting for user to complete authentication", category: .auth)
                 // We're on the Bluesky OAuth page, user needs to enter credentials
                 // Don't close the window, just wait
             } else if url.contains("oauth/login") {
-                print("On initial OAuth login page")
+                Log.debug("On initial OAuth login page", category: .auth)
                 // Initial page, this is expected
             } else {
-                print("Navigation to unexpected URL: \(url)")
+                Log.debug("Navigation to unexpected URL: \(url)", category: .auth)
             }
         }
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        print("WebView navigation failed: \(error)")
+        Log.error("WebView navigation failed: \(error)", category: .auth)
         completeAuthentication(success: false, error: error.localizedDescription)
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        print("WebView provisional navigation failed: \(error)")
+        Log.error("WebView provisional navigation failed: \(error)", category: .auth)
         completeAuthentication(success: false, error: error.localizedDescription)
     }
 }

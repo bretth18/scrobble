@@ -218,8 +218,9 @@ struct ScrobblingView: View {
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
             .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
-                print(
-                    "📱 ScrobblingView received servicesLastUpdated change"
+                Log.debug(
+                    "ScrobblingView received servicesLastUpdated change",
+                    category: .ui
                 )
                 servicesRefreshTrigger = UUID()
             }

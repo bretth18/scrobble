@@ -99,7 +99,7 @@ struct LastFMWebAuthView: View {
     }
     
     private func checkIfAuthorizationComplete() {
-        print("Checking if authorization is complete...")
+        Log.debug("Checking if authorization is complete...", category: .ui)
         
         // First check the current URL
         Task {
@@ -108,14 +108,14 @@ struct LastFMWebAuthView: View {
                 let urlScript = "window.location.href"
                 if let currentURLResult = try await webPage.callJavaScript(urlScript) as? String {
                     currentURL = currentURLResult
-                    print("Current URL: \(currentURL)")
+                    Log.debug("Current URL: \(currentURL)", category: .ui)
                     
                     // Check URL patterns that might indicate success
                     if currentURL.contains("authorized") || 
                        currentURL.contains("success") || 
                        currentURL.contains("callback") {
                         
-                        print("Authorization appears complete based on URL, attempting to get session...")
+                        Log.debug("Authorization appears complete based on URL, attempting to get session...", category: .ui)
                         DispatchQueue.main.async {
                             self.completeAuthorization()
                         }
@@ -126,7 +126,7 @@ struct LastFMWebAuthView: View {
                 // Check page content for authorization indicators
                 await checkPageContentForSuccess()
             } catch {
-                print("Error checking URL: \(error)")
+                Log.error("Error checking URL: \(error)", category: .ui)
                 await checkPageContentForSuccess()
             }
         }
@@ -161,20 +161,20 @@ struct LastFMWebAuthView: View {
             
             let result = try await webPage.callJavaScript(script)
             if let isSuccess = result as? Bool, isSuccess {
-                print("Detected successful authorization via page content")
+                Log.debug("Detected successful authorization via page content", category: .ui)
                 DispatchQueue.main.async {
                     self.completeAuthorization()
                 }
             } else {
-                print("No success indicators found yet")
+                Log.debug("No success indicators found yet", category: .ui)
             }
         } catch {
-            print("Error checking page content: \(error)")
+            Log.error("Error checking page content: \(error)", category: .ui)
         }
     }
     
     private func completeAuthorization() {
-        print("Completing authorization...")
+        Log.debug("Completing authorization...", category: .ui)
         authState.isAuthenticating = true
         lastFmManager.completeAuthorization(authorized: true)
     }

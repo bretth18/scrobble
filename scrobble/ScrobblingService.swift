@@ -81,7 +81,7 @@ class LastFmServiceAdapter: ScrobblingService {
     }
     
     func scrobble(artist: String, track: String, album: String) async throws -> Bool {
-        print("🎵 Last.fm: Scrobbling \(artist) - \(track)")
+        Log.debug("Last.fm: Scrobbling \(artist) - \(track)", category: .scrobble)
         
         return try await withCheckedThrowingContinuation { continuation in
             var cancellable: AnyCancellable?
@@ -102,7 +102,7 @@ class LastFmServiceAdapter: ScrobblingService {
     }
     
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
-        print("🔔 Last.fm: Updating now playing \(artist) - \(track)")
+        Log.debug("Last.fm: Updating now playing \(artist) - \(track)", category: .scrobble)
         
         return try await withCheckedThrowingContinuation { continuation in
              var cancellable: AnyCancellable?

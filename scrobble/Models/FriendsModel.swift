@@ -36,12 +36,12 @@ class FriendsModel {
     
     // Using a separate method to keep init lightweight
     func loadFriends() {
-        print("FriendsModel: Loading friends...")
+        Log.debug("FriendsModel: Loading friends...", category: .general)
         isLoading = true
         errorMessage = nil
         
         let limit = preferencesManager?.numberOfFriendsDisplayed ?? 10
-        print("FriendsModel: Fetching \(limit) friends")
+        Log.debug("FriendsModel: Fetching \(limit) friends", category: .general)
         
         lastFmManager.getFriends(page: 1, limit: limit)
             .receive(on: DispatchQueue.main)
@@ -50,7 +50,7 @@ class FriendsModel {
                 self.isLoading = false
                 
                 if case .failure(let error) = completion {
-                    print("FriendsModel: Error loading friends: \(error)")
+                    Log.error("FriendsModel: Error loading friends: \(error)", category: .general)
                     // Check for specific error about missing parameters
                     if error.localizedDescription.contains("Missing parameter") {
                          self.errorMessage = "Configuration error: Missing username or API key."
@@ -60,7 +60,7 @@ class FriendsModel {
                 }
             }, receiveValue: { [weak self] friends in
                 guard let self = self else { return }
-                print("FriendsModel: Loaded \(friends.count) friends")
+                Log.debug("FriendsModel: Loaded \(friends.count) friends", category: .general)
                 self.friends = friends
                 self.loadRecentTracksForFriends()
             })
@@ -69,7 +69,7 @@ class FriendsModel {
     
     private func loadRecentTracksForFriends() {
         guard !friends.isEmpty else { return }
-        print("FriendsModel: Loading recent tracks for \(friends.count) friends")
+        Log.debug("FriendsModel: Loading recent tracks for \(friends.count) friends", category: .general)
         
         // Clear old tracks just in case, or keep them? 
         // Better to update incrementally or clear? Let's keep existing if refreshing.
@@ -83,7 +83,7 @@ class FriendsModel {
                 .receive(on: DispatchQueue.main)
                 .sink(receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
-                        print("FriendsModel: Error loading tracks for \(friend.name): \(error)")
+                        Log.error("FriendsModel: Error loading tracks for \(friend.name): \(error)", category: .general)
                     }
                 }, receiveValue: { [weak self] tracks in
                     self?.friendTracks[friend.name] = tracks

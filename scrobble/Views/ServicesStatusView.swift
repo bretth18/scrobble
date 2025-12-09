@@ -15,9 +15,9 @@ struct ServicesStatusView: View {
         // The refreshTrigger will force this view to rebuild when ContentView updates it
         let services = scrobbler.getScrobblingServices()
         
-        let _ = print("ServicesStatusView updating with trigger \(refreshTrigger), found \(services.count) services")
+        let _ = Log.debug("ServicesStatusView updating with trigger \(refreshTrigger), found \(services.count) services", category: .ui)
         let _ = services.forEach { service in
-            print("  - \(service.serviceName): authenticated = \(service.isAuthenticated)")
+            Log.debug("  - \(service.serviceName): authenticated = \(service.isAuthenticated)", category: .ui)
         }
         
         if services.isEmpty {

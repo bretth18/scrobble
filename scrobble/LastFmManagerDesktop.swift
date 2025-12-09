@@ -93,11 +93,11 @@ class LastFmDesktopManager: LastFmManagerType {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
                 if let token = notification.userInfo?["token"] as? String {
-                    print("Received auth success notification with token: \(token)")
+                    Log.debug("Received auth success notification with token: \(token)", category: .scrobble)
                     
                     // Verify tokens match if we have one expected
                     if let current = self?.currentAuthToken, !current.isEmpty, current != token {
-                        print("Warning: Received callback token \(token) differs from expected \(current)")
+                        Log.debug("Warning: Received callback token \(token) differs from expected \(current)", category: .scrobble)
                     }
                     
                     // If we received a token, we can assume it's the right one or update ours
@@ -148,7 +148,7 @@ class LastFmDesktopManager: LastFmManagerType {
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure = completion {
-                        print("Saved session invalid, starting new authentication")
+                        Log.debug("Saved session invalid, starting new authentication", category: .auth)
                         UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
                         self?.sessionKey = nil
                         self?.isAuthenticated = false
@@ -156,7 +156,7 @@ class LastFmDesktopManager: LastFmManagerType {
                     }
                 },
                 receiveValue: { _ in
-                    print("Saved session validated successfully")
+                    Log.debug("Saved session validated successfully", category: .auth)
                     self.authStatus = .authenticated
                 }
             )
@@ -164,7 +164,7 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     func startAuth() {
-        print("Starting desktop authentication flow")
+        Log.debug("Starting desktop authentication flow", category: .auth)
         authState.startAuth()
         
         getToken()
@@ -179,7 +179,7 @@ class LastFmDesktopManager: LastFmManagerType {
                     guard let self = self else { return }
                     
                     self.currentAuthToken = token
-                    print("Got token: \(token)")
+                    Log.debug("Got token: \(token)", category: .auth)
                     
                     // Show the auth sheet with WebKit view
                     DispatchQueue.main.async {
@@ -214,7 +214,7 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     func completeAuthorization(authorized: Bool) {
-        print("Complete authorization called with authorized: \(authorized)")
+        Log.debug("Complete authorization called with authorized: \(authorized)", category: .auth)
         if authorized {
             // User clicked Continue, so now get the session using the stored token
             authState.isAuthenticating = true
@@ -254,16 +254,16 @@ class LastFmDesktopManager: LastFmManagerType {
             configuration.createsNewApplicationInstance = true
             NSWorkspace.shared.open(url, configuration: configuration) { app, error in
                 if let error = error {
-                    print("Failed to reopen auth URL: \(error)")
+                    Log.error("Failed to reopen auth URL: \(error)", category: .auth)
                 } else {
-                    print("Reopened auth URL in new browser window: \(url)")
+                    Log.debug("Reopened auth URL in new browser window: \(url)", category: .auth)
                 }
             }
         }
     }
     
     private func waitForUserAuthorization(token: String) -> AnyPublisher<String, Error> {
-        print("Waiting for user authorization with token: \(token)")
+        Log.debug("Waiting for user authorization with token: \(token)", category: .auth)
         return Future { [weak self] promise in
             self?.authPromise = promise
         }.eraseToAnyPublisher()
@@ -287,12 +287,12 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func getSession(token: String) -> AnyPublisher<String, Error> {
-        print("Requesting session with token: \(token)")
-        // Add a small delay to allow Last.fm to process the authorization
+        Log.debug("Requesting session with token: \(token)", category: .auth)
+        // Small delay to allow Last.fm to process the authorization
         return Future { promise in
             // Wait 3 seconds before requesting the session
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                print("Making session request after delay...")
+                Log.debug("Making session request after delay...", category: .auth)
                 let parameters: [String: Any] = [
                     "method": "auth.getSession",
                     "api_key": self.apiKey,
@@ -304,19 +304,19 @@ class LastFmDesktopManager: LastFmManagerType {
                 allParameters["api_sig"] = signature
                 allParameters["format"] = "json"
                 
-                print("Session request parameters: \(allParameters)")
+                Log.debug("Session request parameters: \(allParameters)", category: .auth)
                 
                 self.makeRequest(parameters: allParameters)
                     .handleEvents(receiveOutput: { data in
                         // Log the raw response for debugging
                         if let jsonString = String(data: data, encoding: .utf8) {
-                            print("Raw session response: \(jsonString)")
+                            Log.debug("Raw session response: \(jsonString)", category: .auth)
                         }
                     })
                     .tryMap { data -> SessionResponse in
                         // Try to decode as an error response first
                         if let errorResponse = try? JSONDecoder().decode(LastFmErrorResponse.self, from: data) {
-                            print("Last.fm API returned error \(errorResponse.error): \(errorResponse.message)")
+                            Log.error("Last.fm API returned error \(errorResponse.error): \(errorResponse.message)", category: .auth)
                             throw ScrobblerError.apiError("Last.fm error \(errorResponse.error): \(errorResponse.message)")
                         }
                         
@@ -324,24 +324,24 @@ class LastFmDesktopManager: LastFmManagerType {
                         return try JSONDecoder().decode(SessionResponse.self, from: data)
                     }
                     .map { response in
-                        print("Session response received: \(response.session)")
+                        Log.debug("Session response received: \(response.session)", category: .auth)
                         return response.session.key
                     }
                     .sink(
                         receiveCompletion: { completion in
                             switch completion {
                             case .failure(let error):
-                                print("Session request failed with error: \(error)")
+                                Log.error("Session request failed with error: \(error)", category: .auth)
                                 if let urlError = error as? URLError {
-                                    print("URLError details: \(urlError.localizedDescription)")
+                                    Log.error("URLError details: \(urlError.localizedDescription)", category: .auth)
                                 }
                                 promise(.failure(error))
                             case .finished:
-                                print("Session request completed successfully")
+                                Log.debug("Session request completed successfully", category: .auth)
                             }
                         },
                         receiveValue: { sessionKey in
-                            print("Session key received: \(sessionKey)")
+                            Log.debug("Session key received: \(sessionKey)", category: .auth)
                             promise(.success(sessionKey))
                         }
                     )
@@ -419,7 +419,7 @@ class LastFmDesktopManager: LastFmManagerType {
         parameters["api_sig"] = signature
         parameters["format"] = "json"
         
-        print("Getting friends with parameters: \(parameters)")
+        Log.debug("Getting friends with parameters: \(parameters)", category: .general)
         
         return makeRequest(parameters: parameters)
             .decode(type: FriendsResponse.self, decoder: JSONDecoder())

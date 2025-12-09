@@ -81,13 +81,28 @@ struct PreferencesView: View {
                         
                         Spacer()
                         
-                        Text("by COMPUTER DATA")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+//                        Text("by COMPUTER DATA")
+//                            .font(.caption)
+//                            .foregroundColor(.secondary)
                     }
                     
                     
                     BillionsMustScrobbleView()
+                    
+               
+                        // repo link and license link
+                    HStack(alignment: .center) {
+                            Text("copyright © 2025 COMPUTER DATA")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Spacer()
+
+                            Link("GitHub", destination: URL(string: "https://github.com/bretth18/scrobble")!)
+                                .font(.caption2)
+                            Link("License", destination: URL(string: "https://github.com/bretth18/scrobble/blob/main/LICENSE")!)
+                                .font(.caption2)
+                        }
+                    
                 }
                 
                 Section("Display") {

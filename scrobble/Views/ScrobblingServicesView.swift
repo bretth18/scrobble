@@ -70,9 +70,9 @@ struct ScrobblingServicesView: View {
                                 Task {
                                     do {
                                         let success = try await customService.authenticate()
-                                        print("Custom auth result: \(success)")
+                                        Log.debug("Custom auth result: \(success)", category: .ui)
                                     } catch {
-                                        print("Custom auth failed: \(error)")
+                                        Log.error("Custom auth failed: \(error)", category: .auth)
                                     }
                                 }
                             }
