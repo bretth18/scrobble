@@ -2,10 +2,11 @@
 
 A macOS menu bar application that scrobbles music via the system player to Last.fm.
 
-## Features
-- Scrobble from Apple Music
-- View Friends' activity
-- Native macOS UI using SwiftUI
+## Info
+
+Scrobble was created from a desire to create a reliable, minimal scrobbler for macOS. Before macOS Tahoe, audio track metadata from Apple Music was available via AppleScript calls. This application now utilizes a workaround to access the private `MediaRemote.framework` to access the current track information.
+
+
 
 ## Development
 
