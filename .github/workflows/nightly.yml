@@ -71,6 +71,13 @@ jobs:
         # Verify changes
         /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "Scrobble Nightly.app/Contents/Info.plist"
 
+    - name: Re-sign Nightly App
+      run: |
+        cd build
+        # Re-sign with Ad-Hoc identity to fix the signature invalidated by Info.plist changes
+        # We need to include entitlements to ensure Apple Events work
+        codesign --force --deep --sign - --entitlements ../scrobble/scrobble.entitlements "Scrobble Nightly.app"
+
     - name: Zip Nightly Application
       run: |
         cd build
