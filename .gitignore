@@ -11,3 +11,4 @@ Configs/Secrets.xcconfig
 # Build
 .build/
 Packages/
+build/
