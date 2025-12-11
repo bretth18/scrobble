@@ -23,6 +23,8 @@
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
 		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
 		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
+		A65671EA2EEADB7300773C58 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65671E92EEADB7300773C58 /* UpdateChecker.swift */; };
+		A65671EC2EEADB9F00773C58 /* UpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65671EB2EEADB9F00773C58 /* UpdateView.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
 		A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */; };
 		A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */; };
@@ -77,6 +79,8 @@
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
+		A65671E92EEADB7300773C58 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		A65671EB2EEADB9F00773C58 /* UpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateView.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthView.swift; sourceTree = "<group>"; };
 		A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingServicesView.swift; sourceTree = "<group>"; };
 		A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRemoteBridge.h; sourceTree = "<group>"; };
@@ -203,6 +207,7 @@
 				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
 				A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
+				A65671EB2EEADB9F00773C58 /* UpdateView.swift */,
 				A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */,
 			);
 			path = Views;
@@ -212,6 +217,7 @@
 			isa = PBXGroup;
 			children = (
 				A64304C72D52FBEC001998B6 /* AuthState.swift */,
+				A65671E92EEADB7300773C58 /* UpdateChecker.swift */,
 				A64304C52D52FBA1001998B6 /* AppState.swift */,
 				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
@@ -320,6 +326,7 @@
 				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
 				A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */,
+				A65671EC2EEADB9F00773C58 /* UpdateView.swift in Sources */,
 				A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */,
 				A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */,
@@ -333,6 +340,7 @@
 				A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */,
 				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
 				A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */,
+				A65671EA2EEADB7300773C58 /* UpdateChecker.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
 				A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
@@ -483,7 +491,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -533,7 +541,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;

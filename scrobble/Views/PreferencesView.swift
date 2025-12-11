@@ -53,6 +53,43 @@ struct BillionsMustScrobbleView: View {
     }
 }
 
+struct ScrobbleTimingSettingsView: View {
+    @Environment(PreferencesManager.self) var preferencesManager
+
+    var body: some View {
+        @Bindable var preferencesManager = preferencesManager
+
+    
+        
+        Section {
+            Picker("Scrobble after", selection: $preferencesManager.trackCompletionPercentageBeforeScrobble) {
+                Text("25% of track").tag(25)
+                Text("50% of track").tag(50)
+                Text("75% of track").tag(75)
+                Text("90% of track").tag(90)
+            }
+            
+            Toggle("Cap scrobble time for long tracks", isOn: $preferencesManager.useMaxTrackCompletionScrobbleDelay)
+            
+            if preferencesManager.useMaxTrackCompletionScrobbleDelay {
+                Picker("Maximum time before scrobble", selection: $preferencesManager.maxTrackCompletionScrobbleDelay) {
+                    Text("2 minutes").tag(120)
+                    Text("4 minutes").tag(240)
+                    Text("6 minutes").tag(360)
+                    Text("8 minutes").tag(480)
+                }
+            }
+        } header: {
+            Text("Scrobble Timing")
+        } footer: {
+            Text("Adjust when tracks are scrobbled based on how much of the track has played.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+
+}
+
 struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
@@ -105,6 +142,8 @@ struct PreferencesView: View {
                     
                 }
                 
+                UpdateSettingsView()
+                
                 Section("Display") {
                     VStack {
                         LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
@@ -123,8 +162,16 @@ struct PreferencesView: View {
                     }
                 }
                 
-                Section("Scrobbling Services") {
+                ScrobbleTimingSettingsView()
+                
+                Section {
                     ScrobblingServicesView()
+                } header: {
+                    Text("Scrobbling Services")
+                } footer: {
+                    Text("Credentials are stored securely on-device")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Section("Music App") {
@@ -159,10 +206,6 @@ struct PreferencesView: View {
                     .padding()
             }
             
-            Text("credentials are stored securely on-device")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.bottom)
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -183,5 +226,6 @@ struct PreferencesView: View {
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
+        .environment(UpdateChecker())
 }
 

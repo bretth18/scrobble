@@ -115,6 +115,9 @@ class Scrobbler {
             _ = prefManager.enableLastFm
             _ = prefManager.enableCustomScrobbler
             _ = prefManager.blueskyHandle
+            _ = prefManager.trackCompletionPercentageBeforeScrobble
+            _ = prefManager.maxTrackCompletionScrobbleDelay
+            _ = prefManager.useMaxTrackCompletionScrobbleDelay
         } onChange: { [weak self] in
             Log.debug("Scrobbler: Preferences changed, scheduling refresh")
             Task { @MainActor [weak self] in
@@ -386,8 +389,21 @@ class Scrobbler {
             currentTrackStartTime = Date()
             currentTrackDuration = duration
 
-            // Calculate when to scrobble - either half duration or 4 minutes
-            let scrobbleDelay = min(duration / 2, 240)
+            // Calculate when to scrobble
+            // use preference value for track completion percentage before scrobble
+            let completionPercentage = preferencesManager?.trackCompletionPercentageBeforeScrobble ?? 50 // half time fallback
+            let percentageDelay = duration * Double(completionPercentage) / 100.0
+            
+            
+            let scrobbleDelay: Double
+            // support unresctricted max delay if preference is set to nil
+            if preferencesManager?.useMaxTrackCompletionScrobbleDelay == true,
+               let maxDelay = preferencesManager?.maxTrackCompletionScrobbleDelay {
+                scrobbleDelay = min(percentageDelay, Double(maxDelay))
+            } else {
+                scrobbleDelay = percentageDelay
+            }
+            
             Log.debug("Will scrobble after \(scrobbleDelay) seconds", category: .scrobble)
 
             // Use Task.sleep instead of Timer for modern Swift concurrency
