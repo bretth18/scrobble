@@ -16,6 +16,7 @@ struct scrobbleApp: App {
     @State private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState
+    @State private var updateChecker = UpdateChecker()
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -85,12 +86,14 @@ struct scrobbleApp: App {
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
 
+
         
         Settings {
                 PreferencesView()
                     .environment(preferencesManager)
                     .environment(scrobbler)
                     .environment(authState)
+                    .environment(updateChecker)
                     .sheet(isPresented: $authState.showingAuthSheet) {
                         if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                             LastFMAuthSheetView(lastFmManager: desktopManager)
@@ -102,6 +105,31 @@ struct scrobbleApp: App {
         }
         .windowResizability(.automatic)
         .defaultSize(width: 800, height: 600)
+        
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button {
+                    if updateChecker.updateAvailable, let url = updateChecker.downloadURL {
+                        NSWorkspace.shared.open(url)
+                    } else {
+                        Task {
+                            await updateChecker.checkForUpdates(owner: "bretth18", repo: "scrobble")
+                        }
+                    }
+                } label: {
+                    if updateChecker.isChecking {
+                        Label("Checking...", systemImage: "arrow.trianglehead.2.clockwise")
+                    } else if updateChecker.updateAvailable {
+                        Label("Download Update", systemImage: "arrow.down.circle")
+                    } else if updateChecker.latestVersion != nil {
+                        Label("Up to Date", systemImage: "checkmark.circle")
+                    } else {
+                        Label("Check for Updates...", systemImage: "arrow.clockwise")
+                    }
+                }
+                .disabled(updateChecker.isChecking)
+            }
+        }
     
         
     }

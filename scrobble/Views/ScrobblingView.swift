@@ -246,6 +246,15 @@ struct ScrobblingView: View {
                             .frame(width: 50, height: 50)
                             .cornerRadius(8)
                             .glassEffect(.clear)
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.quaternary)
+                            .frame(width: 50, height: 50)
+                            .overlay {
+                                Image(systemName: "music.note")
+                                    .foregroundStyle(.tertiary)
+                                
+                            }
                     }
 
                     Text("Last Scrobbled:")

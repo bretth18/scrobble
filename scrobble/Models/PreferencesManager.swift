@@ -41,6 +41,22 @@ class PreferencesManager {
         }
     }
     
+    // Scrobble configuration
+    var trackCompletionPercentageBeforeScrobble: Int = 50 {
+        didSet { UserDefaults.standard.set(trackCompletionPercentageBeforeScrobble, forKey: "trackCompletionPercentageBeforeScrobble") }
+    }
+    
+    // default max delay of 240 seconds (4 minutes)
+    
+    var useMaxTrackCompletionScrobbleDelay: Bool = true {
+        didSet {
+            UserDefaults.standard.set(useMaxTrackCompletionScrobbleDelay, forKey: "useMaxTrackCompletionScrobbleDelay")
+        }
+    }
+    var maxTrackCompletionScrobbleDelay: Int? = 240 {
+        didSet { UserDefaults.standard.set(maxTrackCompletionScrobbleDelay, forKey: "maxTrackCompletionScrobbleDelay") }
+    }
+    
     // Keep for backwards compatibility
     var mediaAppSource: String = "Apple Music" {
         didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource") }
@@ -74,6 +90,16 @@ class PreferencesManager {
         let savedRecentTracks = UserDefaults.standard.integer(forKey: "numberOfFriendsRecentTracksDisplayed")
         if savedRecentTracks > 0 {
             self.numberOfFriendsRecentTracksDisplayed = savedRecentTracks
+        }
+        
+        let savedCompletionPercentage = UserDefaults.standard.integer(forKey: "trackCompletionPercentageBeforeScrobble")
+        if savedCompletionPercentage > 0 {
+            self.trackCompletionPercentageBeforeScrobble = savedCompletionPercentage
+        }
+        
+        let savedMaxDelay = UserDefaults.standard.integer(forKey: "maxTrackCompletionScrobbleDelay")
+        if savedMaxDelay > 0 {
+            self.maxTrackCompletionScrobbleDelay = savedMaxDelay
         }
         
         self.mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
