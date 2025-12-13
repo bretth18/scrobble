@@ -164,6 +164,8 @@ struct PreferencesView: View {
                 
                 ScrobbleTimingSettingsView()
                 
+                LaunchAtLoginSettingsView()
+                
                 Section {
                     ScrobblingServicesView()
                 } header: {

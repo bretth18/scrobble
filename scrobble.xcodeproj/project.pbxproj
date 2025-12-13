@@ -48,6 +48,7 @@
 		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
+		A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -109,6 +110,7 @@
 		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,6 +215,7 @@
 				A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
 				A65671EB2EEADB9F00773C58 /* UpdateView.swift */,
+				A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */,
 				A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */,
 			);
 			path = Views;
@@ -334,6 +337,7 @@
 				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
 				A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */,
 				A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */,
+				A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */,
 				A65671EC2EEADB9F00773C58 /* UpdateView.swift in Sources */,
 				A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */,

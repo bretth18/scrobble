@@ -64,11 +64,16 @@ struct scrobbleApp: App {
                     .environment(appState)
             }
             .padding(8)
+            .containerBackground(
+                .ultraThinMaterial, for: .window
+            )
+            .toolbarBackgroundVisibility(.hidden,  for: .windowToolbar)
             
         } label: {
             Image(systemName: "music.note")
         }
         .menuBarExtraStyle(.window)
+    
 
         WindowGroup("Scrobbler", id: "scrobbler") {
             ContentView()
@@ -82,6 +87,11 @@ struct scrobbleApp: App {
                             .environment(authState)
                     }
                 }
+                .containerBackground(
+                    .ultraThinMaterial, for: .window
+                )
+                .toolbarBackgroundVisibility(.hidden,  for: .windowToolbar)
+
         }
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
