@@ -92,7 +92,7 @@ struct AppSelectionView: View {
                 }
                 .padding(8)
                 .background(Color.accentColor.opacity(0.1))
-                .glassEffect(in: .rect(cornerRadius: 8))
+                .compatGlass(cornerRadius: 8)
             }
             .padding(.horizontal)
 
@@ -166,8 +166,7 @@ struct AppSelectionButton: View {
             .padding(.horizontal, 8)
 
         }
-        .buttonStyle(isSelected ? .glass(.identity.tint(.accentColor)) : .glass)
-        .tint(isSelected ? .accentColor : .none)
+        .compatGlassButtonStyle(selected: isSelected)
     }
 }
 

@@ -13,45 +13,42 @@ struct MenuButtonsView: View {
     @Environment(\.openWindow) var openWindow
     
     var body: some View {
-        GlassEffectContainer(spacing: 10) {
-            HStack(alignment: .center) {
-                Button {
-                    openWindow(id: "scrobbler")
-                } label: {
-                    Label("Window", systemImage: "rectangle.expand.vertical" )
-                        .foregroundStyle(.secondary.opacity(0.7))
-                        .font(.caption2)
-                }
-                .buttonStyle(.glass)
-                
-                Spacer()
-                
-//                Button {
-//                    openWindow(id: "settings")
-//                } label: {
-//                    Label("Preferences", systemImage: "gearshape" )
-//                        .foregroundStyle(.secondary.opacity(0.7))
-//                        .font(.caption2)
-//
-//                }
-//                .buttonStyle(.glass)
-//                .foregroundStyle(.tertiary)
-                
-                
-                Button {
-                    NSApplication.shared.terminate(nil)
-                } label: {
-                    Label("Quit", systemImage: "xmark.circle" )
-                        .foregroundStyle(.secondary.opacity(0.7))
-                        .font(.caption2)
-                    
-                }
-                .buttonStyle(.glass)
-                .foregroundStyle(.tertiary)
-                
+        if #available(macOS 26, *) {
+            GlassEffectContainer(spacing: 10) {
+                buttonsContent
             }
-            .padding(.horizontal)
+        } else {
+            buttonsContent
+                .padding(10)
         }
+    }
+
+    private var buttonsContent: some View {
+        HStack(alignment: .center) {
+            Button {
+                openWindow(id: "scrobbler")
+            } label: {
+                Label("Window", systemImage: "rectangle.expand.vertical" )
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .font(.caption2)
+            }
+            .compatGlassButtonStyle()
+
+            Spacer()
+
+            Button {
+                NSApplication.shared.terminate(nil)
+            } label: {
+                Label("Quit", systemImage: "xmark.circle" )
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .font(.caption2)
+
+            }
+            .compatGlassButtonStyle()
+            .foregroundStyle(.tertiary)
+
+        }
+        .padding(.horizontal)
     }
 }
 

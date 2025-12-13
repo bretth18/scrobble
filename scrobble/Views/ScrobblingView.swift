@@ -59,7 +59,7 @@ struct ScrobblingViewStatusCardView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .glassEffect(in: .rect(cornerRadius: 8))
+        .compatGlass(cornerRadius: 8)
     }
 }
 
@@ -214,7 +214,7 @@ struct ScrobblingView: View {
                     .environment(scrobbler)
             }
             .padding()
-            .glassEffect(in: .rect(cornerRadius: 8))
+            .compatGlass(cornerRadius: 8)
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
             .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
@@ -245,7 +245,7 @@ struct ScrobblingView: View {
                             .scaledToFit()
                             .frame(width: 50, height: 50)
                             .cornerRadius(8)
-                            .glassEffect(.clear)
+                            .compatGlassClear()
                     } else {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(.quaternary)
@@ -284,7 +284,7 @@ struct ScrobblingView: View {
 
                 }
             }
-            .glassEffect(in: .rect(cornerRadius: 8))
+            .compatGlass(cornerRadius: 8)
             .padding(.horizontal)
 
             if scrobbler.isScrobbling {

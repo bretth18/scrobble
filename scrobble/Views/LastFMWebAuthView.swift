@@ -9,6 +9,7 @@ import SwiftUI
 import WebKit
 import Observation
 
+@available(macOS 26, *)
 struct LastFMWebAuthView: View {
     var lastFmManager: LastFmDesktopManager
     @Environment(AuthState.self) var authState
@@ -180,6 +181,7 @@ struct LastFMWebAuthView: View {
     }
 }
 
+@available(macOS 26, *)
 #Preview {
     let authState = AuthState()
     let manager = LastFmDesktopManager(apiKey: "test", apiSecret: "test", username: "test", authState: authState)

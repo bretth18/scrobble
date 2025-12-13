@@ -99,7 +99,7 @@ struct FriendCardView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(in: .rect(cornerRadius: 10))
+        .compatGlass(cornerRadius: 10)
         .shadow(radius: 1)
 
     }

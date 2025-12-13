@@ -26,11 +26,11 @@ struct FriendsView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .disabled(model.isLoading)
-                .buttonStyle(.glass)
+                .compatGlassButtonStyle()
             }
             .padding(.horizontal)
             .padding(.top)
-            .scrollEdgeEffectStyle(.soft, for: .bottom)
+            .compatScrollEdgeEffectStyle()
             
             if model.isLoading && model.friends.isEmpty {
                 ProgressView()
@@ -51,7 +51,7 @@ struct FriendsView: View {
                     }
                     .padding(.horizontal)
                 }
-                .scrollEdgeEffectStyle(.soft, for: .all)
+                .compatScrollEdgeEffectStyle()
                 .refreshable {
                     model.refreshData()
                 }

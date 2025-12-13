@@ -33,6 +33,8 @@
 		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
+		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
+		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ScrobblingView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -89,6 +91,8 @@
 		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
+		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
+		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ScrobblingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingView.swift; sourceTree = "<group>"; };
@@ -206,6 +210,7 @@
 				A6F213012C8C021800E1D23B /* ScrobblingView.swift */,
 				A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */,
 				A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */,
+				A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */,
 				A6F213102C8C037500E1D23B /* PreferencesView.swift */,
 				A65671EB2EEADB9F00773C58 /* UpdateView.swift */,
 				A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */,
@@ -237,6 +242,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F2FEF12EE7A429003826F7 /* Logger.swift */,
+				A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -317,6 +323,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */,
+				A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */,
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */,
 				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
@@ -491,7 +499,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -512,7 +520,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -541,7 +549,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -562,7 +570,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
