@@ -245,7 +245,7 @@ struct ScrobblingView: View {
                             .scaledToFit()
                             .frame(width: 50, height: 50)
                             .cornerRadius(8)
-                            .compatGlassClear()
+                            .shadow(radius: 2)
                     } else {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(.quaternary)

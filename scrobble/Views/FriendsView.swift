@@ -28,6 +28,7 @@ struct FriendsView: View {
                 .disabled(model.isLoading)
                 .compatGlassButtonStyle()
             }
+            .background(.clear)
             .padding(.horizontal)
             .padding(.top)
             .compatScrollEdgeEffectStyle()

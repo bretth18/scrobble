@@ -43,18 +43,20 @@ struct AppSelectionView: View {
 
             if !runningApps.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                    HStack(alignment: .center) {
                         Image(systemName: "circle.fill")
                             .foregroundStyle(.green)
                             .font(.caption)
-                        Text("Currently Running")
+                        Text("Currently Running: ")
                             .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Text(runningApps.map { $0.displayName }.joined(separator: ", "))
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
 
-                    Text(runningApps.map { $0.displayName }.joined(separator: ", "))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+
                 }
                 .padding(.horizontal)
             }
@@ -145,7 +147,7 @@ struct AppSelectionButton: View {
                 ZStack {
                     Image(systemName: app.icon)
                         .font(.title2)
-                        .foregroundStyle(isSelected ? .white : .primary)
+                        .foregroundStyle(isSelected ? .white : .secondary)
                     
                     if isRunning {
                         Circle()
@@ -158,7 +160,7 @@ struct AppSelectionButton: View {
                 Text(app.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundStyle(isSelected ? .white : .primary)
+                    .foregroundStyle(isSelected ? .white : .secondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
@@ -167,6 +169,7 @@ struct AppSelectionButton: View {
 
         }
         .compatGlassButtonStyle(selected: isSelected)
+   
     }
 }
 

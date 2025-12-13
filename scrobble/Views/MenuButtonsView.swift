@@ -24,23 +24,33 @@ struct MenuButtonsView: View {
     }
 
     private var buttonsContent: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: 4) {
             Button {
                 openWindow(id: "scrobbler")
             } label: {
                 Label("Window", systemImage: "rectangle.expand.vertical" )
-                    .foregroundStyle(.secondary.opacity(0.7))
+                    .foregroundStyle(.secondary.opacity(0.5))
+                    .font(.caption2)
+            }
+            .compatGlassButtonStyle()
+            
+            Spacer()
+            
+            SettingsLink {
+                Label("Settings", systemImage: "gearshape" )
+                    .foregroundStyle(.secondary.opacity(0.5))
                     .font(.caption2)
             }
             .compatGlassButtonStyle()
 
+            
             Spacer()
 
             Button {
                 NSApplication.shared.terminate(nil)
             } label: {
                 Label("Quit", systemImage: "xmark.circle" )
-                    .foregroundStyle(.secondary.opacity(0.7))
+                    .foregroundStyle(.secondary.opacity(0.5))
                     .font(.caption2)
 
             }

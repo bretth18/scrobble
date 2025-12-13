@@ -110,6 +110,7 @@ struct scrobbleApp: App {
                                 .environment(authState)
                         }
                     }
+
             
                 
         }

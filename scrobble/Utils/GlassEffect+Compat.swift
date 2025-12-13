@@ -78,7 +78,9 @@ extension View {
     @ViewBuilder
     func compatGlassButtonStyle(selected: Bool = false) -> some View {
         if #available(macOS 26, *) {
-            self.buttonStyle(selected ? .glass(.regular.tint(.accentColor)) : .glass)
+            self
+                .tint(selected ? .accentColor : .clear)
+                .buttonStyle(selected ? .glass(.regular.tint(.accentColor)) : .glass)
         } else {
             self.buttonStyle(CompatGlassButtonStyleLegacy(isSelected: selected))
         }
