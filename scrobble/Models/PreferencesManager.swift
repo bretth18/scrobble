@@ -76,6 +76,13 @@ class PreferencesManager {
         didSet { UserDefaults.standard.set(enableLastFm, forKey: "enableLastFm") }
     }
     
+    // App settings
+    var launchAtLogin: Bool = false {
+        didSet {
+            UserDefaults.standard.set(launchAtLogin, forKey: "launchAtLogin")
+        }
+    }
+    
     private var _isInitialized = false
     
     init() {
@@ -106,6 +113,8 @@ class PreferencesManager {
         
         self.enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
         self.blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
+        
+        self.launchAtLogin = UserDefaults.standard.bool(forKey: "launchAtLogin") ?? false
         
         // Initialize Last.fm settings
         if UserDefaults.standard.object(forKey: "enableLastFm") != nil {

@@ -41,8 +41,13 @@ struct LastFMAuthSheetView: View {
                 .padding()
                 .frame(width: 400, height: 200)
             } else {
-                LastFMWebAuthView(lastFmManager: lastFmManager)
-                    .environment(authState)
+                if #available(macOS 26, *) {
+                    LastFMWebAuthView(lastFmManager: lastFmManager)
+                        .environment(authState)
+                } else {
+                    LastFMWebAuthViewLegacy(lastFmManager: lastFmManager)
+                        .environment(authState)
+                }
             }
         }
     }
