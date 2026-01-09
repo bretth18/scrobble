@@ -74,11 +74,13 @@ class Scrobbler {
     
     init(lastFmManager: LastFmManagerType, preferencesManager: PreferencesManager? = nil) {
         self.lastFmManager = lastFmManager
-        
+
         self.preferencesManager = preferencesManager
-        
-        // Initialize scrobbling services
-        setupScrobblingServices(preferencesManager: preferencesManager)
+
+        // Initialize scrobbling services on main actor
+        Task { @MainActor in
+            self.setupScrobblingServices(preferencesManager: preferencesManager)
+        }
         
         // Monitor preferences changes for scrobbling service settings
         if let prefManager = preferencesManager {
@@ -129,6 +131,7 @@ class Scrobbler {
         }
     }
     
+    @MainActor
     private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
         // Cancel any existing auth monitoring tasks before creating new ones
         for task in authMonitoringTasks {
@@ -173,6 +176,7 @@ class Scrobbler {
     }
     
     // Method to refresh services when preferences change
+    @MainActor
     func refreshScrobblingServices() {
         setupScrobblingServices(preferencesManager: preferencesManager)
     }

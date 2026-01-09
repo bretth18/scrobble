@@ -161,13 +161,13 @@ struct LegacyWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.parent.isLoading = true
             }
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.parent.isLoading = false
                 self.parent.currentURL = webView.url?.absoluteString ?? ""
                 self.checkIfAuthorizationComplete(webView: webView)
@@ -175,10 +175,29 @@ struct LegacyWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.parent.isLoading = false
             }
             Log.error("WebView navigation failed: \(error)", category: .ui)
+        }
+
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            guard let url = navigationAction.request.url else {
+                decisionHandler(.allow)
+                return
+            }
+
+            // Allow the scrobble:// callback URL to pass through to the system
+            if url.scheme == "scrobble" {
+                Log.debug("Intercepted scrobble:// callback URL: \(url)", category: .ui)
+                // Cancel the WebView navigation but let the system handle the URL
+                decisionHandler(.cancel)
+                // Open the URL so AppDelegate can catch it
+                NSWorkspace.shared.open(url)
+                return
+            }
+
+            decisionHandler(.allow)
         }
 
         private func checkIfAuthorizationComplete(webView: WKWebView) {
@@ -188,38 +207,48 @@ struct LegacyWebView: NSViewRepresentable {
 
             Log.debug("Current URL: \(currentURL)", category: .ui)
 
-            // Check URL patterns that might indicate success
+            // Skip checking if we're still on the initial auth page
+            if currentURL.contains("/api/auth") {
+                Log.debug("Still on auth page, waiting for user to authorize...", category: .ui)
+                return
+            }
+
+            // Check if this is a success redirect page
             if currentURL.contains("authorized") ||
-               currentURL.contains("success") ||
-               currentURL.contains("callback") {
+               currentURL.contains("/api/grantaccess") {
                 Log.debug("Authorization appears complete based on URL", category: .ui)
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.parent.onAuthorizationComplete()
                 }
                 return
             }
 
-            // Check page content for authorization indicators
-            checkPageContentForSuccess(webView: webView)
+            // Check page content for authorization indicators (fallback)
+            checkPageContentForSuccess(webView: webView, currentURL: currentURL)
         }
 
-        private func checkPageContentForSuccess(webView: WKWebView) {
+        private func checkPageContentForSuccess(webView: WKWebView, currentURL: String) {
+            // Skip content check if we're on the initial auth page
+            if currentURL.contains("/api/auth") {
+                Log.debug("Skipping content check - still on auth page", category: .ui)
+                return
+            }
+
             let script = """
             (function() {
                 const bodyText = document.body.innerText.toLowerCase();
-                const hasSuccessText = bodyText.includes('authorized') ||
-                                      bodyText.includes('success') ||
-                                      bodyText.includes('application has been authorized') ||
-                                      bodyText.includes('permission granted') ||
-                                      bodyText.includes('you have successfully authorized');
 
-                const hasSuccessElement = document.querySelector('.auth-success, .success, .authorized, .permission-granted, .successful') !== null;
+                // Very specific patterns that only appear after successful authorization
+                const hasExplicitSuccess =
+                    bodyText.includes('application has been granted permission') ||
+                    bodyText.includes('you can now close this window') ||
+                    bodyText.includes('authorization successful') ||
+                    bodyText.includes('you have successfully authorized');
 
-                const hasLastFmSuccess = bodyText.includes('application authorized') ||
-                                       bodyText.includes('app authorized') ||
-                                       bodyText.includes('successfully granted');
+                // Check for Last.fm's specific success page elements
+                const hasSuccessElement = document.querySelector('.auth-success, .grant-success') !== null;
 
-                return hasSuccessText || hasSuccessElement || hasLastFmSuccess;
+                return hasExplicitSuccess || hasSuccessElement;
             })();
             """
 
@@ -231,7 +260,7 @@ struct LegacyWebView: NSViewRepresentable {
 
                 if let isSuccess = result as? Bool, isSuccess {
                     Log.debug("Detected successful authorization via page content", category: .ui)
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         self?.parent.onAuthorizationComplete()
                     }
                 } else {

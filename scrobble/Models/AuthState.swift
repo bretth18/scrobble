@@ -24,7 +24,7 @@ class AuthState {
     
     func startAuth() {
         showingAuthSheet = true
-        isAuthenticating = true
+        isAuthenticating = false  // WebView shows first; set to true only when requesting session
         authError = nil
     }
     

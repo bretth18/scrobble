@@ -32,10 +32,11 @@ protocol ScrobblingService {
     func authenticate() async throws -> Bool
 
     /// Sign out and clear authentication
-    func signOut()
+    @MainActor func signOut()
 }
 
 /// Adapter to make existing LastFmManagerType conform to ScrobblingService
+@MainActor
 class LastFmServiceAdapter: ScrobblingService {
     private let lastFmManager: LastFmManagerType
 

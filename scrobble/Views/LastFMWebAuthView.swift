@@ -111,20 +111,27 @@ struct LastFMWebAuthView: View {
                     currentURL = currentURLResult
                     Log.debug("Current URL: \(currentURL)", category: .ui)
 
-                    // Check URL patterns that might indicate success
+                    // Skip checking if we're still on the initial auth page
+                    if currentURL.contains("/api/auth") {
+                        Log.debug("Still on auth page, waiting for user to authorize...", category: .ui)
+                        return
+                    }
+
+                    // Check if this is a success redirect page (Last.fm shows a confirmation page)
+                    // The callback URL (scrobble://auth) should be handled by the system, but
+                    // Last.fm sometimes shows an interstitial page first
                     if currentURL.contains("authorized") ||
-                       currentURL.contains("success") ||
-                       currentURL.contains("callback") {
+                       currentURL.contains("/api/grantaccess") {
 
                         Log.debug("Authorization appears complete based on URL, attempting to get session...", category: .ui)
-                        DispatchQueue.main.async {
+                        await MainActor.run {
                             self.completeAuthorization()
                         }
                         return
                     }
                 }
 
-                // Check page content for authorization indicators
+                // Check page content for authorization indicators (fallback)
                 await checkPageContentForSuccess()
             } catch {
                 Log.error("Error checking URL: \(error)", category: .ui)
@@ -134,28 +141,30 @@ struct LastFMWebAuthView: View {
     }
 
     private func checkPageContentForSuccess() async {
+        // Skip content check if we're on the initial auth page
+        if currentURL.contains("/api/auth") {
+            Log.debug("Skipping content check - still on auth page", category: .ui)
+            return
+        }
+
         do {
-            // Look for success indicators in the page
+            // Look for specific Last.fm success indicators only
+            // Be conservative to avoid false positives
             let script = """
             function checkForSuccess() {
                 const bodyText = document.body.innerText.toLowerCase();
-                const hasSuccessText = bodyText.includes('authorized') ||
-                                      bodyText.includes('success') ||
-                                      bodyText.includes('application has been authorized') ||
-                                      bodyText.includes('permission granted') ||
-                                      bodyText.includes('you have successfully authorized');
 
-                const hasSuccessElement = document.querySelector('.auth-success, .success, .authorized, .permission-granted, .successful') !== null;
+                // Very specific patterns that only appear after successful authorization
+                const hasExplicitSuccess =
+                    bodyText.includes('application has been granted permission') ||
+                    bodyText.includes('you can now close this window') ||
+                    bodyText.includes('authorization successful') ||
+                    bodyText.includes('you have successfully authorized');
 
-                // Look for specific Last.fm success patterns
-                const hasLastFmSuccess = bodyText.includes('application authorized') ||
-                                       bodyText.includes('app authorized') ||
-                                       bodyText.includes('successfully granted');
+                // Check for Last.fm's specific success page elements
+                const hasSuccessElement = document.querySelector('.auth-success, .grant-success') !== null;
 
-                console.log('Body text contains:', bodyText.substring(0, 200));
-                console.log('Success indicators:', {hasSuccessText, hasSuccessElement, hasLastFmSuccess});
-
-                return hasSuccessText || hasSuccessElement || hasLastFmSuccess;
+                return hasExplicitSuccess || hasSuccessElement;
             }
             return checkForSuccess();
             """
@@ -163,7 +172,7 @@ struct LastFMWebAuthView: View {
             let result = try await webPage.callJavaScript(script)
             if let isSuccess = result as? Bool, isSuccess {
                 Log.debug("Detected successful authorization via page content", category: .ui)
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.completeAuthorization()
                 }
             } else {

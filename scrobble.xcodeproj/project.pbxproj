@@ -503,7 +503,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -553,7 +553,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
