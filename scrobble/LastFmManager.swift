@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 
+@MainActor
 protocol LastFmManagerType {
     func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
     func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>

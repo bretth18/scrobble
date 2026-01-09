@@ -328,17 +328,18 @@ class Scrobbler {
         // Mark this session as scrobbled
         hasScrobbledCurrentSession = true
         
-        Task {
+        Task { @MainActor in
             // Scrobble to all enabled services in parallel
             await withTaskGroup(of: (String, Bool).self) { group in
                 for service in self.scrobblingServices {
+                    let serviceName = service.serviceName  // Capture on main actor
                     group.addTask {
                         do {
                             let result = try await service.scrobble(artist: artist, track: title, album: album)
-                            return (service.serviceName, result)
+                            return (serviceName, result)
                         } catch {
-                            Log.error("Scrobble error for \(service.serviceName): \(error)", category: .scrobble)
-                            return (service.serviceName, false)
+                            Log.error("Scrobble error for \(serviceName): \(error)", category: .scrobble)
+                            return (serviceName, false)
                         }
                     }
                 }
@@ -431,17 +432,19 @@ class Scrobbler {
         hasScrobbledCurrentSession = false
     }
     
+    @MainActor
     private func updateNowPlaying(artist: String, title: String, album: String) async {
         // Update now playing for all enabled services
         await withTaskGroup(of: (String, Bool).self) { group in
             for service in self.scrobblingServices {
+                let serviceName = service.serviceName  // Capture on main actor
                 group.addTask {
                     do {
                         let result = try await service.updateNowPlaying(artist: artist, track: title, album: album)
-                        return (service.serviceName, result)
+                        return (serviceName, result)
                     } catch {
-                        Log.error("Now playing error for \(service.serviceName): \(error)", category: .scrobble)
-                        return (service.serviceName, false)
+                        Log.error("Now playing error for \(serviceName): \(error)", category: .scrobble)
+                        return (serviceName, false)
                     }
                 }
             }

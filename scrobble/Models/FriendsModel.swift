@@ -10,6 +10,7 @@ import Combine
 import Observation
 
 @Observable
+@MainActor
 class FriendsModel {
     var friends: [Friend] = []
     var friendTracks: [String: [RecentTracksResponse.RecentTracks.Track]] = [:]
