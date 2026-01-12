@@ -114,7 +114,7 @@ class PreferencesManager {
         self.enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
         self.blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
         
-        self.launchAtLogin = UserDefaults.standard.bool(forKey: "launchAtLogin") ?? false
+        self.launchAtLogin = UserDefaults.standard.bool(forKey: "launchAtLogin")
         
         // Initialize Last.fm settings
         if UserDefaults.standard.object(forKey: "enableLastFm") != nil {

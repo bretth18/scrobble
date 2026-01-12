@@ -62,6 +62,9 @@ class Scrobbler {
     // Track auth monitoring tasks so we can cancel them when services refresh
     private var authMonitoringTasks: [Task<Void, Never>] = []
 
+    // Activity token to prevent App Nap while music is playing
+    private var backgroundActivityToken: NSObjectProtocol?
+
     private var _mediaRemoteFetcher: NowPlayingFetcher?
     
     // Expose the fetcher for UI components that need to check running apps
@@ -74,11 +77,13 @@ class Scrobbler {
     
     init(lastFmManager: LastFmManagerType, preferencesManager: PreferencesManager? = nil) {
         self.lastFmManager = lastFmManager
-        
+
         self.preferencesManager = preferencesManager
-        
-        // Initialize scrobbling services
-        setupScrobblingServices(preferencesManager: preferencesManager)
+
+        // Initialize scrobbling services on main actor
+        Task { @MainActor in
+            self.setupScrobblingServices(preferencesManager: preferencesManager)
+        }
         
         // Monitor preferences changes for scrobbling service settings
         if let prefManager = preferencesManager {
@@ -100,6 +105,7 @@ class Scrobbler {
         }
         
         setupMusicAppObserver()
+        setupWakeObserver()
         startPolling()
 
         // Initial check for now playing
@@ -129,6 +135,7 @@ class Scrobbler {
         }
     }
     
+    @MainActor
     private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
         // Cancel any existing auth monitoring tasks before creating new ones
         for task in authMonitoringTasks {
@@ -173,6 +180,7 @@ class Scrobbler {
     }
     
     // Method to refresh services when preferences change
+    @MainActor
     func refreshScrobblingServices() {
         setupScrobblingServices(preferencesManager: preferencesManager)
     }
@@ -226,8 +234,52 @@ class Scrobbler {
             name: NSNotification.Name("com.apple.Music.playerInfo"),
             object: nil
         )
-        
+
         musicAppStatus = "Connected to Music app"
+    }
+
+    private func setupWakeObserver() {
+        // Monitor when display/system wakes to immediately check playback state
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleSystemWake(_:)),
+            name: NSWorkspace.screensDidWakeNotification,
+            object: nil
+        )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleSystemWake(_:)),
+            name: NSWorkspace.didWakeNotification,
+            object: nil
+        )
+        Log.debug("Wake observer setup complete", category: .scrobble)
+    }
+
+    @objc private func handleSystemWake(_ notification: Notification) {
+        Log.debug("System wake detected, checking playback state", category: .scrobble)
+        Task { @MainActor in
+            await checkNowPlaying()
+        }
+    }
+
+    // MARK: - Background Activity Management
+
+    private func beginBackgroundActivity() {
+        guard backgroundActivityToken == nil else { return }
+
+        backgroundActivityToken = ProcessInfo.processInfo.beginActivity(
+            options: [.idleSystemSleepDisabled, .suddenTerminationDisabled],
+            reason: "Scrobbling active music playback"
+        )
+        Log.debug("Background activity started - App Nap disabled", category: .scrobble)
+    }
+
+    private func endBackgroundActivity() {
+        guard let token = backgroundActivityToken else { return }
+
+        ProcessInfo.processInfo.endActivity(token)
+        backgroundActivityToken = nil
+        Log.debug("Background activity ended - App Nap re-enabled", category: .scrobble)
     }
     
     private func startPolling() {
@@ -255,6 +307,9 @@ class Scrobbler {
 
             Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
 
+            // Music is playing - prevent App Nap
+            beginBackgroundActivity()
+
             // If we're getting the same track info, this is likely just a polling update
             let isSameTrack = trackString == currentTrack
             currentTrack = trackString
@@ -280,6 +335,9 @@ class Scrobbler {
                 currentTrack = "No track playing"
                 currentArtwork = nil
                 invalidateScrobbleTimer()
+
+                // Music stopped - allow App Nap again
+                endBackgroundActivity()
             }
         }
     }
@@ -324,17 +382,18 @@ class Scrobbler {
         // Mark this session as scrobbled
         hasScrobbledCurrentSession = true
         
-        Task {
+        Task { @MainActor in
             // Scrobble to all enabled services in parallel
             await withTaskGroup(of: (String, Bool).self) { group in
                 for service in self.scrobblingServices {
+                    let serviceName = service.serviceName  // Capture on main actor
                     group.addTask {
                         do {
                             let result = try await service.scrobble(artist: artist, track: title, album: album)
-                            return (service.serviceName, result)
+                            return (serviceName, result)
                         } catch {
-                            Log.error("Scrobble error for \(service.serviceName): \(error)", category: .scrobble)
-                            return (service.serviceName, false)
+                            Log.error("Scrobble error for \(serviceName): \(error)", category: .scrobble)
+                            return (serviceName, false)
                         }
                     }
                 }
@@ -427,17 +486,19 @@ class Scrobbler {
         hasScrobbledCurrentSession = false
     }
     
+    @MainActor
     private func updateNowPlaying(artist: String, title: String, album: String) async {
         // Update now playing for all enabled services
         await withTaskGroup(of: (String, Bool).self) { group in
             for service in self.scrobblingServices {
+                let serviceName = service.serviceName  // Capture on main actor
                 group.addTask {
                     do {
                         let result = try await service.updateNowPlaying(artist: artist, track: title, album: album)
-                        return (service.serviceName, result)
+                        return (serviceName, result)
                     } catch {
-                        Log.error("Now playing error for \(service.serviceName): \(error)", category: .scrobble)
-                        return (service.serviceName, false)
+                        Log.error("Now playing error for \(serviceName): \(error)", category: .scrobble)
+                        return (serviceName, false)
                     }
                 }
             }

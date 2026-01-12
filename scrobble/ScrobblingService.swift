@@ -9,6 +9,7 @@ import Foundation
 import Combine
 
 /// Protocol that all scrobbling services must implement
+@MainActor
 protocol ScrobblingService {
     /// Unique identifier for this service
     var serviceId: String { get }
@@ -36,6 +37,7 @@ protocol ScrobblingService {
 }
 
 /// Adapter to make existing LastFmManagerType conform to ScrobblingService
+@MainActor
 class LastFmServiceAdapter: ScrobblingService {
     private let lastFmManager: LastFmManagerType
 
