@@ -23,7 +23,8 @@ class AuthState {
     }
     
     func startAuth() {
-        showingAuthSheet = true
+        // Don't show sheet yet - wait until token is obtained
+        showingAuthSheet = false
         isAuthenticating = false  // WebView shows first; set to true only when requesting session
         authError = nil
     }

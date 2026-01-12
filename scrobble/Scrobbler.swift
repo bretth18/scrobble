@@ -62,6 +62,9 @@ class Scrobbler {
     // Track auth monitoring tasks so we can cancel them when services refresh
     private var authMonitoringTasks: [Task<Void, Never>] = []
 
+    // Activity token to prevent App Nap while music is playing
+    private var backgroundActivityToken: NSObjectProtocol?
+
     private var _mediaRemoteFetcher: NowPlayingFetcher?
     
     // Expose the fetcher for UI components that need to check running apps
@@ -102,6 +105,7 @@ class Scrobbler {
         }
         
         setupMusicAppObserver()
+        setupWakeObserver()
         startPolling()
 
         // Initial check for now playing
@@ -230,8 +234,52 @@ class Scrobbler {
             name: NSNotification.Name("com.apple.Music.playerInfo"),
             object: nil
         )
-        
+
         musicAppStatus = "Connected to Music app"
+    }
+
+    private func setupWakeObserver() {
+        // Monitor when display/system wakes to immediately check playback state
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleSystemWake(_:)),
+            name: NSWorkspace.screensDidWakeNotification,
+            object: nil
+        )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleSystemWake(_:)),
+            name: NSWorkspace.didWakeNotification,
+            object: nil
+        )
+        Log.debug("Wake observer setup complete", category: .scrobble)
+    }
+
+    @objc private func handleSystemWake(_ notification: Notification) {
+        Log.debug("System wake detected, checking playback state", category: .scrobble)
+        Task { @MainActor in
+            await checkNowPlaying()
+        }
+    }
+
+    // MARK: - Background Activity Management
+
+    private func beginBackgroundActivity() {
+        guard backgroundActivityToken == nil else { return }
+
+        backgroundActivityToken = ProcessInfo.processInfo.beginActivity(
+            options: [.idleSystemSleepDisabled, .suddenTerminationDisabled],
+            reason: "Scrobbling active music playback"
+        )
+        Log.debug("Background activity started - App Nap disabled", category: .scrobble)
+    }
+
+    private func endBackgroundActivity() {
+        guard let token = backgroundActivityToken else { return }
+
+        ProcessInfo.processInfo.endActivity(token)
+        backgroundActivityToken = nil
+        Log.debug("Background activity ended - App Nap re-enabled", category: .scrobble)
     }
     
     private func startPolling() {
@@ -259,6 +307,9 @@ class Scrobbler {
 
             Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
 
+            // Music is playing - prevent App Nap
+            beginBackgroundActivity()
+
             // If we're getting the same track info, this is likely just a polling update
             let isSameTrack = trackString == currentTrack
             currentTrack = trackString
@@ -284,6 +335,9 @@ class Scrobbler {
                 currentTrack = "No track playing"
                 currentArtwork = nil
                 invalidateScrobbleTimer()
+
+                // Music stopped - allow App Nap again
+                endBackgroundActivity()
             }
         }
     }
