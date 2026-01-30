@@ -49,6 +49,12 @@
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
 		A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */; };
+		A6ONBOARD0001 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0002 /* OnboardingState.swift */; };
+		A6ONBOARD0003 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0004 /* OnboardingContainerView.swift */; };
+		A6ONBOARD0005 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0006 /* OnboardingWelcomeView.swift */; };
+		A6ONBOARD0007 /* OnboardingAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0008 /* OnboardingAuthView.swift */; };
+		A6ONBOARD0009 /* OnboardingAppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000A /* OnboardingAppSelectionView.swift */; };
+		A6ONBOARD000B /* OnboardingPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000C /* OnboardingPreferencesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -111,6 +117,12 @@
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettingsView.swift; sourceTree = "<group>"; };
+		A6ONBOARD0002 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
+		A6ONBOARD0004 /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
+		A6ONBOARD0006 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
+		A6ONBOARD0008 /* OnboardingAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAuthView.swift; sourceTree = "<group>"; };
+		A6ONBOARD000A /* OnboardingAppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAppSelectionView.swift; sourceTree = "<group>"; };
+		A6ONBOARD000C /* OnboardingPreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPreferencesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,6 +215,7 @@
 		A6F2FEE72EE79A20003826F7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6ONBOARD000D /* Onboarding */,
 				A62299162EE7D46100592239 /* ErrorMessageView.swift */,
 				A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */,
 				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
@@ -221,6 +234,18 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		A6ONBOARD000D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A6ONBOARD0004 /* OnboardingContainerView.swift */,
+				A6ONBOARD0006 /* OnboardingWelcomeView.swift */,
+				A6ONBOARD0008 /* OnboardingAuthView.swift */,
+				A6ONBOARD000A /* OnboardingAppSelectionView.swift */,
+				A6ONBOARD000C /* OnboardingPreferencesView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		A6F2FEE82EE79A26003826F7 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -229,6 +254,7 @@
 				A64304C52D52FBA1001998B6 /* AppState.swift */,
 				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
+				A6ONBOARD0002 /* OnboardingState.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -361,6 +387,12 @@
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
 				A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */,
+				A6ONBOARD0001 /* OnboardingState.swift in Sources */,
+				A6ONBOARD0003 /* OnboardingContainerView.swift in Sources */,
+				A6ONBOARD0005 /* OnboardingWelcomeView.swift in Sources */,
+				A6ONBOARD0007 /* OnboardingAuthView.swift in Sources */,
+				A6ONBOARD0009 /* OnboardingAppSelectionView.swift in Sources */,
+				A6ONBOARD000B /* OnboardingPreferencesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

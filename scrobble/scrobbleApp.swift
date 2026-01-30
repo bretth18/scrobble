@@ -17,7 +17,8 @@ struct scrobbleApp: App {
     @State private var appState = AppState()
     @State private var authState: AuthState
     @State private var updateChecker = UpdateChecker()
-    
+    @State private var hasCheckedOnboarding = false
+
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -52,13 +53,13 @@ struct scrobbleApp: App {
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: 10) {
-            ContentView()
+                ContentView()
                     .environment(scrobbler)
                     .environment(preferencesManager)
                     .environment(authState)
-                
+
                 Divider()
-                
+
                 MenuButtonsView()
                     .environment(authState)
                     .environment(appState)
@@ -67,8 +68,11 @@ struct scrobbleApp: App {
             .containerBackground(
                 .ultraThinMaterial, for: .window
             )
-            .toolbarBackgroundVisibility(.hidden,  for: .windowToolbar)
-            
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+            .background {
+                OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
+            }
+
         } label: {
             Image(systemName: "music.note")
         }
@@ -141,8 +145,42 @@ struct scrobbleApp: App {
                 .disabled(updateChecker.isChecking)
             }
         }
-    
-        
+
+        // Onboarding window
+        WindowGroup("Welcome to Scrobble", id: "onboarding") {
+            OnboardingContainerView()
+                .environment(preferencesManager)
+                .environment(scrobbler)
+                .environment(authState)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+    }
+}
+
+// MARK: - Onboarding Launcher
+
+/// Helper view that checks if onboarding should be shown and opens the window
+struct OnboardingLauncher: View {
+    @Environment(\.openWindow) private var openWindow
+    @Binding var hasCheckedOnboarding: Bool
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onAppear {
+                guard !hasCheckedOnboarding else { return }
+                hasCheckedOnboarding = true
+
+                if OnboardingState.needsOnboarding {
+                    // Small delay to ensure app is fully initialized
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        openWindow(id: "onboarding")
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
+                }
+            }
     }
 }
 
