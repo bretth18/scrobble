@@ -234,18 +234,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		A6ONBOARD000D /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				A6ONBOARD0004 /* OnboardingContainerView.swift */,
-				A6ONBOARD0006 /* OnboardingWelcomeView.swift */,
-				A6ONBOARD0008 /* OnboardingAuthView.swift */,
-				A6ONBOARD000A /* OnboardingAppSelectionView.swift */,
-				A6ONBOARD000C /* OnboardingPreferencesView.swift */,
-			);
-			path = Onboarding;
-			sourceTree = "<group>";
-		};
 		A6F2FEE82EE79A26003826F7 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -274,6 +262,18 @@
 				A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		A6ONBOARD000D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A6ONBOARD0004 /* OnboardingContainerView.swift */,
+				A6ONBOARD0006 /* OnboardingWelcomeView.swift */,
+				A6ONBOARD0008 /* OnboardingAuthView.swift */,
+				A6ONBOARD000A /* OnboardingAppSelectionView.swift */,
+				A6ONBOARD000C /* OnboardingPreferencesView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -535,7 +535,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -585,7 +585,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
