@@ -25,7 +25,7 @@ struct OnboardingWelcomeView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("track your desktop music listening with last.fm compatilble services")
+                Text("Track your desktop music listening with Last.fm compatible services")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
@@ -50,7 +50,7 @@ struct OnboardingWelcomeView: View {
                     description: "Quick access without cluttering your dock"
                 )
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
             .padding(.top, 8)
 
             Spacer()

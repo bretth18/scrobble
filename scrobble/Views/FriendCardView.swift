@@ -10,15 +10,15 @@ import SwiftUI
 struct FriendCardView: View {
     let friend: Friend
     let recentTracks: [RecentTracksResponse.RecentTracks.Track]
-    
-    private let relativeFormatter: RelativeDateTimeFormatter = {
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
         return formatter
     }()
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
             HStack {
                 AsyncImage(url: URL(string: friend.image.last?.text ?? "")) { image in
                     image
@@ -27,9 +27,10 @@ struct FriendCardView: View {
                 } placeholder: {
                     Image(systemName: "person.circle.fill")
                 }
-                .frame(width: 40, height: 40)
+                .frame(width: DesignTokens.artworkSizeThumbnail, height: DesignTokens.artworkSizeThumbnail)
                 .clipShape(Circle())
-                
+                .accessibilityLabel("\(friend.realname ?? friend.name) avatar")
+
                 VStack(alignment: .leading) {
                     Text(friend.realname ?? friend.name)
                         .font(.headline)
@@ -41,24 +42,25 @@ struct FriendCardView: View {
                                 .font(.caption)
                         }
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
-            
+
             if recentTracks.isEmpty {
                 Text("No recent tracks")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             } else {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
                     ForEach(recentTracks.prefix(5), id: \.url) { track in
                         HStack {
                             if track.nowplaying {
                                 Image(systemName: "music.note")
-                                    .foregroundColor(.green)
+                                    .foregroundStyle(.green)
+                                    .accessibilityLabel("Now playing")
                             }
-                            
+
                             AsyncImage(url: URL(string: track.image.first?.text ?? "")) { image in
                                 image
                                     .resizable()
@@ -67,19 +69,19 @@ struct FriendCardView: View {
                                 Color.gray.opacity(0.2)
                             }
                             .frame(width: 24, height: 24)
-                            .cornerRadius(4)
-                            
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+
                             VStack(alignment: .leading) {
                                 Text("\(track.artist.text) - \(track.name)")
                                     .font(.subheadline)
                                     .lineLimit(1)
-                                
+
                                 HStack {
                                     if !track.album.text.isEmpty {
                                         Text(track.album.text)
                                             .lineLimit(1)
                                     }
-                                    
+
                                     if let date = track.date {
                                         Text("•")
                                         Text(formatDate(uts: date.uts))
@@ -89,25 +91,24 @@ struct FriendCardView: View {
                                     }
                                 }
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             }
                             Spacer()
                         }
+                        .contentShape(Rectangle())
                     }
                 }
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .compatGlass(cornerRadius: 10)
-        .shadow(radius: 1)
-
+        .compatGlass(cornerRadius: DesignTokens.cornerRadiusMedium)
     }
-    
+
     private func formatDate(uts: String) -> String {
         guard let timestamp = Double(uts) else { return "" }
         let date = Date(timeIntervalSince1970: timestamp)
-        return relativeFormatter.localizedString(for: date, relativeTo: Date())
+        return Self.relativeFormatter.localizedString(for: date, relativeTo: Date())
     }
 }
 

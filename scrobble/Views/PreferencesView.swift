@@ -8,48 +8,11 @@
 import SwiftUI
 import Observation
 
-struct WaveRenderer: TextRenderer {
-    var strength: Double
-    var frequency: Double
-    var phase: Double  // animate this from 0 to 2π repeatedly
-
-    var animatableData: AnimatablePair<Double, Double> {
-        get { AnimatablePair(strength, phase) }
-        set {
-            strength = newValue.first
-            phase = newValue.second
-        }
-    }
-
-    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
-        for line in layout {
-            for run in line {
-                for (index, glyph) in run.enumerated() {
-                    let yOffset = strength * sin(Double(index) * frequency + phase)
-     
-                    var copy = context
-                    copy.translateBy(x: 0, y: yOffset)
-                    copy.draw(glyph, options: .disablesSubpixelQuantization)
-                }
-            }
-        }
-    }
-}
-
 struct BillionsMustScrobbleView: View {
-    @State private var phase: Double = 0
-
-
     var body: some View {
         Text("Billions must scrobble!")
             .font(.caption)
-            .foregroundColor(.secondary)
-//            .textRenderer(WaveRenderer(strength: 10.0, frequency: 0.1, phase:  phase))
-//            .onAppear {
-//                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-//                    phase = .pi * 2
-//                }
-//            }
+            .foregroundStyle(.secondary)
     }
 }
 
@@ -59,8 +22,6 @@ struct ScrobbleTimingSettingsView: View {
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
 
-    
-        
         Section {
             Picker("Scrobble after", selection: $preferencesManager.trackCompletionPercentageBeforeScrobble) {
                 Text("25% of track").tag(25)
@@ -68,9 +29,9 @@ struct ScrobbleTimingSettingsView: View {
                 Text("75% of track").tag(75)
                 Text("90% of track").tag(90)
             }
-            
+
             Toggle("Cap scrobble time for long tracks", isOn: $preferencesManager.useMaxTrackCompletionScrobbleDelay)
-            
+
             if preferencesManager.useMaxTrackCompletionScrobbleDelay {
                 Picker("Maximum time before scrobble", selection: $preferencesManager.maxTrackCompletionScrobbleDelay) {
                     Text("2 minutes").tag(120)
@@ -84,10 +45,9 @@ struct ScrobbleTimingSettingsView: View {
         } footer: {
             Text("Adjust when tracks are scrobbled based on how much of the track has played.")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
-
 }
 
 struct PreferencesView: View {
@@ -95,122 +55,90 @@ struct PreferencesView: View {
     @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
 
-    @State private var showingBlueskyHelp = false
-    
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
-        VStack() {
-            
 
-            
-            Form {
-                
-                Section("About") {
-                    
-                    HStack(alignment: .center) {
-                        Text("scrobble v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                        
-                        Text("[build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown")]")
-                            .font(.caption2)
-                            .foregroundColor(.secondary.opacity(0.5))
-                        
-                        Spacer()
-                        
-//                        Text("by COMPUTER DATA")
-//                            .font(.caption)
-//                            .foregroundColor(.secondary)
-                    }
-                    
-                    
-                    BillionsMustScrobbleView()
-                    
-               
-                        // repo link and license link
-                    HStack(alignment: .center) {
-                            Text("copyright © 2025 COMPUTER DATA")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            Spacer()
+        Form {
+            Section("About") {
+                HStack {
+                    Text("scrobble v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
+                        .font(.headline)
+                        .fontWeight(.bold)
 
-                            Link("GitHub", destination: URL(string: "https://github.com/bretth18/scrobble")!)
-                                .font(.caption2)
-                            Link("License", destination: URL(string: "https://github.com/bretth18/scrobble/blob/main/LICENSE")!)
-                                .font(.caption2)
-                        }
-                    
+                    Text("[build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown")]")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+
+                    Spacer()
                 }
-                
-                UpdateSettingsView()
-                
-                Section("Display") {
-                    VStack {
-                        LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
-//                        Stepper(
-//                            "Friends shown: \(preferencesManager.numberOfFriendsDisplayed)",
-//                            value: $preferencesManager.numberOfFriendsDisplayed,
-//                            in: 1...10
-//                        )
-           
-                        
-                        LabeledStepper(
-                            "Friend recent tracks",
-                            value: $preferencesManager.numberOfFriendsRecentTracksDisplayed,
-                            in: 1...20
-                        )
-                    }
-                }
-                
-                ScrobbleTimingSettingsView()
-                
-                LaunchAtLoginSettingsView()
-                
-                Section {
-                    ScrobblingServicesView()
-                } header: {
-                    Text("Scrobbling Services")
-                } footer: {
-                    Text("Credentials are stored securely on-device")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Section("Music App") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Music App Source")
-                            .font(.headline)
-                        
-                        Picker("Select Music App", selection: $preferencesManager.selectedMusicApp) {
-                            ForEach(SupportedMusicApp.allApps, id: \.self) { app in
-                                Label(app.displayName, systemImage: app.icon)
-                                    .tag(app)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .onChange(of: preferencesManager.selectedMusicApp) { _, newApp in
-                            // Update the scrobbler when the app selection changes
-                            scrobbler.setTargetMusicApp(newApp)
-                        }
-                        
-                        Text("Select which app to monitor for scrobbling")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+
+                BillionsMustScrobbleView()
+
+                HStack {
+                    Text("copyright \u{00A9} 2025-2026 COMPUTER DATA")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+
+                    Link("GitHub", destination: URL(string: "https://github.com/bretth18/scrobble")!)
+                        .font(.caption2)
+                    Link("License", destination: URL(string: "https://github.com/bretth18/scrobble/blob/main/LICENSE")!)
+                        .font(.caption2)
                 }
             }
-            .formStyle(.grouped)
-            
-            if let error = authState.authError {
-                Text(error)
-                    .foregroundColor(.red)
+
+            UpdateSettingsView()
+
+            Section("Display") {
+                LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
+
+                LabeledStepper(
+                    "Friend recent tracks",
+                    value: $preferencesManager.numberOfFriendsRecentTracksDisplayed,
+                    in: 1...20
+                )
+            }
+
+            ScrobbleTimingSettingsView()
+
+            LaunchAtLoginSettingsView()
+
+            Section {
+                ScrobblingServicesView()
+            } header: {
+                Text("Scrobbling Services")
+            } footer: {
+                Text("Credentials are stored securely on-device")
                     .font(.caption)
-                    .padding()
+                    .foregroundStyle(.secondary)
             }
-            
+
+            Section("Music App") {
+                Picker("Music App Source", selection: $preferencesManager.selectedMusicApp) {
+                    ForEach(SupportedMusicApp.allApps, id: \.self) { app in
+                        Label(app.displayName, systemImage: app.icon)
+                            .tag(app)
+                    }
+                }
+                .pickerStyle(.menu)
+                .onChange(of: preferencesManager.selectedMusicApp) { _, newApp in
+                    scrobbler.setTargetMusicApp(newApp)
+                }
+
+                Text("Select which app to monitor for scrobbling")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let error = authState.authError {
+                Section {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                }
+            }
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
     }
 }
 
@@ -223,11 +151,10 @@ struct PreferencesView: View {
         username: prefManager.username,
         authState: authState
     )
-    
+
     PreferencesView()
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
         .environment(UpdateChecker())
 }
-

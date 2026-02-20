@@ -7,158 +7,12 @@
 
 import SwiftUI
 
-struct ScrobblingViewHeaderView: View {
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-            Text("SCROBBLE")
-                .font(.system(.headline, design: .rounded))
-                .fontWeight(.semibold)
-
-            Text(
-                "v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
-            )
-            .font(.system(size: 9))
-            .foregroundStyle(.tertiary.opacity(0.7))
-
-            Spacer()
-        }
-    }
-}
-
-struct ScrobblingViewStatusCardView: View {
-    let status: String
-
-    var statusColor: Color {
-        status.contains("Connected")
-            ? .green.opacity(0.8) : .orange.opacity(0.8)
-    }
-
-    var statusIcon: String {
-        status.contains("Connected") ? "wifi" : "wifi.slash"
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: statusIcon)
-                .font(.caption)
-                .foregroundStyle(statusColor)
-                .frame(width: 16)
-
-            Text("status:")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Spacer()
-
-            Text(status)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(statusColor)
-                .lineLimit(1)
-
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .compatGlass(cornerRadius: 8)
-    }
-}
-
-struct ScrobblingViewNowPlayingCardView: View {
-    let currentTrack: String
-    let currentArtwork: NSImage?
-    let lastScrobbledTrack: String
-    let artworkSize: CGFloat
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Label("Now Playing", systemImage: "play.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary.opacity(0.7))
-
-                HStack(spacing: 10) {
-                    Group {
-                        if let artwork = currentArtwork {
-                            Image(nsImage: artwork)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-
-                        } else {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(.quaternary)
-                                .overlay {
-                                    Image(systemName: "music.note")
-                                        .foregroundStyle(.tertiary)
-                                }
-                        }
-                    }
-                    .frame(width: artworkSize, height: artworkSize)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(
-                            currentTrack.isEmpty
-                                ? "No track playing" : currentTrack
-                        )
-                        .font(.system(size: 11, weight: .medium))
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(height: artworkSize)
-            }
-
-            Divider()
-                .opacity(0.3)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Label("Last Scrobbled", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(
-                    lastScrobbledTrack.isEmpty
-                        ? "No recent scrobbles" : lastScrobbledTrack
-                )
-                .font(.system(size: 11))
-                .foregroundStyle(.primary.opacity(0.8))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            ZStack {
-                if let artwork = currentArtwork {
-                    Image(nsImage: artwork)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .blur(radius: 40)
-                        .opacity(0.5)
-                        .clipped()
-                }
-            }
-        }
-    }
-}
-
 struct ScrobblingView: View {
     @Environment(Scrobbler.self) var scrobbler
     @Environment(PreferencesManager.self) var preferencesManager
-    @State private var servicesRefreshTrigger = UUID()
-
-    @State private var showingPreferences = false
-
-    private let contentWidth: CGFloat = 280
-    private let artworkSize: CGFloat = 80
-    private let cornerRadius: CGFloat = 10
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: DesignTokens.spacingSection) {
             HStack {
                 Text("SCROBBLE")
                     .font(.headline)
@@ -166,24 +20,10 @@ struct ScrobblingView: View {
                     "v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
                 )
                 .font(.caption2)
-                .foregroundStyle(.secondary.opacity(0.5))
+                .foregroundStyle(.tertiary)
             }
             .padding(.horizontal)
             .padding(.top)
-
-            //                    HStack {
-            //                        Text("status:")
-            //                            .font(.caption2.monospaced())
-            //                            .foregroundStyle(.secondary.opacity(0.7))
-            //                        Spacer()
-            //                        Text(scrobbler.musicAppStatus)
-            //                            .textCase(.lowercase)
-            //                            .font(.subheadline)
-            //                            .foregroundColor(scrobbler.musicAppStatus.contains("Connected") ? .green.opacity(0.8) : .red.opacity(0.8))
-            //                    }
-            //                    .padding()
-            //                    .glassEffect(in: .rect(cornerRadius: 8))
-            //                    .frame(maxWidth: .infinity, alignment: .leading)
 
             // Current Target App Display
             HStack {
@@ -192,83 +32,79 @@ struct ScrobblingView: View {
                     systemImage: preferencesManager.selectedMusicApp.icon
                 )
                 .font(.caption2.monospaced())
-                .foregroundStyle(.secondary.opacity(0.7))
+                .foregroundStyle(.tertiary)
                 Spacer()
                 Text(
                     preferencesManager.selectedMusicApp.displayName
                         .lowercased()
                 )
                 .font(.subheadline)
-                .foregroundColor(.accentColor.opacity(0.8))
+                .foregroundStyle(Color.accentColor)
             }
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
 
             // Scrobbling Services Status
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
                 Text("scrobbling to:")
                     .font(.caption2.monospaced())
-                    .foregroundStyle(.secondary.opacity(0.7))
+                    .foregroundStyle(.tertiary)
 
-                ServicesStatusView(refreshTrigger: servicesRefreshTrigger)
+                ServicesStatusView()
                     .environment(scrobbler)
             }
             .padding()
-            .compatGlass(cornerRadius: 8)
+            .compatGlass(cornerRadius: DesignTokens.cornerRadiusMedium)
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .onChange(of: scrobbler.servicesLastUpdated) { _, _ in
-                Log.debug(
-                    "ScrobblingView received servicesLastUpdated change",
-                    category: .ui
-                )
-                servicesRefreshTrigger = UUID()
-            }
 
             VStack(alignment: .leading) {
-
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
                     Text("Now Playing:")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary.opacity(0.7))
+                        .foregroundStyle(.tertiary)
 
                     MarqueeText(
-                        text: "\(scrobbler.currentTrack)",
+                        text: scrobbler.currentTrack,
                         font: .body,
                         containerWidth: 200
                     )
-//                    Text(scrobbler.currentTrack)
 
                     if let currentArtwork = scrobbler.currentArtwork {
                         Image(nsImage: currentArtwork)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 50, height: 50)
-                            .cornerRadius(8)
+                            .frame(
+                                width: DesignTokens.artworkSizeSmall,
+                                height: DesignTokens.artworkSizeSmall
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusSmall))
                             .shadow(radius: 2)
+                            .accessibilityLabel("Album artwork")
                     } else {
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusSmall)
                             .fill(.quaternary)
-                            .frame(width: 50, height: 50)
+                            .frame(
+                                width: DesignTokens.artworkSizeSmall,
+                                height: DesignTokens.artworkSizeSmall
+                            )
                             .overlay {
                                 Image(systemName: "music.note")
                                     .foregroundStyle(.tertiary)
-                                
                             }
+                            .accessibilityHidden(true)
                     }
 
                     Text("Last Scrobbled:")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary.opacity(0.7))
+                        .foregroundStyle(.tertiary)
 
-                    HStack(alignment: .center) {
+                    HStack {
                         MarqueeText(
-                            text: "\(scrobbler.lastScrobbledTrack)",
+                            text: scrobbler.lastScrobbledTrack,
                             font: .body,
                             containerWidth: 200
                         )
-//                        Text(scrobbler.lastScrobbledTrack)
-//                            .font(.body)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -281,31 +117,27 @@ struct ScrobblingView: View {
                         .scaledToFill()
                         .blur(radius: 30)
                         .opacity(0.3)
-
                 }
             }
-            .compatGlass(cornerRadius: 8)
+            .compatGlass(cornerRadius: DesignTokens.cornerRadiusMedium)
             .padding(.horizontal)
 
             if scrobbler.isScrobbling {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
+                    .progressViewStyle(.circular)
                     .padding(.horizontal)
             }
 
             if let errorMessage = scrobbler.errorMessage {
                 Text(errorMessage)
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
                     .font(.caption)
                     .padding(.horizontal)
             }
 
             Spacer()
-
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-
     }
 }
 

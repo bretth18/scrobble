@@ -20,23 +20,23 @@ struct LastFMWebAuthView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: 8) {
+            VStack(spacing: DesignTokens.spacingDefault) {
                 Text("Last.fm Authentication")
                     .font(.headline)
 
                 if isLoading {
-                    HStack(spacing: 8) {
+                    HStack(spacing: DesignTokens.spacingDefault) {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .scaleEffect(0.8)
+                            .controlSize(.small)
                         Text("Loading authorization page...")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
             .padding()
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(.bar)
 
             // WebView
             WebView(webPage)
@@ -46,17 +46,17 @@ struct LastFMWebAuthView: View {
                 .onChange(of: webPage.isLoading) { _, newValue in
                     isLoading = newValue
                     if !newValue {
-                        // Page finished loading, check for authorization completion
                         checkIfAuthorizationComplete()
                     }
                 }
 
             // Footer
-            HStack(spacing: 16) {
-                Button("Cancel") {
+            HStack(spacing: DesignTokens.spacingLarge) {
+                Button("Cancel", role: .cancel) {
                     authState.isAuthenticating = false
                     lastFmManager.completeAuthorization(authorized: false)
                 }
+                .buttonStyle(.glass)
 
                 Spacer()
 
@@ -65,15 +65,16 @@ struct LastFMWebAuthView: View {
                         completeAuthorization()
                     }
                     .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.glassProminent)
 
                     Button("Reload") {
                         loadAuthPage()
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                 }
             }
             .padding()
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(.bar)
         }
         .frame(width: 600, height: 500)
         .onDisappear {
@@ -102,28 +103,18 @@ struct LastFMWebAuthView: View {
     private func checkIfAuthorizationComplete() {
         Log.debug("Checking if authorization is complete...", category: .ui)
 
-        // First check the current URL
         Task {
             do {
-                // Get the current URL from the webview
                 let urlScript = "window.location.href"
                 if let currentURLResult = try await webPage.callJavaScript(urlScript) as? String {
                     currentURL = currentURLResult
-                    Log.debug("Current URL: \(currentURL)", category: .ui)
 
-                    // Skip checking if we're still on the initial auth page
                     if currentURL.contains("/api/auth") {
-                        Log.debug("Still on auth page, waiting for user to authorize...", category: .ui)
                         return
                     }
 
-                    // Check if this is a success redirect page (Last.fm shows a confirmation page)
-                    // The callback URL (scrobble://auth) should be handled by the system, but
-                    // Last.fm sometimes shows an interstitial page first
                     if currentURL.contains("authorized") ||
                        currentURL.contains("/api/grantaccess") {
-
-                        Log.debug("Authorization appears complete based on URL, attempting to get session...", category: .ui)
                         await MainActor.run {
                             self.completeAuthorization()
                         }
@@ -131,7 +122,6 @@ struct LastFMWebAuthView: View {
                     }
                 }
 
-                // Check page content for authorization indicators (fallback)
                 await checkPageContentForSuccess()
             } catch {
                 Log.error("Error checking URL: \(error)", category: .ui)
@@ -141,29 +131,20 @@ struct LastFMWebAuthView: View {
     }
 
     private func checkPageContentForSuccess() async {
-        // Skip content check if we're on the initial auth page
         if currentURL.contains("/api/auth") {
-            Log.debug("Skipping content check - still on auth page", category: .ui)
             return
         }
 
         do {
-            // Look for specific Last.fm success indicators only
-            // Be conservative to avoid false positives
             let script = """
             function checkForSuccess() {
                 const bodyText = document.body.innerText.toLowerCase();
-
-                // Very specific patterns that only appear after successful authorization
                 const hasExplicitSuccess =
                     bodyText.includes('application has been granted permission') ||
                     bodyText.includes('you can now close this window') ||
                     bodyText.includes('authorization successful') ||
                     bodyText.includes('you have successfully authorized');
-
-                // Check for Last.fm's specific success page elements
                 const hasSuccessElement = document.querySelector('.auth-success, .grant-success') !== null;
-
                 return hasExplicitSuccess || hasSuccessElement;
             }
             return checkForSuccess();
@@ -175,8 +156,6 @@ struct LastFMWebAuthView: View {
                 await MainActor.run {
                     self.completeAuthorization()
                 }
-            } else {
-                Log.debug("No success indicators found yet", category: .ui)
             }
         } catch {
             Log.error("Error checking page content: \(error)", category: .ui)
@@ -184,7 +163,6 @@ struct LastFMWebAuthView: View {
     }
 
     private func completeAuthorization() {
-        Log.debug("Completing authorization...", category: .ui)
         authState.isAuthenticating = true
         lastFmManager.completeAuthorization(authorized: true)
     }

@@ -30,7 +30,7 @@ struct OnboardingAppSelectionView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
             }
 
             // App selection grid
@@ -49,7 +49,7 @@ struct OnboardingAppSelectionView: View {
                     }
                 }
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
 
             // Running apps indicator
             if !runningApps.isEmpty {
@@ -57,6 +57,7 @@ struct OnboardingAppSelectionView: View {
                     Circle()
                         .fill(.green)
                         .frame(width: 6, height: 6)
+                        .accessibilityHidden(true)
                     Text("Running: \(runningApps.map { $0.displayName }.joined(separator: ", "))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -144,19 +145,20 @@ struct OnboardingAppButton: View {
                     .foregroundStyle(isSelected ? .white : .primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .padding(.horizontal, 12)
+            .padding(.vertical, DesignTokens.spacingLarge)
+            .padding(.horizontal, DesignTokens.spacingSection)
             .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.accentColor : Color.clear)
+                RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusLarge)
+                    .fill(isSelected ? Color.accentColor : Color.primary.opacity(0.04))
             }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusLarge)
                     .strokeBorder(isSelected ? Color.clear : Color.secondary.opacity(0.2), lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(app.displayName)\(isRunning ? ", running" : "")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

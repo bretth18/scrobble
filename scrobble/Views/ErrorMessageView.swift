@@ -8,20 +8,34 @@
 import SwiftUI
 
 struct ErrorMessageView: View {
+    let message: String
+
+    init(_ message: String = "Something went wrong.") {
+        self.message = message
+    }
+
     var body: some View {
         VStack {
-            Text("Error")
+            Label("Error", systemImage: "exclamationmark.triangle")
                 .font(.headline)
-            Text("Something went wrong.")
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .padding(20)
+        .padding()
         .background {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.red)
+            RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusMedium)
+                .fill(Color.red.opacity(0.1))
+                .overlay {
+                    RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusMedium)
+                        .strokeBorder(Color.red.opacity(0.3), lineWidth: 1)
+                }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Error: \(message)")
     }
 }
 
 #Preview {
-    ErrorMessageView()
+    ErrorMessageView("Failed to connect to Last.fm")
 }

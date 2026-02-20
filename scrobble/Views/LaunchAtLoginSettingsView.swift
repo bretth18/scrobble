@@ -14,36 +14,30 @@ struct LaunchAtLoginSettingsView: View {
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
 
-        
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle("Launch at Login", isOn: $preferencesManager.launchAtLogin)
-                Text("""
-                when enabled, scrobble will automatically start when you log in to your computer.
-                """)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-        
-
+            Toggle("Launch at Login", isOn: $preferencesManager.launchAtLogin)
         } header: {
             Text("Startup")
+        } footer: {
+            Text("When enabled, Scrobble will automatically start when you log in to your computer.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .onAppear {
-            if SMAppService.mainApp.status == .enabled {
-                preferencesManager.launchAtLogin = true
-            } else {
-                preferencesManager.launchAtLogin = false
-            }
+            preferencesManager.launchAtLogin = SMAppService.mainApp.status == .enabled
         }
         .onChange(of: preferencesManager.launchAtLogin) { _, newValue in
-            if newValue == true {
-                try? SMAppService.mainApp.register()
-            } else {
-                try? SMAppService.mainApp.unregister()
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                Log.error("Failed to update launch at login: \(error)", category: .general)
+                preferencesManager.launchAtLogin = !newValue
             }
         }
-            
     }
 }
 

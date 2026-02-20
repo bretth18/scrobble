@@ -34,6 +34,7 @@
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
 		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
+		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
 		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ScrobblingView.swift */; };
@@ -99,6 +100,7 @@
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
+		A6DESIGN012EFBAA0000002 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 			children = (
 				A6F2FEF12EE7A429003826F7 /* Logger.swift */,
 				A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */,
+				A6DESIGN012EFBAA0000002 /* DesignTokens.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -353,6 +356,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */,
+				A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */,
 				A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */,
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */,

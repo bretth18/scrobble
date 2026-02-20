@@ -31,6 +31,7 @@ class OnboardingState {
     }
 
     var currentStep: Step = .welcome
+    var isGoingForward: Bool = true
 
     func canProceed(authState: AuthState) -> Bool {
         switch currentStep {
@@ -48,12 +49,14 @@ class OnboardingState {
     func next() {
         guard let currentIndex = Step.allCases.firstIndex(of: currentStep),
               currentIndex < Step.allCases.count - 1 else { return }
+        isGoingForward = true
         currentStep = Step.allCases[currentIndex + 1]
     }
 
     func back() {
         guard let currentIndex = Step.allCases.firstIndex(of: currentStep),
               currentIndex > 0 else { return }
+        isGoingForward = false
         currentStep = Step.allCases[currentIndex - 1]
     }
 

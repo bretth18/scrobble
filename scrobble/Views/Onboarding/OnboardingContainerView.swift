@@ -17,7 +17,7 @@ struct OnboardingContainerView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator
-            HStack(spacing: 8) {
+            HStack(spacing: DesignTokens.spacingDefault) {
                 ForEach(OnboardingState.Step.allCases, id: \.self) { step in
                     Circle()
                         .fill(stepColor(for: step))
@@ -26,49 +26,39 @@ struct OnboardingContainerView: View {
                 }
             }
             .padding(.top, 20)
-            .padding(.bottom, 8)
+            .padding(.bottom, DesignTokens.spacingDefault)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Step \(onboardingState.currentStep.rawValue + 1) of \(OnboardingState.Step.allCases.count)")
 
             // Step title
             Text(onboardingState.currentStep.title)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .padding(.bottom, 16)
+                .padding(.bottom, DesignTokens.spacingLarge)
 
             // Content area
             ZStack {
                 switch onboardingState.currentStep {
                 case .welcome:
                     OnboardingWelcomeView()
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
+                        .transition(stepTransition)
 
                 case .authenticate:
                     OnboardingAuthView()
                         .environment(scrobbler)
                         .environment(authState)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
+                        .transition(stepTransition)
 
                 case .selectApp:
                     OnboardingAppSelectionView()
                         .environment(preferencesManager)
                         .environment(scrobbler)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
+                        .transition(stepTransition)
 
                 case .preferences:
                     OnboardingPreferencesView()
                         .environment(preferencesManager)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
+                        .transition(stepTransition)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -108,14 +98,17 @@ struct OnboardingContainerView: View {
         .background(.ultraThinMaterial)
     }
 
+    private var stepTransition: AnyTransition {
+        .asymmetric(
+            insertion: .move(edge: onboardingState.isGoingForward ? .trailing : .leading).combined(with: .opacity),
+            removal: .move(edge: onboardingState.isGoingForward ? .leading : .trailing).combined(with: .opacity)
+        )
+    }
+
     private func stepColor(for step: OnboardingState.Step) -> Color {
-        if step.rawValue < onboardingState.currentStep.rawValue {
-            return .accentColor
-        } else if step == onboardingState.currentStep {
-            return .accentColor
-        } else {
-            return .secondary.opacity(0.3)
-        }
+        step.rawValue <= onboardingState.currentStep.rawValue
+            ? .accentColor
+            : .secondary.opacity(0.3)
     }
 
     private func completeOnboarding() {
@@ -139,5 +132,4 @@ struct OnboardingContainerView: View {
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
         .padding(100)
-
 }

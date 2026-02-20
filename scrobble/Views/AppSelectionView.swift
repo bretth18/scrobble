@@ -11,9 +11,9 @@ struct AppSelectionView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @State private var runningApps: [SupportedMusicApp] = []
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
             Text("Select Music App")
                 .font(.headline)
                 .padding(.horizontal)
@@ -23,11 +23,11 @@ struct AppSelectionView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
-            
+
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 8) {
+            ], spacing: DesignTokens.spacingDefault) {
                 ForEach(SupportedMusicApp.allApps, id: \.self) { app in
                     AppSelectionButton(
                         app: app,
@@ -42,29 +42,26 @@ struct AppSelectionView: View {
             .padding(.horizontal)
 
             if !runningApps.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "circle.fill")
-                            .foregroundStyle(.green)
-                            .font(.caption)
-                        Text("Currently Running: ")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        Text(runningApps.map { $0.displayName }.joined(separator: ", "))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+                HStack {
+                    Image(systemName: "circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.caption)
+                        .accessibilityHidden(true)
+                    Text("Currently Running: ")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
-
+                    Text(runningApps.map { $0.displayName }.joined(separator: ", "))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal)
             }
 
             Divider()
                 .padding(.horizontal)
-            
-            VStack(alignment: .leading, spacing: 10) {
+
+            VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
                 HStack {
                     Image(systemName: "info.circle")
                         .foregroundStyle(Color.accentColor)
@@ -73,7 +70,7 @@ struct AppSelectionView: View {
                         .fontWeight(.medium)
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.spacingTight) {
                     Image(systemName: preferencesManager.selectedMusicApp.icon)
                         .foregroundStyle(Color.accentColor)
                         .aspectRatio(contentMode: .fill)
@@ -90,11 +87,9 @@ struct AppSelectionView: View {
                                 .lineLimit(2, reservesSpace: true)
                         }
                     }
-
                 }
-                .padding(8)
-                .background(Color.accentColor.opacity(0.1))
-                .compatGlass(cornerRadius: 8)
+                .padding(DesignTokens.spacingDefault)
+                .compatGlass(cornerRadius: DesignTokens.cornerRadiusMedium)
             }
             .padding(.horizontal)
 
@@ -105,19 +100,17 @@ struct AppSelectionView: View {
             updateRunningApps()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didLaunchApplicationNotification)) { notification in
-            // Only update if a music app launched
             if isMusicAppNotification(notification) {
                 updateRunningApps()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWorkspace.didTerminateApplicationNotification)) { notification in
-            // Only update if a music app terminated
             if isMusicAppNotification(notification) {
                 updateRunningApps()
             }
         }
     }
-    
+
     private func updateRunningApps() {
         if let fetcher = scrobbler.mediaRemoteFetcher {
             runningApps = fetcher.getRunningMusicApps()
@@ -129,7 +122,6 @@ struct AppSelectionView: View {
               let bundleId = app.bundleIdentifier else {
             return false
         }
-        // Check if this is one of our supported music apps
         let musicBundleIds = SupportedMusicApp.allApps.map { $0.bundleId }.filter { $0 != "any" }
         return musicBundleIds.contains(bundleId)
     }
@@ -140,23 +132,24 @@ struct AppSelectionButton: View {
     let isSelected: Bool
     let isRunning: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            VStack(spacing: DesignTokens.spacingDefault) {
                 ZStack {
                     Image(systemName: app.icon)
                         .font(.title2)
                         .foregroundStyle(isSelected ? .white : .secondary)
-                    
+
                     if isRunning {
                         Circle()
                             .fill(.green)
                             .frame(width: 8, height: 8)
                             .offset(x: 12, y: -12)
+                            .accessibilityHidden(true)
                     }
                 }
-                
+
                 Text(app.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
@@ -164,12 +157,12 @@ struct AppSelectionButton: View {
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 8)
-
+            .padding(.vertical, DesignTokens.spacingSection)
+            .padding(.horizontal, DesignTokens.spacingDefault)
         }
         .compatGlassButtonStyle(selected: isSelected)
-   
+        .accessibilityLabel("\(app.displayName)\(isRunning ? ", running" : "")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

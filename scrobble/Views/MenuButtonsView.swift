@@ -9,54 +9,46 @@ import SwiftUI
 
 struct MenuButtonsView: View {
     @Environment(AppState.self) var appState
-    
     @Environment(\.openWindow) var openWindow
-    
+
     var body: some View {
-        if #available(macOS 26, *) {
-            GlassEffectContainer(spacing: 10) {
-                buttonsContent
-            }
-        } else {
+        CompatGlassContainer(spacing: DesignTokens.spacingDefault) {
             buttonsContent
-                .padding(10)
         }
     }
 
     private var buttonsContent: some View {
-        HStack(alignment: .center, spacing: 4) {
+        HStack(spacing: DesignTokens.spacingTight) {
             Button {
                 openWindow(id: "scrobbler")
             } label: {
-                Label("Window", systemImage: "rectangle.expand.vertical" )
-                    .foregroundStyle(.secondary.opacity(0.5))
+                Label("Window", systemImage: "rectangle.expand.vertical")
+                    .foregroundStyle(.tertiary)
                     .font(.caption2)
             }
             .compatGlassButtonStyle()
-            
+            .accessibilityLabel("Open window")
+
             Spacer()
-            
+
             SettingsLink {
-                Label("Settings", systemImage: "gearshape" )
-                    .foregroundStyle(.secondary.opacity(0.5))
+                Label("Settings", systemImage: "gearshape")
+                    .foregroundStyle(.tertiary)
                     .font(.caption2)
             }
             .compatGlassButtonStyle()
 
-            
             Spacer()
 
             Button {
                 NSApplication.shared.terminate(nil)
             } label: {
-                Label("Quit", systemImage: "xmark.circle" )
-                    .foregroundStyle(.secondary.opacity(0.5))
+                Label("Quit", systemImage: "xmark.circle")
+                    .foregroundStyle(.quaternary)
                     .font(.caption2)
-
             }
             .compatGlassButtonStyle()
-            .foregroundStyle(.tertiary)
-
+            .accessibilityLabel("Quit Scrobble")
         }
         .padding(.horizontal)
     }

@@ -40,7 +40,7 @@ struct OnboardingAuthView: View {
             Spacer()
 
             Image(systemName: "link.circle.fill")
-                .font(.system(size: 60))
+                .font(.system(size: DesignTokens.onboardingIconSize))
                 .foregroundStyle(Color.accentColor)
 
             VStack(spacing: 8) {
@@ -52,7 +52,7 @@ struct OnboardingAuthView: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
             }
 
             Button {
@@ -96,7 +96,7 @@ struct OnboardingAuthView: View {
                     VStack(spacing: 16) {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .scaleEffect(1.2)
+                            .controlSize(.large)
 
                         Text("Completing authentication...")
                             .font(.headline)
@@ -124,8 +124,9 @@ struct OnboardingAuthView: View {
             Spacer()
 
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 60))
+                .font(.system(size: DesignTokens.onboardingIconSize))
                 .foregroundStyle(.green)
+                .accessibilityLabel("Successfully connected")
 
             VStack(spacing: 8) {
                 Text("Connected!")
@@ -144,7 +145,7 @@ struct OnboardingAuthView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
 
             Spacer()
         }

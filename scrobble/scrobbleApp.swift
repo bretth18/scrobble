@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 import Observation
 
 @main
@@ -19,40 +18,25 @@ struct scrobbleApp: App {
     @State private var updateChecker = UpdateChecker()
     @State private var hasCheckedOnboarding = false
 
-    private var cancellables = Set<AnyCancellable>()
-    
     init() {
         let prefManager = PreferencesManager()
         _preferencesManager = State(initialValue: prefManager)
-        
+
         let auth = AuthState()
         _authState = State(initialValue: auth)
-        
+
         let lastFmManager = LastFmDesktopManager(
             apiKey: prefManager.apiKey,
             apiSecret: prefManager.apiSecret,
             username: prefManager.username,
             authState: auth
         )
-        // Scrobbler is now @Observable so we initialize it as State
         _scrobbler = State(initialValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
-        
-        // Monitor preferences changes to refresh scrobbling services
-        setupPreferencesObserver()
     }
-    
-    private func setupPreferencesObserver() {
-        // This will be set up after the StateObjects are initialized
-        DispatchQueue.main.async {
-            // Note: We can't store this in the struct since it's not mutable
-            // The scrobbler will handle its own refresh logic
-            Log.debug("Preferences observer setup completed", category: .general)
-        }
-    }
-    
+
     var body: some Scene {
         MenuBarExtra {
-            VStack(spacing: 10) {
+            VStack(spacing: DesignTokens.spacingDefault) {
                 ContentView()
                     .environment(scrobbler)
                     .environment(preferencesManager)
@@ -64,7 +48,7 @@ struct scrobbleApp: App {
                     .environment(authState)
                     .environment(appState)
             }
-            .padding(8)
+            .padding(DesignTokens.spacingDefault)
             .containerBackground(
                 .ultraThinMaterial, for: .window
             )
@@ -72,12 +56,11 @@ struct scrobbleApp: App {
             .background {
                 OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
             }
-
         } label: {
             Image(systemName: "music.note")
+                .accessibilityLabel("Scrobble")
         }
         .menuBarExtraStyle(.window)
-    
 
         WindowGroup("Scrobbler", id: "scrobbler") {
             ContentView()
@@ -87,40 +70,33 @@ struct scrobbleApp: App {
                 .environment(authState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                            LastFMAuthSheetView(lastFmManager: desktopManager)
+                        LastFMAuthSheetView(lastFmManager: desktopManager)
                             .environment(authState)
                     }
                 }
                 .containerBackground(
                     .ultraThinMaterial, for: .window
                 )
-                .toolbarBackgroundVisibility(.hidden,  for: .windowToolbar)
-
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         }
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
 
-
-        
         Settings {
-                PreferencesView()
-                    .environment(preferencesManager)
-                    .environment(scrobbler)
-                    .environment(authState)
-                    .environment(updateChecker)
-                    .sheet(isPresented: $authState.showingAuthSheet) {
-                        if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                            LastFMAuthSheetView(lastFmManager: desktopManager)
-                                .environment(authState)
-                        }
+            PreferencesView()
+                .environment(preferencesManager)
+                .environment(scrobbler)
+                .environment(authState)
+                .environment(updateChecker)
+                .sheet(isPresented: $authState.showingAuthSheet) {
+                    if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
+                        LastFMAuthSheetView(lastFmManager: desktopManager)
+                            .environment(authState)
                     }
-
-            
-                
+                }
         }
         .windowResizability(.automatic)
         .defaultSize(width: 800, height: 600)
-        
         .commands {
             CommandGroup(after: .appInfo) {
                 Button {
@@ -157,11 +133,13 @@ struct scrobbleApp: App {
         .windowResizability(.contentSize)
         .defaultPosition(.center)
     }
+
 }
 
 // MARK: - Onboarding Launcher
 
-/// Helper view that checks if onboarding should be shown and opens the window
+/// Helper view that checks if onboarding should be shown and opens the window.
+/// Uses .task instead of .onAppear for structured concurrency.
 struct OnboardingLauncher: View {
     @Environment(\.openWindow) private var openWindow
     @Binding var hasCheckedOnboarding: Bool
@@ -169,16 +147,14 @@ struct OnboardingLauncher: View {
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
-            .onAppear {
+            .task {
                 guard !hasCheckedOnboarding else { return }
                 hasCheckedOnboarding = true
 
                 if OnboardingState.needsOnboarding {
-                    // Small delay to ensure app is fully initialized
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        openWindow(id: "onboarding")
-                        NSApp.activate(ignoringOtherApps: true)
-                    }
+                    try? await Task.sleep(for: .milliseconds(500))
+                    openWindow(id: "onboarding")
+                    NSApp.activate()
                 }
             }
     }
@@ -186,7 +162,6 @@ struct OnboardingLauncher: View {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
         // Setup URL event handling for Last.fm authentication callbacks
         NSAppleEventManager.shared().setEventHandler(
             self,
@@ -195,37 +170,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             andEventID: AEEventID(kAEGetURL)
         )
     }
-    
-    
+
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
         guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else { return }
         guard let url = URL(string: urlString) else { return }
-        
-        // Handle the URL - look for Last.fm auth callbacks
+
         handleLastFmAuthCallback(url: url)
     }
-    
+
     private func handleLastFmAuthCallback(url: URL) {
-        // Example URL: scrobble://auth?token=abc123
         guard url.scheme == "scrobble" else { return }
-        
+
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         guard let queryItems = components?.queryItems else { return }
-        
-        // Check for token parameter
+
         if let tokenItem = queryItems.first(where: { $0.name == "token" }),
            let token = tokenItem.value {
-            // Notify LastFmDesktopManager about successful authorization
             NotificationCenter.default.post(
                 name: NSNotification.Name("LastFmAuthSuccess"),
                 object: nil,
                 userInfo: ["token": token]
             )
-        }
-        // Check for error parameter
-        else if let errorItem = queryItems.first(where: { $0.name == "error" }),
-                let error = errorItem.value {
-            // Notify LastFmDesktopManager about failed authorization
+        } else if let errorItem = queryItems.first(where: { $0.name == "error" }),
+                  let error = errorItem.value {
             NotificationCenter.default.post(
                 name: NSNotification.Name("LastFmAuthFailure"),
                 object: nil,

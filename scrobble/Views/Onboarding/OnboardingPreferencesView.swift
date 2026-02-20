@@ -34,7 +34,7 @@ struct OnboardingPreferencesView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
             }
 
             // Settings form
@@ -86,7 +86,7 @@ struct OnboardingPreferencesView: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
 
             Spacer()
 

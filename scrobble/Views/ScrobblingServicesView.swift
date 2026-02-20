@@ -180,17 +180,19 @@ struct ServiceRow<Content: View>: View {
                 Toggle(title, isOn: $isEnabled)
                     .toggleStyle(.switch)
                     .labelsHidden()
+                    .accessibilityLabel("Enable \(title)")
 
                 Spacer()
 
                 Label(status.label, systemImage: status.icon)
                     .foregroundStyle(status.color)
                     .font(.caption)
+                    .accessibilityLabel("\(title) status: \(status.label)")
             }
 
             if isEnabled {
                 detailContent
-                    .padding(.leading, 16)
+                    .padding(.leading)
             }
         }
     }

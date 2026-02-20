@@ -11,33 +11,35 @@ import SwiftUI
 // MARK: - Adaptive Glass Effect Modifier
 
 extension View {
-    /// Applies a glass effect on macOS 26+, or an ultrathin material background on macOS 15+
+    /// Applies a glass effect on macOS 26+, or a subtle fill on macOS 15+.
+    /// Uses a light fill fallback instead of material to avoid double-material layering
+    /// when rendered inside material-backed containers (menu bar popover, etc).
     @ViewBuilder
-    func compatGlass(in shape: RoundedRectangle = RoundedRectangle(cornerRadius: 8)) -> some View {
-        if #available(macOS 26, *) {
-            self.glassEffect(in: shape)
-        } else {
-            self.background(.ultraThinMaterial, in: shape)
-        }
-    }
-
-    /// Applies a glass effect with custom corner radius
-    @ViewBuilder
-    func compatGlass(cornerRadius: CGFloat) -> some View {
+    func compatGlass(
+        cornerRadius: CGFloat = DesignTokens.cornerRadiusMedium
+    ) -> some View {
         if #available(macOS 26, *) {
             self.glassEffect(in: .rect(cornerRadius: cornerRadius))
         } else {
-            self.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+            self.background(
+                Color.primary.opacity(0.04),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
         }
     }
 
-    /// Applies a clear glass effect on macOS 26+, or a subtle overlay on macOS 15+
+    /// Applies a clear glass effect on macOS 26+, or a very subtle fill on macOS 15+
     @ViewBuilder
-    func compatGlassClear() -> some View {
+    func compatGlassClear(
+        cornerRadius: CGFloat = DesignTokens.cornerRadiusMedium
+    ) -> some View {
         if #available(macOS 26, *) {
-            self.glassEffect(.clear)
+            self.glassEffect(.clear, in: .rect(cornerRadius: cornerRadius))
         } else {
-            self.background(.ultraThinMaterial.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
+            self.background(
+                Color.primary.opacity(0.02),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
         }
     }
 
@@ -48,6 +50,33 @@ extension View {
             self.scrollEdgeEffectStyle(.soft, for: .all)
         } else {
             self
+        }
+    }
+}
+
+// MARK: - Glass Effect Container
+
+/// Wraps content in a GlassEffectContainer on macOS 26+ for proper rendering
+/// performance and morphing transitions. No-op container on macOS 15.
+struct CompatGlassContainer<Content: View>: View {
+    let spacing: CGFloat
+    @ViewBuilder let content: Content
+
+    init(
+        spacing: CGFloat = DesignTokens.spacingDefault,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    var body: some View {
+        if #available(macOS 26, *) {
+            GlassEffectContainer(spacing: spacing) {
+                content
+            }
+        } else {
+            content
         }
     }
 }
@@ -65,7 +94,7 @@ struct CompatGlassButtonStyleLegacy: ButtonStyle {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background {
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusSmall)
                     .fill(
                         isSelected
                             ? Color.accentColor.opacity(0.2)
@@ -74,7 +103,7 @@ struct CompatGlassButtonStyleLegacy: ButtonStyle {
                                 : Color.primary.opacity(0.04)
                     )
             }
-            .contentShape(RoundedRectangle(cornerRadius: 6))
+            .contentShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusSmall))
             .opacity(configuration.isPressed ? 0.85 : 1.0)
     }
 }
@@ -82,13 +111,17 @@ struct CompatGlassButtonStyleLegacy: ButtonStyle {
 // MARK: - Button Style Extensions
 
 extension View {
-    /// Applies glass button styling with backwards compatibility
+    /// Applies glass button styling with backwards compatibility.
+    /// On macOS 26, uses native .glass button style.
+    /// On macOS 15, uses a subtle fill-based style.
     @ViewBuilder
     func compatGlassButtonStyle(selected: Bool = false) -> some View {
         if #available(macOS 26, *) {
-            self
-                .tint(selected ? .accentColor : .clear)
-                .buttonStyle(selected ? .glass(.regular.tint(.accentColor)) : .glass)
+            self.buttonStyle(
+                selected
+                    ? .glass(.regular.tint(.accentColor))
+                    : .glass
+            )
         } else {
             self.buttonStyle(CompatGlassButtonStyleLegacy(isSelected: selected))
         }
