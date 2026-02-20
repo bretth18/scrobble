@@ -54,20 +54,28 @@ extension View {
 
 // MARK: - Adaptive Glass Button Style
 
-/// On macOS 15, provides a material-based fallback for glass buttons.
+/// On macOS 15, provides a lightweight fallback for glass buttons.
+/// Uses a subtle fill instead of material to avoid double-material layering
+/// when rendered on surfaces that already have .ultraThinMaterial.
 struct CompatGlassButtonStyleLegacy: ButtonStyle {
     var isSelected: Bool = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
             .background {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(
+                        isSelected
+                            ? Color.accentColor.opacity(0.2)
+                            : configuration.isPressed
+                                ? Color.primary.opacity(0.08)
+                                : Color.primary.opacity(0.04)
+                    )
             }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .contentShape(RoundedRectangle(cornerRadius: 6))
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
     }
 }
 

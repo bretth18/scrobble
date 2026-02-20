@@ -21,11 +21,11 @@ struct OnboardingWelcomeView: View {
 
             // Welcome text
             VStack(spacing: 8) {
-                Text("Welcome to Scrobble")
+                Text("scrobble")
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Track your music listening across Last.fm")
+                Text("track your desktop music listening with last.fm compatilble services")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
@@ -55,7 +55,7 @@ struct OnboardingWelcomeView: View {
 
             Spacer()
 
-            Text("Let's get you set up in just a few steps.")
+            Text("Get set up in just a few steps.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 8)

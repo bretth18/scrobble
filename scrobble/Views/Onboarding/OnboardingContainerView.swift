@@ -138,4 +138,6 @@ struct OnboardingContainerView: View {
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
+        .padding(100)
+
 }

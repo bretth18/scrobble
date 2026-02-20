@@ -64,4 +64,5 @@ struct MenuButtonsView: View {
 
 #Preview {
     MenuButtonsView()
+        .environment(AppState())
 }
