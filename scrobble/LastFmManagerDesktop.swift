@@ -26,6 +26,23 @@ struct Secrets {
     }
 }
 
+// MARK: - Testable Crypto Utilities
+
+func md5(_ string: String) -> String {
+    guard let data = string.data(using: .utf8) else { return "" }
+    return Insecure.MD5.hash(data: data).map { String(format: "%02hhx", $0) }.joined()
+}
+
+func createLastFmSignature(parameters: [String: Any], secret: String) -> String {
+    let sortedKeys = parameters.keys.sorted()
+    let concatenatedString = sortedKeys.reduce("") { result, key in
+        let value = parameters[key]!
+        return result + key + "\(value)"
+    }
+    let signatureString = concatenatedString + secret
+    return md5(signatureString)
+}
+
 @Observable
 @MainActor
 class LastFmDesktopManager: LastFmManagerType {
@@ -612,18 +629,7 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func createSignature(parameters: [String: Any]) -> String {
-        let sortedKeys = parameters.keys.sorted()
-        let concatenatedString = sortedKeys.reduce("") { result, key in
-            let value = parameters[key]!
-            return result + key + "\(value)"
-        }
-        let signatureString = concatenatedString + apiSecret
-        return md5(string: signatureString)
-    }
-    
-    private func md5(string: String) -> String {
-        guard let data = string.data(using: .utf8) else { return "" }
-        return Insecure.MD5.hash(data: data).map { String(format: "%02hhx", $0) }.joined()
+        return createLastFmSignature(parameters: parameters, secret: apiSecret)
     }
 }
 

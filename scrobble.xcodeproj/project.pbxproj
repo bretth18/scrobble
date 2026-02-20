@@ -56,6 +56,15 @@
 		A6ONBOARD0007 /* OnboardingAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0008 /* OnboardingAuthView.swift */; };
 		A6ONBOARD0009 /* OnboardingAppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000A /* OnboardingAppSelectionView.swift */; };
 		A6ONBOARD000B /* OnboardingPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000C /* OnboardingPreferencesView.swift */; };
+		A6TESTBF0001 /* SupportedMusicAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0001 /* SupportedMusicAppTests.swift */; };
+		A6TESTBF0002 /* OnboardingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0002 /* OnboardingStateTests.swift */; };
+		A6TESTBF0003 /* AuthStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0003 /* AuthStateTests.swift */; };
+		A6TESTBF0004 /* PreferencesManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0004 /* PreferencesManagerTests.swift */; };
+		A6TESTBF0005 /* DesignTokensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0005 /* DesignTokensTests.swift */; };
+		A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0006 /* ScrobbleDelayTests.swift */; };
+		A6TESTBF0007 /* UpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0007 /* UpdateCheckerTests.swift */; };
+		A6TESTBF0008 /* CodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0008 /* CodableTests.swift */; };
+		A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0009 /* CryptoUtilsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,6 +80,16 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		A6TESTCI0001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6F212F42C8C021800E1D23B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6F212FB2C8C021800E1D23B;
+			remoteInfo = scrobble;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
@@ -125,6 +144,16 @@
 		A6ONBOARD0008 /* OnboardingAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAuthView.swift; sourceTree = "<group>"; };
 		A6ONBOARD000A /* OnboardingAppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAppSelectionView.swift; sourceTree = "<group>"; };
 		A6ONBOARD000C /* OnboardingPreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPreferencesView.swift; sourceTree = "<group>"; };
+		A6TESTFR0001 /* SupportedMusicAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicAppTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0002 /* OnboardingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStateTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0003 /* AuthStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStateTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0004 /* PreferencesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManagerTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0005 /* DesignTokensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0006 /* ScrobbleDelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobbleDelayTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0007 /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheckerTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0008 /* CodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableTests.swift; sourceTree = "<group>"; };
+		A6TESTFR0009 /* CryptoUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoUtilsTests.swift; sourceTree = "<group>"; };
+		A6TESTFR000A /* scrobbleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = scrobbleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +164,13 @@
 				A6A580A32E78D8480079DC91 /* MediaPlayer.framework in Frameworks */,
 				A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */,
 				A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A6TESTFB0001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F212FE2C8C021800E1D23B /* scrobble */,
+				A6TESTGR0001 /* scrobbleTests */,
 				A6F212FD2C8C021800E1D23B /* Products */,
 				A6F213142C8C05E800E1D23B /* Frameworks */,
 				A6F2FEEE2EE79E47003826F7 /* Configs */,
@@ -164,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F212FC2C8C021800E1D23B /* scrobble.app */,
+				A6TESTFR000A /* scrobbleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -279,6 +317,22 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		A6TESTGR0001 /* scrobbleTests */ = {
+			isa = PBXGroup;
+			children = (
+				A6TESTFR0001 /* SupportedMusicAppTests.swift */,
+				A6TESTFR0002 /* OnboardingStateTests.swift */,
+				A6TESTFR0003 /* AuthStateTests.swift */,
+				A6TESTFR0004 /* PreferencesManagerTests.swift */,
+				A6TESTFR0005 /* DesignTokensTests.swift */,
+				A6TESTFR0006 /* ScrobbleDelayTests.swift */,
+				A6TESTFR0007 /* UpdateCheckerTests.swift */,
+				A6TESTFR0008 /* CodableTests.swift */,
+				A6TESTFR0009 /* CryptoUtilsTests.swift */,
+			);
+			path = scrobbleTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -300,6 +354,23 @@
 			productReference = A6F212FC2C8C021800E1D23B /* scrobble.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A6TESTNT0001 /* scrobbleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A6TESTCL0001 /* Build configuration list for PBXNativeTarget "scrobbleTests" */;
+			buildPhases = (
+				A6TESTSB0001 /* Sources */,
+				A6TESTFB0001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A6TESTTD0001 /* PBXTargetDependency */,
+			);
+			name = scrobbleTests;
+			productName = scrobbleTests;
+			productReference = A6TESTFR000A /* scrobbleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -313,6 +384,10 @@
 					A6F212FB2C8C021800E1D23B = {
 						CreatedOnToolsVersion = 15.4;
 						LastSwiftMigration = 2600;
+					};
+					A6TESTNT0001 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = A6F212FB2C8C021800E1D23B;
 					};
 				};
 			};
@@ -333,6 +408,7 @@
 			projectRoot = "";
 			targets = (
 				A6F212FB2C8C021800E1D23B /* scrobble */,
+				A6TESTNT0001 /* scrobbleTests */,
 			);
 		};
 /* End PBXProject section */
@@ -400,7 +476,31 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A6TESTSB0001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A6TESTBF0001 /* SupportedMusicAppTests.swift in Sources */,
+				A6TESTBF0002 /* OnboardingStateTests.swift in Sources */,
+				A6TESTBF0003 /* AuthStateTests.swift in Sources */,
+				A6TESTBF0004 /* PreferencesManagerTests.swift in Sources */,
+				A6TESTBF0005 /* DesignTokensTests.swift in Sources */,
+				A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */,
+				A6TESTBF0007 /* UpdateCheckerTests.swift in Sources */,
+				A6TESTBF0008 /* CodableTests.swift in Sources */,
+				A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A6TESTTD0001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6F212FB2C8C021800E1D23B /* scrobble */;
+			targetProxy = A6TESTCI0001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A6F213092C8C021900E1D23B /* Debug */ = {
@@ -626,6 +726,44 @@
 			};
 			name = Release;
 		};
+		A6TESTBC0001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobbleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/scrobble.app/Contents/MacOS/scrobble";
+			};
+			name = Debug;
+		};
+		A6TESTBC0002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 94XUGF9CU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = computerdata.scrobbleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/scrobble.app/Contents/MacOS/scrobble";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -643,6 +781,15 @@
 			buildConfigurations = (
 				A6F2130C2C8C021900E1D23B /* Debug */,
 				A6F2130D2C8C021900E1D23B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A6TESTCL0001 /* Build configuration list for PBXNativeTarget "scrobbleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A6TESTBC0001 /* Debug */,
+				A6TESTBC0002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

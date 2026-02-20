@@ -36,6 +36,17 @@ import Observation
 
 
 
+// MARK: - Testable Scrobble Delay Calculation
+
+func calculateScrobbleDelay(trackDuration: Double, completionPercentage: Int, useMaxDelay: Bool, maxDelay: Int?) -> Double? {
+    guard trackDuration > 30 else { return nil }
+    let percentageDelay = trackDuration * Double(completionPercentage) / 100.0
+    if useMaxDelay, let maxDelay = maxDelay {
+        return min(percentageDelay, Double(maxDelay))
+    }
+    return percentageDelay
+}
+
 @Observable
 class Scrobbler {
     let lastFmManager: LastFmManagerType
