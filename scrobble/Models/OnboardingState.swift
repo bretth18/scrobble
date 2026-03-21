@@ -70,7 +70,8 @@ class OnboardingState {
 
     static var needsOnboarding: Bool {
         let completed = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        let hasSession = UserDefaults.standard.string(forKey: "lastfm_session_key") != nil
+        let hasSession = KeychainHelper.load(key: "lastfm_session_key") != nil
+            || UserDefaults.standard.string(forKey: "lastfm_session_key") != nil
         return !completed && !hasSession
     }
 }

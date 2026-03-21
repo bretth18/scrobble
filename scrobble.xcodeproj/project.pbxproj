@@ -49,6 +49,7 @@
 		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
+		A6KEYCHAIN01 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6KEYCHAIN02 /* KeychainHelper.swift */; };
 		A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */; };
 		A6ONBOARD0001 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0002 /* OnboardingState.swift */; };
 		A6ONBOARD0003 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0004 /* OnboardingContainerView.swift */; };
@@ -137,6 +138,7 @@
 		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		A6KEYCHAIN02 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettingsView.swift; sourceTree = "<group>"; };
 		A6ONBOARD0002 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		A6ONBOARD0004 /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F2FEF12EE7A429003826F7 /* Logger.swift */,
+				A6KEYCHAIN02 /* KeychainHelper.swift */,
 				A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */,
 				A6DESIGN012EFBAA0000002 /* DesignTokens.swift */,
 			);
@@ -461,6 +464,7 @@
 				A65671EA2EEADB7300773C58 /* UpdateChecker.swift in Sources */,
 				A6A580A02E78D23A0079DC91 /* MediaRemoteBridge.m in Sources */,
 				A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */,
+				A6KEYCHAIN01 /* KeychainHelper.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,

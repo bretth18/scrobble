@@ -18,8 +18,9 @@ class AuthState {
     var authError: String?
     
     init() {
-        // Check for existing session on launch
-        isAuthenticated = UserDefaults.standard.string(forKey: "lastfm_session_key") != nil
+        // Check for existing session on launch (Keychain with UserDefaults fallback for migration)
+        isAuthenticated = KeychainHelper.load(key: "lastfm_session_key") != nil
+            || UserDefaults.standard.string(forKey: "lastfm_session_key") != nil
     }
     
     func startAuth() {
@@ -39,6 +40,8 @@ class AuthState {
     }
     
     func signOut() {
+        KeychainHelper.delete(key: "lastfm_session_key")
+        KeychainHelper.delete(key: "lastfm_username")
         UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
         isAuthenticated = false
         authError = nil
