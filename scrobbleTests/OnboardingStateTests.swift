@@ -2,6 +2,7 @@ import Testing
 @testable import scrobble
 
 @Suite("OnboardingState Tests")
+@MainActor
 struct OnboardingStateTests {
 
     @Test("Initial state is welcome")

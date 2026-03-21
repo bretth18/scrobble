@@ -37,25 +37,25 @@ struct scrobbleApp: App {
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: DesignTokens.spacingDefault) {
-                ContentView()
-                    .environment(scrobbler)
-                    .environment(preferencesManager)
-                    .environment(authState)
+                    ContentView()
+                        .environment(scrobbler)
+                        .environment(preferencesManager)
+                        .environment(authState)
 
-                Divider()
+                    Divider()
 
-                MenuButtonsView()
-                    .environment(authState)
-                    .environment(appState)
-            }
-            .padding(DesignTokens.spacingDefault)
-            .containerBackground(
-                .ultraThinMaterial, for: .window
-            )
-            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-            .background {
-                OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
-            }
+                    MenuButtonsView()
+                        .environment(authState)
+                        .environment(appState)
+                }
+                .padding(DesignTokens.spacingDefault)
+                .containerBackground(
+                    .ultraThinMaterial, for: .window
+                )
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                .background {
+                    OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
+                }
         } label: {
             Image(systemName: "music.note")
                 .accessibilityLabel("Scrobble")

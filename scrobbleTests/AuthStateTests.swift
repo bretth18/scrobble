@@ -2,6 +2,7 @@ import Testing
 @testable import scrobble
 
 @Suite("AuthState Tests", .serialized)
+@MainActor
 struct AuthStateTests {
 
     private func cleanAuth() {
