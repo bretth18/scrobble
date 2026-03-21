@@ -26,15 +26,15 @@ struct LastFMWebAuthViewLegacy: View {
                     HStack(spacing: 8) {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .scaleEffect(0.8)
+                            .controlSize(.small)
                         Text("Loading authorization page...")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
             .padding()
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(.bar)
 
             // WebView
             LegacyWebView(
@@ -48,7 +48,7 @@ struct LastFMWebAuthViewLegacy: View {
 
             // Footer
             HStack(spacing: 16) {
-                Button("Cancel") {
+                Button("Cancel", role: .cancel) {
                     authState.isAuthenticating = false
                     lastFmManager.completeAuthorization(authorized: false)
                 }
@@ -71,7 +71,7 @@ struct LastFMWebAuthViewLegacy: View {
                 }
             }
             .padding()
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(.bar)
         }
         .frame(width: 600, height: 500)
     }

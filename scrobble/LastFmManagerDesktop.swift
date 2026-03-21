@@ -5,25 +5,35 @@
 //  Created by Brett Henderson on 2/4/25.
 //
 
-import Foundation
+import SwiftUI
 import Combine
-import CommonCrypto
 import CryptoKit
-import AppKit
-import SwiftUI
-import Observation
-
-import SwiftUI
-import Observation
 
 struct Secrets {
     static var lastFmApiKey: String {
-        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiKey") as? String ?? ""
+        Bundle.main.object(forInfoDictionaryKey: "LastFmApiKey") as? String ?? ""
     }
-    
+
     static var lastFmApiSecret: String {
-        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiSecret") as? String ?? ""
+        Bundle.main.object(forInfoDictionaryKey: "LastFmApiSecret") as? String ?? ""
     }
+}
+
+// MARK: - Testable Crypto Utilities
+
+func md5(_ string: String) -> String {
+    guard let data = string.data(using: .utf8) else { return "" }
+    return Insecure.MD5.hash(data: data).map { String(format: "%02hhx", $0) }.joined()
+}
+
+func createLastFmSignature(parameters: [String: Any], secret: String) -> String {
+    let sortedKeys = parameters.keys.sorted()
+    let concatenatedString = sortedKeys.reduce("") { result, key in
+        let value = parameters[key]!
+        return result + key + "\(value)"
+    }
+    let signatureString = concatenatedString + secret
+    return md5(signatureString)
 }
 
 @Observable
@@ -71,28 +81,13 @@ class LastFmDesktopManager: LastFmManagerType {
 
     // Retry configuration
     private let maxRetryAttempts = 3
-    private let baseRetryDelay: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    private let baseRetryDelay: Duration = .seconds(2)
     
     enum AuthStatus: Equatable {
         case unknown
         case needsAuth
         case authenticated
-        case failed(String)  // Changed from Error to String since Error isn't Equatable
-        
-        static func == (lhs: AuthStatus, rhs: AuthStatus) -> Bool {
-            switch (lhs, rhs) {
-            case (.unknown, .unknown):
-                return true
-            case (.needsAuth, .needsAuth):
-                return true
-            case (.authenticated, .authenticated):
-                return true
-            case (.failed(let lhsError), .failed(let rhsError)):
-                return lhsError == rhsError
-            default:
-                return false
-            }
-        }
+        case failed(String)
     }
 
     // Keep same init signature for compatibility
@@ -147,8 +142,19 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func checkSavedAuth() {
-        if let savedSessionKey = UserDefaults.standard.string(forKey: "lastfm_session_key") {
+        // Try Keychain first, fall back to UserDefaults for migration
+        if let savedSessionKey = KeychainHelper.load(key: "lastfm_session_key") {
             self.sessionKey = savedSessionKey
+            validateSavedSession()
+        } else if let legacySessionKey = UserDefaults.standard.string(forKey: "lastfm_session_key") {
+            // Migrate from UserDefaults to Keychain
+            self.sessionKey = legacySessionKey
+            _ = KeychainHelper.save(key: "lastfm_session_key", value: legacySessionKey)
+            UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
+            if !username.isEmpty {
+                _ = KeychainHelper.save(key: "lastfm_username", value: username)
+            }
+            Log.debug("Migrated session key from UserDefaults to Keychain", category: .auth)
             validateSavedSession()
         } else {
             authStatus = .needsAuth
@@ -160,30 +166,58 @@ class LastFmDesktopManager: LastFmManagerType {
             authStatus = .needsAuth
             return
         }
-        
+
+        // Use stored username from Keychain if the init username is empty
+        let validationUser = !username.isEmpty ? username : (KeychainHelper.load(key: "lastfm_username") ?? "")
+
         // Test the session with a simple API call
-        let parameters: [String: String] = [
+        var parameters: [String: String] = [
             "method": "user.getInfo",
-            "user": username,
             "api_key": apiKey,
             "sk": sessionKey
         ]
-        
+        if !validationUser.isEmpty {
+            parameters["user"] = validationUser
+        }
+
         makeRequest(parameters: parameters)
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
-                    if case .failure = completion {
-                        Log.debug("Saved session invalid, starting new authentication", category: .auth)
-                        UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
-                        self?.sessionKey = nil
-                        self?.isAuthenticated = false
-                        self?.authStatus = .needsAuth
+                    if case .failure(let error) = completion {
+                        // Only clear the session for explicit auth errors from Last.fm,
+                        // not for transient network failures
+                        let isAuthError: Bool
+                        if let scrobblerError = error as? ScrobblerError,
+                           case .apiError(let message) = scrobblerError {
+                            // Last.fm auth errors: 4 (invalid token), 9 (invalid session), 26 (suspended API key)
+                            isAuthError = message.contains("error 4:") || message.contains("error 9:") || message.contains("error 26:")
+                        } else {
+                            isAuthError = false
+                        }
+
+                        if isAuthError {
+                            Log.debug("Saved session invalid, clearing auth", category: .auth)
+                            KeychainHelper.delete(key: "lastfm_session_key")
+                            KeychainHelper.delete(key: "lastfm_username")
+                            self?.sessionKey = nil
+                            self?.isAuthenticated = false
+                            self?.authStatus = .needsAuth
+                            self?.authState.isAuthenticated = false
+                        } else {
+                            // Network or transient error — keep session, assume authenticated
+                            Log.debug("Session validation failed (transient), keeping session: \(error.localizedDescription)", category: .auth)
+                            self?.isAuthenticated = true
+                            self?.authStatus = .authenticated
+                            self?.authState.isAuthenticated = true
+                        }
                     }
                 },
                 receiveValue: { _ in
                     Log.debug("Saved session validated successfully", category: .auth)
+                    self.isAuthenticated = true
                     self.authStatus = .authenticated
+                    self.authState.isAuthenticated = true
                 }
             )
             .store(in: &cancellables)
@@ -221,7 +255,7 @@ class LastFmDesktopManager: LastFmManagerType {
         authTimeoutTask?.cancel()
         authTimeoutTask = Task {
             do {
-                try await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                try await Task.sleep(for: .seconds(60))
                 // If we get here, auth timed out
                 if !Task.isCancelled && authState.showingAuthSheet {
                     Log.debug("Authentication timed out after 60 seconds", category: .auth)
@@ -251,11 +285,14 @@ class LastFmDesktopManager: LastFmManagerType {
         authStatus = .failed(message)
     }
 
-    private func completeAuthWithSessionKey(_ sessionKey: String) {
+    private func completeAuthWithSessionKey(_ sessionKey: String, username: String? = nil) {
         cancelAuthTimeout()
 
         self.sessionKey = sessionKey
-        UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
+        _ = KeychainHelper.save(key: "lastfm_session_key", value: sessionKey)
+        if let username = username, !username.isEmpty {
+            _ = KeychainHelper.save(key: "lastfm_username", value: username)
+        }
         self.isAuthenticated = true
 
         // Clear pending auth token (auth is complete)
@@ -265,6 +302,7 @@ class LastFmDesktopManager: LastFmManagerType {
         authState.isAuthenticating = false
         authState.showingAuthSheet = false
         authState.authError = nil
+        authState.isAuthenticated = true
         authStatus = .authenticated
         authenticationSubject.send(())
 
@@ -290,8 +328,8 @@ class LastFmDesktopManager: LastFmManagerType {
 
             Task {
                 do {
-                    let sessionKey = try await getSessionWithRetry(token: currentAuthToken)
-                    completeAuthWithSessionKey(sessionKey)
+                    let result = try await getSessionWithRetry(token: currentAuthToken)
+                    completeAuthWithSessionKey(result.key, username: result.username)
                 } catch {
                     handleAuthFailure("Authentication failed: \(error.localizedDescription)")
                 }
@@ -302,20 +340,20 @@ class LastFmDesktopManager: LastFmManagerType {
     }
 
     /// Gets session with exponential backoff retry
-    private func getSessionWithRetry(token: String) async throws -> String {
+    private func getSessionWithRetry(token: String) async throws -> SessionResult {
         var lastError: Error?
 
         for attempt in 0..<maxRetryAttempts {
             do {
                 // Calculate delay with exponential backoff (0s, 2s, 4s)
                 if attempt > 0 {
-                    let delay = baseRetryDelay * UInt64(1 << (attempt - 1))
-                    Log.debug("Retry attempt \(attempt + 1)/\(maxRetryAttempts) after \(delay / 1_000_000_000)s delay", category: .auth)
-                    try await Task.sleep(nanoseconds: delay)
+                    let delay = baseRetryDelay * (1 << (attempt - 1))
+                    Log.debug("Retry attempt \(attempt + 1)/\(maxRetryAttempts) after \(delay) delay", category: .auth)
+                    try await Task.sleep(for: delay)
                 }
 
-                let sessionKey = try await getSessionAsync(token: token)
-                return sessionKey
+                let result = try await getSessionAsync(token: token)
+                return result
             } catch {
                 lastError = error
                 Log.debug("Session request attempt \(attempt + 1) failed: \(error.localizedDescription)", category: .auth)
@@ -351,11 +389,12 @@ class LastFmDesktopManager: LastFmManagerType {
         if let url = URL(string: "http://www.last.fm/api/auth/?api_key=\(self.apiKey)&token=\(currentAuthToken)&cb=\(callbackURL)") {
             let configuration = NSWorkspace.OpenConfiguration()
             configuration.createsNewApplicationInstance = true
-            NSWorkspace.shared.open(url, configuration: configuration) { app, error in
-                if let error = error {
-                    Log.error("Failed to reopen auth URL: \(error)", category: .auth)
-                } else {
+            Task {
+                do {
+                    _ = try await NSWorkspace.shared.open(url, configuration: configuration)
                     Log.debug("Reopened auth URL in new browser window: \(url)", category: .auth)
+                } catch {
+                    Log.error("Failed to reopen auth URL: \(error)", category: .auth)
                 }
             }
         }
@@ -386,7 +425,12 @@ class LastFmDesktopManager: LastFmManagerType {
         return response.token
     }
 
-    private func getSessionAsync(token: String) async throws -> String {
+    private struct SessionResult {
+        let key: String
+        let username: String
+    }
+
+    private func getSessionAsync(token: String) async throws -> SessionResult {
         Log.debug("Requesting session with token: \(token)", category: .auth)
 
         let parameters: [String: Any] = [
@@ -418,7 +462,7 @@ class LastFmDesktopManager: LastFmManagerType {
         // Try to decode as a successful session response
         let response = try JSONDecoder().decode(SessionResponse.self, from: data)
         Log.debug("Session response received: \(response.session)", category: .auth)
-        return response.session.key
+        return SessionResult(key: response.session.key, username: response.session.name)
     }
 
     private func makeRequestAsync(parameters: [String: Any]) async throws -> Data {
@@ -473,11 +517,11 @@ class LastFmDesktopManager: LastFmManagerType {
             Task {
                 do {
                     // Wait 3 seconds before requesting the session (legacy behavior)
-                    try await Task.sleep(nanoseconds: 3_000_000_000)
+                    try await Task.sleep(for: .seconds(3))
                     Log.debug("Making session request after delay...", category: .auth)
 
-                    let sessionKey = try await self.getSessionAsync(token: token)
-                    promise(.success(sessionKey))
+                    let result = try await self.getSessionAsync(token: token)
+                    promise(.success(result.key))
                 } catch {
                     Log.error("Session request failed with error: \(error)", category: .auth)
                     promise(.failure(error))
@@ -493,7 +537,7 @@ class LastFmDesktopManager: LastFmManagerType {
             return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
         }
 
-        let timestamp = Int(Date().timeIntervalSince1970)
+        let timestamp = Int(Date.now.timeIntervalSince1970)
         var parameters: [String: String] = [
             "method": "track.scrobble",
             "artist": artist,
@@ -612,18 +656,7 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func createSignature(parameters: [String: Any]) -> String {
-        let sortedKeys = parameters.keys.sorted()
-        let concatenatedString = sortedKeys.reduce("") { result, key in
-            let value = parameters[key]!
-            return result + key + "\(value)"
-        }
-        let signatureString = concatenatedString + apiSecret
-        return md5(string: signatureString)
-    }
-    
-    private func md5(string: String) -> String {
-        guard let data = string.data(using: .utf8) else { return "" }
-        return Insecure.MD5.hash(data: data).map { String(format: "%02hhx", $0) }.joined()
+        createLastFmSignature(parameters: parameters, secret: apiSecret)
     }
 }
 
@@ -659,7 +692,8 @@ extension LastFmDesktopManager {
         // Clear all auth state
         sessionKey = nil
         currentAuthToken = ""  // This also clears UserDefaults pending token
-        UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
+        KeychainHelper.delete(key: "lastfm_session_key")
+        KeychainHelper.delete(key: "lastfm_username")
 
         authState.signOut()
         authStatus = .needsAuth

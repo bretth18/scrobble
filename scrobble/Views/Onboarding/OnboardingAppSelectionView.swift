@@ -1,35 +1,45 @@
 //
-//  AppSelectionView.swift
+//  OnboardingAppSelectionView.swift
 //  scrobble
 //
-//  Created by Brett Henderson on 9/19/25.
+//  Created by Claude on 1/12/26.
 //
 
 import SwiftUI
 
-struct AppSelectionView: View {
+struct OnboardingAppSelectionView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @State private var runningApps: [SupportedMusicApp] = []
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
-            Text("Select Music App")
-                .font(.headline)
-                .padding(.horizontal)
-                .padding(.top)
+        VStack(spacing: 20) {
+            Spacer()
 
-            Text("Choose which app to monitor for scrobbling:")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal)
+            // Header
+            VStack(spacing: 8) {
+                Image(systemName: "music.note.tv")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.accentColor)
 
+                Text("Choose Your Music App")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text("Select which app you use to play music. Scrobble will monitor this app for playback.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
+            }
+
+            // App selection grid
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: DesignTokens.spacingDefault) {
+            ], spacing: 12) {
                 ForEach(SupportedMusicApp.allApps, id: \.self) { app in
-                    AppSelectionButton(
+                    OnboardingAppButton(
                         app: app,
                         isSelected: app == preferencesManager.selectedMusicApp,
                         isRunning: runningApps.contains(app)
@@ -39,63 +49,43 @@ struct AppSelectionView: View {
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, DesignTokens.contentPaddingHorizontal)
 
+            // Running apps indicator
             if !runningApps.isEmpty {
-                HStack {
-                    Image(systemName: "circle.fill")
-                        .foregroundStyle(.green)
-                        .font(.caption)
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(.green)
+                        .frame(width: 6, height: 6)
                         .accessibilityHidden(true)
-                    Text("Currently Running: ")
+                    Text("Running: \(runningApps.map { $0.displayName }.joined(separator: ", "))")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(runningApps.map { $0.displayName }.joined(separator: ", "))
-                        .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.horizontal)
             }
 
-            Divider()
-                .padding(.horizontal)
+            Spacer()
 
-            VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
-                HStack {
-                    Image(systemName: "info.circle")
+            // Current selection info
+            VStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: preferencesManager.selectedMusicApp.icon)
                         .foregroundStyle(Color.accentColor)
-                    Text("Current Selection")
+                    Text("Selected: \(preferencesManager.selectedMusicApp.displayName)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.spacingTight) {
-                    Image(systemName: preferencesManager.selectedMusicApp.icon)
-                        .foregroundStyle(Color.accentColor)
-                        .aspectRatio(contentMode: .fill)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(preferencesManager.selectedMusicApp.displayName)
-                            .font(.body)
-                            .fontWeight(.medium)
-
-                        if !preferencesManager.selectedMusicApp.alternativeNames.isEmpty {
-                            Text("Also recognizes: \(preferencesManager.selectedMusicApp.alternativeNames.joined(separator: ", "))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2, reservesSpace: true)
-                        }
-                    }
+                if !preferencesManager.selectedMusicApp.alternativeNames.isEmpty &&
+                   preferencesManager.selectedMusicApp.bundleId != "any" {
+                    Text("Also recognizes: \(preferencesManager.selectedMusicApp.alternativeNames.prefix(3).joined(separator: ", "))")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
-                .padding(DesignTokens.spacingDefault)
-                .compatGlass(cornerRadius: DesignTokens.cornerRadiusMedium)
             }
-            .padding(.horizontal)
-
-            Spacer()
+            .padding(.bottom, 8)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
         .onAppear {
             updateRunningApps()
         }
@@ -127,7 +117,7 @@ struct AppSelectionView: View {
     }
 }
 
-struct AppSelectionButton: View {
+struct OnboardingAppButton: View {
     let app: SupportedMusicApp
     let isSelected: Bool
     let isRunning: Bool
@@ -135,32 +125,38 @@ struct AppSelectionButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: DesignTokens.spacingDefault) {
+            VStack(spacing: 8) {
                 ZStack {
                     Image(systemName: app.icon)
-                        .font(.title2)
-                        .foregroundStyle(isSelected ? .white : .secondary)
+                        .font(.title)
+                        .foregroundStyle(isSelected ? .white : .primary)
 
                     if isRunning {
                         Circle()
                             .fill(.green)
                             .frame(width: 8, height: 8)
-                            .offset(x: 12, y: -12)
-                            .accessibilityHidden(true)
+                            .offset(x: 14, y: -14)
                     }
                 }
 
                 Text(app.displayName)
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(isSelected ? .white : .secondary)
-                    .multilineTextAlignment(.center)
+                    .foregroundStyle(isSelected ? .white : .primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, DesignTokens.spacingSection)
-            .padding(.horizontal, DesignTokens.spacingDefault)
+            .padding(.vertical, DesignTokens.spacingLarge)
+            .padding(.horizontal, DesignTokens.spacingSection)
+            .background {
+                RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusLarge)
+                    .fill(isSelected ? Color.accentColor : Color.primary.opacity(0.04))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusLarge)
+                    .strokeBorder(isSelected ? Color.clear : Color.secondary.opacity(0.2), lineWidth: 1)
+            }
         }
-        .compatGlassButtonStyle(selected: isSelected)
+        .buttonStyle(.plain)
         .accessibilityLabel("\(app.displayName)\(isRunning ? ", running" : "")")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
@@ -175,7 +171,9 @@ struct AppSelectionButton: View {
         username: prefManager.username,
         authState: authState
     )
-    AppSelectionView()
+
+    OnboardingAppSelectionView()
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+        .frame(width: 500, height: 450)
 }

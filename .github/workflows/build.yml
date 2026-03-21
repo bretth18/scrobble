@@ -25,3 +25,7 @@ jobs:
     - name: Build App
       run: |
         xcodebuild -scheme scrobble -destination 'platform=macOS' -configuration Release build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+    - name: Run Tests
+      run: |
+        xcodebuild -scheme scrobbleTests -destination 'platform=macOS' test CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
