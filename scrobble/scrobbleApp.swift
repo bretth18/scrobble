@@ -160,6 +160,7 @@ struct OnboardingLauncher: View {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Setup URL event handling for Last.fm authentication callbacks

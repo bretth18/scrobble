@@ -5,11 +5,10 @@
 //  Created by Claude on 1/12/26.
 //
 
-import Foundation
 import SwiftUI
-import Observation
 
 @Observable
+@MainActor
 class OnboardingState {
     enum Step: Int, CaseIterable {
         case welcome

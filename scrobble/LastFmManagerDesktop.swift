@@ -5,24 +5,17 @@
 //  Created by Brett Henderson on 2/4/25.
 //
 
-import Foundation
+import SwiftUI
 import Combine
-import CommonCrypto
 import CryptoKit
-import AppKit
-import SwiftUI
-import Observation
-
-import SwiftUI
-import Observation
 
 struct Secrets {
     static var lastFmApiKey: String {
-        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiKey") as? String ?? ""
+        Bundle.main.object(forInfoDictionaryKey: "LastFmApiKey") as? String ?? ""
     }
-    
+
     static var lastFmApiSecret: String {
-        return Bundle.main.object(forInfoDictionaryKey: "LastFmApiSecret") as? String ?? ""
+        Bundle.main.object(forInfoDictionaryKey: "LastFmApiSecret") as? String ?? ""
     }
 }
 
@@ -88,28 +81,13 @@ class LastFmDesktopManager: LastFmManagerType {
 
     // Retry configuration
     private let maxRetryAttempts = 3
-    private let baseRetryDelay: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    private let baseRetryDelay: Duration = .seconds(2)
     
     enum AuthStatus: Equatable {
         case unknown
         case needsAuth
         case authenticated
-        case failed(String)  // Changed from Error to String since Error isn't Equatable
-        
-        static func == (lhs: AuthStatus, rhs: AuthStatus) -> Bool {
-            switch (lhs, rhs) {
-            case (.unknown, .unknown):
-                return true
-            case (.needsAuth, .needsAuth):
-                return true
-            case (.authenticated, .authenticated):
-                return true
-            case (.failed(let lhsError), .failed(let rhsError)):
-                return lhsError == rhsError
-            default:
-                return false
-            }
-        }
+        case failed(String)
     }
 
     // Keep same init signature for compatibility
@@ -203,7 +181,7 @@ class LastFmDesktopManager: LastFmManagerType {
         }
 
         makeRequest(parameters: parameters)
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
@@ -277,7 +255,7 @@ class LastFmDesktopManager: LastFmManagerType {
         authTimeoutTask?.cancel()
         authTimeoutTask = Task {
             do {
-                try await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                try await Task.sleep(for: .seconds(60))
                 // If we get here, auth timed out
                 if !Task.isCancelled && authState.showingAuthSheet {
                     Log.debug("Authentication timed out after 60 seconds", category: .auth)
@@ -369,9 +347,9 @@ class LastFmDesktopManager: LastFmManagerType {
             do {
                 // Calculate delay with exponential backoff (0s, 2s, 4s)
                 if attempt > 0 {
-                    let delay = baseRetryDelay * UInt64(1 << (attempt - 1))
-                    Log.debug("Retry attempt \(attempt + 1)/\(maxRetryAttempts) after \(delay / 1_000_000_000)s delay", category: .auth)
-                    try await Task.sleep(nanoseconds: delay)
+                    let delay = baseRetryDelay * (1 << (attempt - 1))
+                    Log.debug("Retry attempt \(attempt + 1)/\(maxRetryAttempts) after \(delay) delay", category: .auth)
+                    try await Task.sleep(for: delay)
                 }
 
                 let result = try await getSessionAsync(token: token)
@@ -411,11 +389,12 @@ class LastFmDesktopManager: LastFmManagerType {
         if let url = URL(string: "http://www.last.fm/api/auth/?api_key=\(self.apiKey)&token=\(currentAuthToken)&cb=\(callbackURL)") {
             let configuration = NSWorkspace.OpenConfiguration()
             configuration.createsNewApplicationInstance = true
-            NSWorkspace.shared.open(url, configuration: configuration) { app, error in
-                if let error = error {
-                    Log.error("Failed to reopen auth URL: \(error)", category: .auth)
-                } else {
+            Task {
+                do {
+                    _ = try await NSWorkspace.shared.open(url, configuration: configuration)
                     Log.debug("Reopened auth URL in new browser window: \(url)", category: .auth)
+                } catch {
+                    Log.error("Failed to reopen auth URL: \(error)", category: .auth)
                 }
             }
         }
@@ -538,7 +517,7 @@ class LastFmDesktopManager: LastFmManagerType {
             Task {
                 do {
                     // Wait 3 seconds before requesting the session (legacy behavior)
-                    try await Task.sleep(nanoseconds: 3_000_000_000)
+                    try await Task.sleep(for: .seconds(3))
                     Log.debug("Making session request after delay...", category: .auth)
 
                     let result = try await self.getSessionAsync(token: token)
@@ -558,7 +537,7 @@ class LastFmDesktopManager: LastFmManagerType {
             return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
         }
 
-        let timestamp = Int(Date().timeIntervalSince1970)
+        let timestamp = Int(Date.now.timeIntervalSince1970)
         var parameters: [String: String] = [
             "method": "track.scrobble",
             "artist": artist,
@@ -677,7 +656,7 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func createSignature(parameters: [String: Any]) -> String {
-        return createLastFmSignature(parameters: parameters, secret: apiSecret)
+        createLastFmSignature(parameters: parameters, secret: apiSecret)
     }
 }
 
