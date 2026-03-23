@@ -19,7 +19,7 @@ struct ScrobblingView: View {
                 Text(
                     "v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
                 )
-                .font(.caption2)
+                .font(.caption)
                 .foregroundStyle(.tertiary)
             }
             .padding(.horizontal)
@@ -31,7 +31,7 @@ struct ScrobblingView: View {
                     "monitoring:",
                     systemImage: preferencesManager.selectedMusicApp.icon
                 )
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.tertiary)
                 Spacer()
                 Text(
@@ -47,7 +47,7 @@ struct ScrobblingView: View {
             // Scrobbling Services Status
             VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
                 Text("scrobbling to:")
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.tertiary)
 
                 ServicesStatusView()
@@ -103,7 +103,8 @@ struct ScrobblingView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
                                 .font(.caption)
-                                .transition(.scale.combined(with: .opacity))
+                                .transition(.opacity)
+                                .accessibilityLabel("Scrobble succeeded")
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: scrobbler.showScrobbleSuccess)

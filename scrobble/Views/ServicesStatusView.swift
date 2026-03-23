@@ -39,7 +39,7 @@ struct ServicesStatusView: View {
 
                     if !service.isAuthenticated {
                         Text("not authenticated")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
                 }

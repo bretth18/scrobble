@@ -48,7 +48,7 @@ struct FriendCardView: View {
             }
 
             if recentTracks.isEmpty {
-                Text("No recent tracks")
+                Label("No recent tracks", systemImage: "music.note.slash")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -68,8 +68,8 @@ struct FriendCardView: View {
                             } placeholder: {
                                 Color.gray.opacity(0.2)
                             }
-                            .frame(width: 24, height: 24)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .frame(width: DesignTokens.artworkSizeInline, height: DesignTokens.artworkSizeInline)
+                            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusSmall))
 
                             VStack(alignment: .leading) {
                                 Text("\(track.artist.text) - \(track.name)")
@@ -95,7 +95,6 @@ struct FriendCardView: View {
                             }
                             Spacer()
                         }
-                        .contentShape(Rectangle())
                     }
                 }
             }

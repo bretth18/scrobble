@@ -52,7 +52,7 @@ struct AppSelectionView: View {
                         .foregroundStyle(.secondary)
 
                     Text(runningApps.map { $0.displayName }.joined(separator: ", "))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal)
@@ -62,20 +62,17 @@ struct AppSelectionView: View {
                 .padding(.horizontal)
 
             VStack(alignment: .leading, spacing: DesignTokens.spacingDefault) {
-                HStack {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(Color.accentColor)
-                    Text("Current Selection")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
+                Label("Current Selection", systemImage: "info.circle")
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundStyle(Color.accentColor)
 
                 HStack(alignment: .firstTextBaseline, spacing: DesignTokens.spacingTight) {
                     Image(systemName: preferencesManager.selectedMusicApp.icon)
                         .foregroundStyle(Color.accentColor)
                         .aspectRatio(contentMode: .fill)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 2) { // tight title/subtitle pair
                         Text(preferencesManager.selectedMusicApp.displayName)
                             .font(.body)
                             .fontWeight(.medium)
@@ -124,45 +121,6 @@ struct AppSelectionView: View {
         }
         let musicBundleIds = SupportedMusicApp.allApps.map { $0.bundleId }.filter { $0 != "any" }
         return musicBundleIds.contains(bundleId)
-    }
-}
-
-struct AppSelectionButton: View {
-    let app: SupportedMusicApp
-    let isSelected: Bool
-    let isRunning: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: DesignTokens.spacingDefault) {
-                ZStack {
-                    Image(systemName: app.icon)
-                        .font(.title2)
-                        .foregroundStyle(isSelected ? .white : .secondary)
-
-                    if isRunning {
-                        Circle()
-                            .fill(.green)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 12, y: -12)
-                            .accessibilityHidden(true)
-                    }
-                }
-
-                Text(app.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(isSelected ? .white : .secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, DesignTokens.spacingSection)
-            .padding(.horizontal, DesignTokens.spacingDefault)
-        }
-        .compatGlassButtonStyle(selected: isSelected)
-        .accessibilityLabel("\(app.displayName)\(isRunning ? ", running" : "")")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

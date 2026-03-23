@@ -7,8 +7,31 @@
 
 import Foundation
 import AppKit
-
 import Observation
+
+/// Wraps a UserDefaults-backed value with @Observable change tracking.
+/// This avoids relying on `didSet` which can break with the @Observable macro.
+@propertyWrapper
+struct DefaultsBacked<Value> {
+    let key: String
+    let defaultValue: Value
+    let store: UserDefaults
+
+    init(wrappedValue: Value, _ key: String, store: UserDefaults = .standard) {
+        self.key = key
+        self.defaultValue = wrappedValue
+        self.store = store
+    }
+
+    var wrappedValue: Value {
+        get {
+            store.object(forKey: key).flatMap { $0 as? Value } ?? defaultValue
+        }
+        set {
+            store.set(newValue, forKey: key)
+        }
+    }
+}
 
 @Observable
 @MainActor
@@ -16,134 +39,192 @@ class PreferencesManager {
     // Standard access for secrets
     var apiKey: String { Secrets.lastFmApiKey }
     var apiSecret: String { Secrets.lastFmApiSecret }
-    
-    var username: String = "" {
-        didSet { UserDefaults.standard.set(username, forKey: "lastFmUsername") }
-    }
-    
+
     // Password is no longer stored — kept for API compatibility only
     var password: String = ""
-    
-    var numberOfFriendsDisplayed: Int = 10 {
-        didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
-    }
-    
-    var numberOfFriendsRecentTracksDisplayed: Int = 5 {
-        didSet { UserDefaults.standard.set(numberOfFriendsRecentTracksDisplayed, forKey: "numberOfFriendsRecentTracksDisplayed")}
-    }
-    
-    var selectedMusicApp: SupportedMusicApp = SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })! {
-        didSet { 
-            UserDefaults.standard.set(selectedMusicApp.bundleId, forKey: "selectedMusicAppBundleId")
-            if _isInitialized {
-                mediaAppSource = selectedMusicApp.displayName
+
+    @ObservationIgnored @DefaultsBacked("lastFmUsername")
+    private var _username: String = ""
+    var username: String {
+        get {
+            access(keyPath: \.username)
+            return _username
+        }
+        set {
+            withMutation(keyPath: \.username) {
+                _username = newValue
             }
         }
     }
-    
-    // Scrobble configuration
-    var trackCompletionPercentageBeforeScrobble: Int = 50 {
-        didSet { UserDefaults.standard.set(trackCompletionPercentageBeforeScrobble, forKey: "trackCompletionPercentageBeforeScrobble") }
-    }
-    
-    // default max delay of 240 seconds (4 minutes)
-    
-    var useMaxTrackCompletionScrobbleDelay: Bool = true {
-        didSet {
-            UserDefaults.standard.set(useMaxTrackCompletionScrobbleDelay, forKey: "useMaxTrackCompletionScrobbleDelay")
+
+    @ObservationIgnored @DefaultsBacked("numberOfFriendsDisplayed")
+    private var _numberOfFriendsDisplayed: Int = 10
+    var numberOfFriendsDisplayed: Int {
+        get {
+            access(keyPath: \.numberOfFriendsDisplayed)
+            return _numberOfFriendsDisplayed
+        }
+        set {
+            withMutation(keyPath: \.numberOfFriendsDisplayed) {
+                _numberOfFriendsDisplayed = newValue
+            }
         }
     }
-    var maxTrackCompletionScrobbleDelay: Int? = 240 {
-        didSet { UserDefaults.standard.set(maxTrackCompletionScrobbleDelay, forKey: "maxTrackCompletionScrobbleDelay") }
-    }
-    
-    // Keep for backwards compatibility
-    var mediaAppSource: String = "Apple Music" {
-        didSet { UserDefaults.standard.set(mediaAppSource, forKey: "mediaAppSource") }
-    }
-    
-    // Custom scrobbler settings
-    var enableCustomScrobbler: Bool = false {
-        didSet { UserDefaults.standard.set(enableCustomScrobbler, forKey: "enableCustomScrobbler") }
-    }
-    
-    var blueskyHandle: String = "" {
-        didSet { UserDefaults.standard.set(blueskyHandle, forKey: "blueskyHandle") }
-    }
-    
-    // Last.fm settings
-    var enableLastFm: Bool = true {
-        didSet { UserDefaults.standard.set(enableLastFm, forKey: "enableLastFm") }
-    }
-    
-    // App settings
-    var launchAtLogin: Bool = false {
-        didSet {
-            UserDefaults.standard.set(launchAtLogin, forKey: "launchAtLogin")
+
+    @ObservationIgnored @DefaultsBacked("numberOfFriendsRecentTracksDisplayed")
+    private var _numberOfFriendsRecentTracksDisplayed: Int = 5
+    var numberOfFriendsRecentTracksDisplayed: Int {
+        get {
+            access(keyPath: \.numberOfFriendsRecentTracksDisplayed)
+            return _numberOfFriendsRecentTracksDisplayed
+        }
+        set {
+            withMutation(keyPath: \.numberOfFriendsRecentTracksDisplayed) {
+                _numberOfFriendsRecentTracksDisplayed = newValue
+            }
         }
     }
-    
-    private var _isInitialized = false
-    
+
+    @ObservationIgnored @DefaultsBacked("trackCompletionPercentageBeforeScrobble")
+    private var _trackCompletionPercentageBeforeScrobble: Int = 50
+    var trackCompletionPercentageBeforeScrobble: Int {
+        get {
+            access(keyPath: \.trackCompletionPercentageBeforeScrobble)
+            return _trackCompletionPercentageBeforeScrobble
+        }
+        set {
+            withMutation(keyPath: \.trackCompletionPercentageBeforeScrobble) {
+                _trackCompletionPercentageBeforeScrobble = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("useMaxTrackCompletionScrobbleDelay")
+    private var _useMaxTrackCompletionScrobbleDelay: Bool = true
+    var useMaxTrackCompletionScrobbleDelay: Bool {
+        get {
+            access(keyPath: \.useMaxTrackCompletionScrobbleDelay)
+            return _useMaxTrackCompletionScrobbleDelay
+        }
+        set {
+            withMutation(keyPath: \.useMaxTrackCompletionScrobbleDelay) {
+                _useMaxTrackCompletionScrobbleDelay = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("maxTrackCompletionScrobbleDelay")
+    private var _maxTrackCompletionScrobbleDelay: Int = 240
+    var maxTrackCompletionScrobbleDelay: Int {
+        get {
+            access(keyPath: \.maxTrackCompletionScrobbleDelay)
+            return _maxTrackCompletionScrobbleDelay
+        }
+        set {
+            withMutation(keyPath: \.maxTrackCompletionScrobbleDelay) {
+                _maxTrackCompletionScrobbleDelay = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("mediaAppSource")
+    private var _mediaAppSource: String = "Apple Music"
+    var mediaAppSource: String {
+        get {
+            access(keyPath: \.mediaAppSource)
+            return _mediaAppSource
+        }
+        set {
+            withMutation(keyPath: \.mediaAppSource) {
+                _mediaAppSource = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("enableCustomScrobbler")
+    private var _enableCustomScrobbler: Bool = false
+    var enableCustomScrobbler: Bool {
+        get {
+            access(keyPath: \.enableCustomScrobbler)
+            return _enableCustomScrobbler
+        }
+        set {
+            withMutation(keyPath: \.enableCustomScrobbler) {
+                _enableCustomScrobbler = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("blueskyHandle")
+    private var _blueskyHandle: String = ""
+    var blueskyHandle: String {
+        get {
+            access(keyPath: \.blueskyHandle)
+            return _blueskyHandle
+        }
+        set {
+            withMutation(keyPath: \.blueskyHandle) {
+                _blueskyHandle = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("enableLastFm")
+    private var _enableLastFm: Bool = true
+    var enableLastFm: Bool {
+        get {
+            access(keyPath: \.enableLastFm)
+            return _enableLastFm
+        }
+        set {
+            withMutation(keyPath: \.enableLastFm) {
+                _enableLastFm = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("launchAtLogin")
+    private var _launchAtLogin: Bool = false
+    var launchAtLogin: Bool {
+        get {
+            access(keyPath: \.launchAtLogin)
+            return _launchAtLogin
+        }
+        set {
+            withMutation(keyPath: \.launchAtLogin) {
+                _launchAtLogin = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("selectedMusicAppBundleId")
+    private var _selectedMusicAppBundleId: String = "com.apple.Music"
+    var selectedMusicApp: SupportedMusicApp {
+        get {
+            access(keyPath: \.selectedMusicApp)
+            return SupportedMusicApp.findApp(byBundleId: _selectedMusicAppBundleId)
+                ?? SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })!
+        }
+        set {
+            withMutation(keyPath: \.selectedMusicApp) {
+                _selectedMusicAppBundleId = newValue.bundleId
+                _mediaAppSource = newValue.displayName
+            }
+        }
+    }
+
     init() {
-        self.username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
-        // Password no longer persisted (was previously stored insecurely in UserDefaults)
+        // Clean up legacy password storage
         UserDefaults.standard.removeObject(forKey: "lastFmPassword")
-        
-        let savedShown = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed")
-        if savedShown > 0 {
-            self.numberOfFriendsDisplayed = savedShown
-        }
-        
-        let savedRecentTracks = UserDefaults.standard.integer(forKey: "numberOfFriendsRecentTracksDisplayed")
-        if savedRecentTracks > 0 {
-            self.numberOfFriendsRecentTracksDisplayed = savedRecentTracks
-        }
-        
-        let savedCompletionPercentage = UserDefaults.standard.integer(forKey: "trackCompletionPercentageBeforeScrobble")
-        if savedCompletionPercentage > 0 {
-            self.trackCompletionPercentageBeforeScrobble = savedCompletionPercentage
-        }
-        
-        if UserDefaults.standard.object(forKey: "useMaxTrackCompletionScrobbleDelay") != nil {
-            self.useMaxTrackCompletionScrobbleDelay = UserDefaults.standard.bool(forKey: "useMaxTrackCompletionScrobbleDelay")
-        }
-
-        let savedMaxDelay = UserDefaults.standard.integer(forKey: "maxTrackCompletionScrobbleDelay")
-        if savedMaxDelay > 0 {
-            self.maxTrackCompletionScrobbleDelay = savedMaxDelay
-        }
-
-        self.mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
-        
-        self.enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")
-        self.blueskyHandle = UserDefaults.standard.string(forKey: "blueskyHandle") ?? ""
-        
-        self.launchAtLogin = UserDefaults.standard.bool(forKey: "launchAtLogin")
-        
-        // Initialize Last.fm settings
-        if UserDefaults.standard.object(forKey: "enableLastFm") != nil {
-            self.enableLastFm = UserDefaults.standard.bool(forKey: "enableLastFm")
-        }
-        
-        let savedBundleId = UserDefaults.standard.string(forKey: "selectedMusicAppBundleId") ?? "com.apple.Music"
-        self.selectedMusicApp = SupportedMusicApp.findApp(byBundleId: savedBundleId) ?? SupportedMusicApp.allApps.first(where: { $0.bundleId == "com.apple.Music" })!
-        
-        // Sync mediaAppSource
-        if mediaAppSource != selectedMusicApp.displayName {
-            mediaAppSource = selectedMusicApp.displayName
-        }
-        
-        _isInitialized = true
     }
-    
+
     func showPreferences() {
         if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "preferences" }) {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
     }
-    
+
     func showMainWindow() {
         if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
             window.makeKeyAndOrderFront(nil)

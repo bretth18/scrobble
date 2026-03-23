@@ -63,10 +63,10 @@ struct PreferencesView: View {
                 HStack {
                     Text("scrobble v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
                         .font(.headline)
-                        .fontWeight(.bold)
+                        .bold()
 
                     Text("[build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown")]")
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
 
                     Spacer()
@@ -76,14 +76,14 @@ struct PreferencesView: View {
 
                 HStack {
                     Text("copyright \u{00A9} 2025-2026 COMPUTER DATA")
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
 
                     Link("GitHub", destination: URL(string: "https://github.com/bretth18/scrobble")!)
-                        .font(.caption2)
+                        .font(.caption)
                     Link("License", destination: URL(string: "https://github.com/bretth18/scrobble/blob/main/LICENSE")!)
-                        .font(.caption2)
+                        .font(.caption)
                 }
             }
 

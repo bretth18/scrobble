@@ -11,15 +11,15 @@ struct MarqueeRenderer: TextRenderer {
     var offset: Double
     var containerWidth: Double
     var fadeWidth: Double = 20
-    
+
     var animatableData: Double {
         get { offset }
         set { offset = newValue }
     }
-    
+
     func draw(layout: Text.Layout, in context: inout GraphicsContext) {
         let textWidth = layout.first?.typographicBounds.width ?? 0
-        
+
         // Edge fade masks
         let leftFade = GraphicsContext.Shading.linearGradient(
             Gradient(colors: [.clear, .white]),
@@ -31,10 +31,10 @@ struct MarqueeRenderer: TextRenderer {
             startPoint: CGPoint(x: containerWidth - fadeWidth, y: 0),
             endPoint: CGPoint(x: containerWidth, y: 0)
         )
-        
+
         context.clipToLayer { ctx in
             ctx.fill(Path(CGRect(x: 0, y: 0, width: containerWidth, height: 1000)), with: .color(.white))
-            
+
             // Apply fades only when text is scrolling past edges
             if offset < 0 {
                 ctx.fill(Path(CGRect(x: 0, y: 0, width: fadeWidth, height: 1000)), with: leftFade)
@@ -43,7 +43,7 @@ struct MarqueeRenderer: TextRenderer {
                 ctx.fill(Path(CGRect(x: containerWidth - fadeWidth, y: 0, width: fadeWidth, height: 1000)), with: rightFade)
             }
         }
-        
+
         for line in layout {
             for run in line {
                 for glyph in run {
@@ -73,27 +73,34 @@ struct MarqueeText: View {
     }
 
     var body: some View {
+        // Hidden text reserves the correct line height in layout,
+        // truncated so it never pushes the container wider.
         Text(text)
             .font(font)
             .lineLimit(1)
-            .fixedSize()
-            .background(GeometryReader { geo in
-                Color.clear
-                    .onAppear { textWidth = geo.size.width }
-                    .onChange(of: text) {
-                        textWidth = geo.size.width
-                    }
-            })
-            .textRenderer(MarqueeRenderer(offset: offset, containerWidth: containerWidth))
+            .truncationMode(.tail)
+            .hidden()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .clipped()
-            .background(GeometryReader { geo in
-                Color.clear
-                    .onAppear { containerWidth = geo.size.width }
-                    .onChange(of: geo.size.width) { _, newWidth in
-                        containerWidth = newWidth
-                    }
-            })
+            .overlay {
+                GeometryReader { geo in
+                    // Actual marquee text, rendered in an overlay so
+                    // .fixedSize() can't influence the parent's width.
+                    Text(text)
+                        .font(font)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .background(GeometryReader { textGeo in
+                            Color.clear
+                                .onAppear { textWidth = textGeo.size.width }
+                                .onChange(of: text) { textWidth = textGeo.size.width }
+                        })
+                        .textRenderer(MarqueeRenderer(offset: offset, containerWidth: geo.size.width))
+                        .frame(width: geo.size.width, alignment: .leading)
+                        .clipped()
+                        .onAppear { containerWidth = geo.size.width }
+                        .onChange(of: geo.size.width) { _, w in containerWidth = w }
+                }
+            }
             .onHover { hovering in
                 isHovering = hovering
                 if hovering && needsScrolling {
@@ -108,7 +115,6 @@ struct MarqueeText: View {
     }
 
     private func startAnimation() {
-        // Cancel any existing animation first
         animationTask?.cancel()
 
         guard needsScrolling else { return }
@@ -118,25 +124,20 @@ struct MarqueeText: View {
 
         animationTask = Task { @MainActor in
             while !Task.isCancelled && isHovering {
-                // Reset to start
                 withAnimation(.easeOut(duration: 0.2)) {
                     offset = 0
                 }
 
-                // Brief pause at start
                 try? await Task.sleep(for: .seconds(pauseDuration))
                 guard !Task.isCancelled && isHovering else { break }
 
-                // Scroll left
                 withAnimation(.linear(duration: scrollDuration)) {
                     offset = -scrollDistance
                 }
 
-                // Wait for scroll animation to complete + pause at end
                 try? await Task.sleep(for: .seconds(scrollDuration + pauseDuration))
             }
 
-            // Reset position when done
             if !isHovering {
                 withAnimation(.easeOut(duration: 0.2)) {
                     offset = 0
@@ -151,14 +152,19 @@ struct MarqueeText: View {
     }
 }
 
-
-
-
-
 #Preview {
-    MarqueeText(
-        text: "Some Really Long Song Title That Needs to Scroll",
-        font: .headline
-    )
-    .frame(width: 200)
+    VStack(alignment: .leading, spacing: 12) {
+        MarqueeText(
+            text: "Short text",
+            font: .body
+        )
+        MarqueeText(
+            text: "Some Really Long Song Title That Definitely Needs to Scroll On Hover",
+            font: .headline
+        )
+        Text("Regular text below for spacing comparison")
+            .font(.body)
+    }
+    .frame(width: 250)
+    .padding()
 }

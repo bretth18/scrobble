@@ -37,8 +37,11 @@ struct FriendsView: View {
                 ProgressView()
                     .progressViewStyle(.circular)
             } else if model.friends.isEmpty {
-                Text("No friends found")
-                    .foregroundStyle(.secondary)
+                ContentUnavailableView(
+                    "No Friends Found",
+                    systemImage: "person.2.slash",
+                    description: Text("Connect with friends on Last.fm to see their activity here.")
+                )
             } else {
                 ScrollView {
                     LazyVStack(spacing: DesignTokens.spacingLarge) {

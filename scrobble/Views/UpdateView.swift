@@ -21,7 +21,7 @@ struct UpdateSettingsView: View {
                     .foregroundStyle(.secondary)
 
                 Text(updateChecker.currentVersionString)
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
 
                 Spacer()
@@ -45,7 +45,7 @@ struct UpdateSettingsView: View {
 
             if let error = updateChecker.error {
                 Text(error.localizedDescription)
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(.red)
             }
 

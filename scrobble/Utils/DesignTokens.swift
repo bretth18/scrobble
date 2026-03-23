@@ -50,6 +50,9 @@ enum DesignTokens {
     /// Track artwork thumbnail in lists
     static let artworkSizeThumbnail: CGFloat = 40
 
+    /// Small inline track artwork in friend cards
+    static let artworkSizeInline: CGFloat = 24
+
     // MARK: - Onboarding
 
     /// SF Symbol icon size for onboarding step headers
