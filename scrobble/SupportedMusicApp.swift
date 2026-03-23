@@ -8,7 +8,7 @@
 import Foundation
 
 struct SupportedMusicApp: Identifiable, Hashable, Codable {
-    let id = UUID()
+    var id: String { bundleId }
     let bundleId: String
     let displayName: String
     let alternativeNames: [String]

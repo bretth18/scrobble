@@ -11,6 +11,7 @@ import AppKit
 import Observation
 
 @Observable
+@MainActor
 class PreferencesManager {
     // Standard access for secrets
     var apiKey: String { Secrets.lastFmApiKey }
@@ -20,9 +21,8 @@ class PreferencesManager {
         didSet { UserDefaults.standard.set(username, forKey: "lastFmUsername") }
     }
     
-    var password: String = "" {
-        didSet { UserDefaults.standard.set(password, forKey: "lastFmPassword") }
-    }
+    // Password is no longer stored — kept for API compatibility only
+    var password: String = ""
     
     var numberOfFriendsDisplayed: Int = 10 {
         didSet { UserDefaults.standard.set(numberOfFriendsDisplayed, forKey: "numberOfFriendsDisplayed")}
@@ -87,7 +87,8 @@ class PreferencesManager {
     
     init() {
         self.username = UserDefaults.standard.string(forKey: "lastFmUsername") ?? ""
-        self.password = UserDefaults.standard.string(forKey: "lastFmPassword") ?? ""
+        // Password no longer persisted (was previously stored insecurely in UserDefaults)
+        UserDefaults.standard.removeObject(forKey: "lastFmPassword")
         
         let savedShown = UserDefaults.standard.integer(forKey: "numberOfFriendsDisplayed")
         if savedShown > 0 {

@@ -12,6 +12,7 @@ import Observation
 
 
 @Observable
+@MainActor
 class AppState {
     var isMainWindowVisible = false
     var isPreferencesVisible = false

@@ -11,7 +11,7 @@ import Observation
 @main
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State private var preferencesManager = PreferencesManager()
+    @State private var preferencesManager: PreferencesManager
     @State private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState

@@ -12,7 +12,6 @@ import MusicKit
 import ScriptingBridge
 import CommonCrypto
 import Network
-import Network
 import AppKit
 import Observation
 
@@ -48,10 +47,11 @@ func calculateScrobbleDelay(trackDuration: Double, completionPercentage: Int, us
 }
 
 @Observable
+@MainActor
 class Scrobbler {
     let lastFmManager: LastFmManagerType
     private var scrobblingServices: [ScrobblingService] = []
-    @MainActor var servicesLastUpdated = Date() // This will trigger UI updates when services change
+    var servicesLastUpdated = Date() // This will trigger UI updates when services change
 
     var currentTrack: String = "No track playing"
     var currentArtwork: NSImage? = nil
@@ -91,10 +91,8 @@ class Scrobbler {
 
         self.preferencesManager = preferencesManager
 
-        // Initialize scrobbling services on main actor
-        Task { @MainActor in
-            self.setupScrobblingServices(preferencesManager: preferencesManager)
-        }
+        // Initialize scrobbling services
+        self.setupScrobblingServices(preferencesManager: preferencesManager)
         
         // Monitor preferences changes for scrobbling service settings
         if let prefManager = preferencesManager {
@@ -120,7 +118,7 @@ class Scrobbler {
         startPolling()
 
         // Initial check for now playing
-        Task { @MainActor in
+        Task {
             await checkNowPlaying()
         }
     }
@@ -138,7 +136,7 @@ class Scrobbler {
         } onChange: { [weak self] in
             Log.debug("Scrobbler: Preferences changed, scheduling refresh")
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.refreshScrobblingServices()
                 // Re-register observation
                 self.startPreferencesObservation(prefManager)
@@ -146,7 +144,6 @@ class Scrobbler {
         }
     }
     
-    @MainActor
     private func setupScrobblingServices(preferencesManager: PreferencesManager?) {
         // Cancel any existing auth monitoring tasks before creating new ones
         for task in authMonitoringTasks {
@@ -172,7 +169,7 @@ class Scrobbler {
 
         // Subscribe to authentication state changes for all services
         for service in scrobblingServices {
-            let task = Task { @MainActor in
+            let task = Task {
                 for await _ in service.authStatus {
                     guard !Task.isCancelled else { break }
                     Log.debug("Service auth state changed: \(service.serviceName)", category: .auth)
@@ -183,15 +180,12 @@ class Scrobbler {
         }
 
         // Trigger UI update
-        Task { @MainActor in
-            self.servicesLastUpdated = Date()
-        }
+        self.servicesLastUpdated = Date()
 
         Log.debug("Initialized \(scrobblingServices.count) scrobbling services")
     }
     
     // Method to refresh services when preferences change
-    @MainActor
     func refreshScrobblingServices() {
         setupScrobblingServices(preferencesManager: preferencesManager)
     }
@@ -206,10 +200,8 @@ class Scrobbler {
         Log.debug("Scrobbler switching to target app: \(app.displayName)", category: .scrobble)
         
         // Clear current track display immediately
-        Task { @MainActor in
-            self.currentTrack = "Switching to \(app.displayName)..."
-            self.currentArtwork = nil
-        }
+        self.currentTrack = "Switching to \(app.displayName)..."
+        self.currentArtwork = nil
         
         // Switch the fetcher
         _mediaRemoteFetcher?.setTargetApp(app)
@@ -218,7 +210,7 @@ class Scrobbler {
         musicAppStatus = "Connected to \(app.displayName)"
         
         // Schedule multiple checks to ensure we catch the new app's state
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(for: .seconds(0.5))
             Log.debug("First check after app switch", category: .scrobble)
             await checkNowPlaying()
@@ -268,7 +260,7 @@ class Scrobbler {
 
     @objc private func handleSystemWake(_ notification: Notification) {
         Log.debug("System wake detected, checking playback state", category: .scrobble)
-        Task { @MainActor in
+        Task {
             await checkNowPlaying()
         }
     }
@@ -294,7 +286,7 @@ class Scrobbler {
     }
     
     private func startPolling() {
-        pollTask = Task { @MainActor in
+        pollTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(10))
                 guard !Task.isCancelled else { break }
@@ -304,12 +296,11 @@ class Scrobbler {
     }
     
     @objc private func handleMusicPlayerNotification(_ notification: Notification) {
-        Task { @MainActor in
+        Task {
             await checkNowPlaying()
         }
     }
 
-    @MainActor
     private func checkNowPlaying() async {
         Log.debug("Checking now playing...", category: .scrobble)
 
@@ -393,11 +384,11 @@ class Scrobbler {
         // Mark this session as scrobbled
         hasScrobbledCurrentSession = true
         
-        Task { @MainActor in
+        Task {
             // Scrobble to all enabled services in parallel
             await withTaskGroup(of: (String, Bool).self) { group in
                 for service in self.scrobblingServices {
-                    let serviceName = service.serviceName  // Capture on main actor
+                    let serviceName = service.serviceName
                     group.addTask {
                         do {
                             let result = try await service.scrobble(artist: artist, track: title, album: album)
@@ -408,7 +399,7 @@ class Scrobbler {
                         }
                     }
                 }
-                
+
                 var successes: [String] = []
                 var failures: [String] = []
 
@@ -420,23 +411,17 @@ class Scrobbler {
                     }
                 }
 
-                // Capture results before passing to MainActor
-                let successList = successes
-                let failureList = failures
+                self.isScrobbling = false
 
-                await MainActor.run {
-                    self.isScrobbling = false
+                if !successes.isEmpty {
+                    self.lastScrobbledTrack = "\(artist) - \(title)"
+                    Log.debug("Successfully scrobbled to: \(successes.joined(separator: ", "))", category: .scrobble)
+                }
 
-                    if !successList.isEmpty {
-                        self.lastScrobbledTrack = "\(artist) - \(title)"
-                        Log.debug("Successfully scrobbled to: \(successList.joined(separator: ", "))", category: .scrobble)
-                    }
-
-                    if !failureList.isEmpty {
-                        let failureNames = failureList.joined(separator: ", ")
-                        self.errorMessage = "Failed to scrobble to: \(failureNames)"
-                        Log.error("Failed to scrobble to: \(failureNames)", category: .scrobble)
-                    }
+                if !failures.isEmpty {
+                    let failureNames = failures.joined(separator: ", ")
+                    self.errorMessage = "Failed to scrobble to: \(failureNames)"
+                    Log.error("Failed to scrobble to: \(failureNames)", category: .scrobble)
                 }
             }
         }
@@ -478,10 +463,14 @@ class Scrobbler {
 
             // Use Task.sleep instead of Timer for modern Swift concurrency
             scrobbleTask = Task {
-                try? await Task.sleep(for: .seconds(scrobbleDelay))
-                guard !Task.isCancelled else { return }
-                Log.debug("Scrobble timer fired", category: .scrobble)
-                scrobbleTrack(artist: artist, title: title, album: album)
+                do {
+                    try await Task.sleep(for: .seconds(scrobbleDelay))
+                    Log.debug("Scrobble timer fired", category: .scrobble)
+                    scrobbleTrack(artist: artist, title: title, album: album)
+                } catch {
+                    // Cancelled — track changed or stopped, do nothing
+                    Log.debug("Scrobble timer cancelled", category: .scrobble)
+                }
             }
         } else {
             Log.error("Could not get track duration", category: .scrobble)
@@ -497,12 +486,11 @@ class Scrobbler {
         hasScrobbledCurrentSession = false
     }
     
-    @MainActor
     private func updateNowPlaying(artist: String, title: String, album: String) async {
         // Update now playing for all enabled services
         await withTaskGroup(of: (String, Bool).self) { group in
             for service in self.scrobblingServices {
-                let serviceName = service.serviceName  // Capture on main actor
+                let serviceName = service.serviceName
                 group.addTask {
                     do {
                         let result = try await service.updateNowPlaying(artist: artist, track: title, album: album)
@@ -535,7 +523,7 @@ class Scrobbler {
         }
     }
     
-    deinit {
+    isolated deinit {
         DistributedNotificationCenter.default().removeObserver(self)
         pollTask?.cancel()
         scrobbleTask?.cancel()

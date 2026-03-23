@@ -45,7 +45,7 @@ class FriendsModel {
         Log.debug("FriendsModel: Fetching \(limit) friends", category: .general)
         
         lastFmManager.getFriends(page: 1, limit: limit)
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink(receiveCompletion: { [weak self] completion in
                 guard let self = self else { return }
                 self.isLoading = false
@@ -81,7 +81,7 @@ class FriendsModel {
         
         for friend in friends {
             lastFmManager.getRecentTracks(for: friend.name, page: 1, limit: limit)
-                .receive(on: DispatchQueue.main)
+                .receive(on: RunLoop.main)
                 .sink(receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
                         Log.error("FriendsModel: Error loading tracks for \(friend.name): \(error)", category: .general)

@@ -2,6 +2,7 @@ import Testing
 @testable import scrobble
 
 @Suite("PreferencesManager Tests", .serialized)
+@MainActor
 struct PreferencesManagerTests {
 
     private func cleanupDefaults() {

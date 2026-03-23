@@ -31,6 +31,9 @@ enum KeychainHelper {
         ]
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            Log.error("Keychain save failed for \(key): \(status)", category: .auth)
+        }
         return status == errSecSuccess
     }
 
@@ -46,6 +49,10 @@ enum KeychainHelper {
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
+        if status != errSecSuccess && status != errSecItemNotFound {
+            Log.error("Keychain load failed for \(key): \(status)", category: .auth)
+        }
+
         guard status == errSecSuccess, let data = result as? Data else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -56,6 +63,9 @@ enum KeychainHelper {
             kSecAttrService as String: service,
             kSecAttrAccount as String: key
         ]
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            Log.error("Keychain delete failed for \(key): \(status)", category: .auth)
+        }
     }
 }

@@ -86,19 +86,25 @@ class LastFmServiceAdapter: ScrobblingService {
         Log.debug("Last.fm: Scrobbling \(artist) - \(track)", category: .scrobble)
 
         return try await withCheckedThrowingContinuation { continuation in
+            var hasResumed = false
             var cancellable: AnyCancellable?
             cancellable = lastFmManager.scrobble(artist: artist, track: track, album: album)
                 .sink(receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        break // Wait for value
+                        if !hasResumed {
+                            continuation.resume(throwing: ScrobblerError.noData)
+                        }
                     case .failure(let error):
-                        continuation.resume(throwing: error)
-                        cancellable = nil
+                        if !hasResumed {
+                            hasResumed = true
+                            continuation.resume(throwing: error)
+                        }
                     }
-                }, receiveValue: { success in
-                    continuation.resume(returning: success)
                     cancellable = nil
+                }, receiveValue: { success in
+                    hasResumed = true
+                    continuation.resume(returning: success)
                 })
         }
     }
@@ -107,21 +113,27 @@ class LastFmServiceAdapter: ScrobblingService {
         Log.debug("Last.fm: Updating now playing \(artist) - \(track)", category: .scrobble)
 
         return try await withCheckedThrowingContinuation { continuation in
-             var cancellable: AnyCancellable?
-             cancellable = lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
-                 .sink(receiveCompletion: { completion in
-                     switch completion {
-                     case .finished:
-                         break
-                     case .failure(let error):
-                         continuation.resume(throwing: error)
-                         cancellable = nil
-                     }
-                 }, receiveValue: { success in
-                     continuation.resume(returning: success)
-                     cancellable = nil
-                 })
-         }
+            var hasResumed = false
+            var cancellable: AnyCancellable?
+            cancellable = lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        if !hasResumed {
+                            continuation.resume(throwing: ScrobblerError.noData)
+                        }
+                    case .failure(let error):
+                        if !hasResumed {
+                            hasResumed = true
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                    cancellable = nil
+                }, receiveValue: { success in
+                    hasResumed = true
+                    continuation.resume(returning: success)
+                })
+        }
     }
 
     func authenticate() async throws -> Bool {

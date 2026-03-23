@@ -352,7 +352,8 @@ extension BlueskyOAuthManager: WKNavigationDelegate {
 
                 Log.debug("Detected successful OAuth redirect to Railway app - extracting cookies", category: .auth)
                 // Likely completed OAuth flow, extract cookies
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1))
                     self.extractAndStoreCookies()
                 }
             } else if url.contains("bsky.social") {

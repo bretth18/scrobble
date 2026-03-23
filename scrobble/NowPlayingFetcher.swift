@@ -21,6 +21,7 @@ struct KnownMusicAppNames: Hashable {
     static let safari = ("Safari" ,"Safari.app" ,"safari" , "Safari.app (Safari)")
 }
 
+@MainActor
 final class NowPlayingFetcher {
 
     private var mediaController: MediaController
@@ -111,28 +112,28 @@ final class NowPlayingFetcher {
     
     func reloadWithNewBundleId(_ bundleId: String?) {
         Log.debug("Reloading MediaController with bundleId: \(bundleId ?? "nil (any app)")", category: .scrobble)
-        
+
         // More aggressive cleanup - wait longer for complete termination
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self else { return }
-            
+        Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self else { return }
+
             Log.debug("Creating new MediaController instance", category: .scrobble)
-            
+
             // Create completely new controller instance
             self.mediaController = MediaController(bundleIdentifier: bundleId)
-            
+
             // Reapply handlers
             self.setupTrackInfoHandler()
-            
+
             // Start listening
             self.setupAndStart()
-            
+
             Log.debug("MediaController reloaded and started for app: \(self.currentTargetApp?.displayName ?? "any")", category: .scrobble)
-            
+
             // Force an immediate check after a brief delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                Log.debug("Current state after reload: \(self.getCurrentState())", category: .scrobble)
-            }
+            try? await Task.sleep(for: .milliseconds(500))
+            Log.debug("Current state after reload: \(self.getCurrentState())", category: .scrobble)
         }
     }
     

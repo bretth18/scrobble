@@ -34,8 +34,8 @@
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
 		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
-		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
 		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
+		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
 		A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */; };
 		A6F213022C8C021800E1D23B /* ScrobblingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213012C8C021800E1D23B /* ScrobblingView.swift */; };
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
@@ -49,8 +49,8 @@
 		A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */; };
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
-		A6KEYCHAIN01 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6KEYCHAIN02 /* KeychainHelper.swift */; };
 		A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */; };
+		A6KEYCHAIN01 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6KEYCHAIN02 /* KeychainHelper.swift */; };
 		A6ONBOARD0001 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0002 /* OnboardingState.swift */; };
 		A6ONBOARD0003 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0004 /* OnboardingContainerView.swift */; };
 		A6ONBOARD0005 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0006 /* OnboardingWelcomeView.swift */; };
@@ -68,6 +68,16 @@
 		A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0009 /* CryptoUtilsTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A6TESTCI0001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6F212F42C8C021800E1D23B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6F212FB2C8C021800E1D23B;
+			remoteInfo = scrobble;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		A6A580AA2E78DB9F0079DC91 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -81,16 +91,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXContainerItemProxy section */
-		A6TESTCI0001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6F212F42C8C021800E1D23B /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A6F212FB2C8C021800E1D23B;
-			remoteInfo = scrobble;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
@@ -120,8 +120,8 @@
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
-		A6DESIGN012EFBAA0000002 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
+		A6DESIGN012EFBAA0000002 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		A6F212FC2C8C021800E1D23B /* scrobble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scrobble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scrobbleApp.swift; sourceTree = "<group>"; };
 		A6F213012C8C021800E1D23B /* ScrobblingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingView.swift; sourceTree = "<group>"; };
@@ -138,8 +138,8 @@
 		A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsModel.swift; sourceTree = "<group>"; };
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		A6KEYCHAIN02 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettingsView.swift; sourceTree = "<group>"; };
+		A6KEYCHAIN02 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		A6ONBOARD0002 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		A6ONBOARD0004 /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
 		A6ONBOARD0006 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
@@ -643,7 +643,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -693,7 +693,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;

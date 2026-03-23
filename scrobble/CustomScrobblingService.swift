@@ -26,38 +26,32 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     var authStatus: AsyncStream<Bool> {
-        AsyncStream { continuation in
-            // Yield initial state immediately
-            let initialState = Task { @MainActor in
-                return oauthManager.isAuthenticated
-            }
+        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self)
 
-            Task {
-                let initial = await initialState.value
-                continuation.yield(initial)
-            }
+        // Use a polling approach with reasonable interval instead of busy-wait observation
+        // Auth state changes are infrequent (user-initiated), so 1 second polling is fine
+        let monitoringTask = Task { @MainActor in
+            var previousState = oauthManager.isAuthenticated
+            continuation.yield(previousState)
 
-            // Use a polling approach with reasonable interval instead of busy-wait observation
-            // Auth state changes are infrequent (user-initiated), so 1 second polling is fine
-            let monitoringTask = Task { @MainActor in
-                var previousState = oauthManager.isAuthenticated
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { break }
 
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(1))
-                    guard !Task.isCancelled else { break }
-
-                    let newState = oauthManager.isAuthenticated
-                    if newState != previousState {
-                        continuation.yield(newState)
-                        previousState = newState
-                    }
+                let newState = oauthManager.isAuthenticated
+                if newState != previousState {
+                    continuation.yield(newState)
+                    previousState = newState
                 }
             }
-
-            continuation.onTermination = { _ in
-                monitoringTask.cancel()
-            }
+            continuation.finish()
         }
+
+        continuation.onTermination = { _ in
+            monitoringTask.cancel()
+        }
+
+        return stream
     }
 
     init(blueskyHandle: String) {

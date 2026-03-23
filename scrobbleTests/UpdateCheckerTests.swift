@@ -2,6 +2,7 @@ import Testing
 @testable import scrobble
 
 @Suite("UpdateChecker Tests")
+@MainActor
 struct UpdateCheckerTests {
 
     @Test("No update available when version info is nil")

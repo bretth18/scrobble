@@ -41,8 +41,15 @@ func createLastFmSignature(parameters: [String: Any], secret: String) -> String 
 class LastFmDesktopManager: LastFmManagerType {
     let apiKey: String  // Made public for WebKit auth view
     private let apiSecret: String
-    private let username: String
+    private let initialUsername: String
     private let password: String  // Kept for API compatibility but not used
+
+    /// Resolves the effective username: prefers Keychain, falls back to UserDefaults backup, then init value
+    private var effectiveUsername: String {
+        KeychainHelper.load(key: "lastfm_username")
+            ?? UserDefaults.standard.string(forKey: "lastfm_username_backup")
+            ?? initialUsername
+    }
     private var sessionKey: String?
     private var isAuthenticated = false
     private var authenticationSubject = PassthroughSubject<Void, Error>()
@@ -94,7 +101,7 @@ class LastFmDesktopManager: LastFmManagerType {
     init(apiKey: String, apiSecret: String, username: String, password: String = "", authState: AuthState) {
         self.apiKey = apiKey
         self.apiSecret = apiSecret
-        self.username = username
+        self.initialUsername = username
         self.password = password
         self.authState = authState
 
@@ -142,19 +149,20 @@ class LastFmDesktopManager: LastFmManagerType {
     }
     
     private func checkSavedAuth() {
-        // Try Keychain first, fall back to UserDefaults for migration
+        // Try Keychain first, fall back to UserDefaults.
+        // UserDefaults fallback is kept because Keychain ACLs can break
+        // between Xcode dev builds when the app is re-signed.
         if let savedSessionKey = KeychainHelper.load(key: "lastfm_session_key") {
             self.sessionKey = savedSessionKey
             validateSavedSession()
-        } else if let legacySessionKey = UserDefaults.standard.string(forKey: "lastfm_session_key") {
-            // Migrate from UserDefaults to Keychain
-            self.sessionKey = legacySessionKey
-            _ = KeychainHelper.save(key: "lastfm_session_key", value: legacySessionKey)
-            UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
-            if !username.isEmpty {
-                _ = KeychainHelper.save(key: "lastfm_username", value: username)
+        } else if let fallbackSessionKey = UserDefaults.standard.string(forKey: "lastfm_session_key") {
+            Log.debug("Keychain miss, recovering session from UserDefaults", category: .auth)
+            self.sessionKey = fallbackSessionKey
+            // Try to save back to Keychain for next time
+            _ = KeychainHelper.save(key: "lastfm_session_key", value: fallbackSessionKey)
+            if !initialUsername.isEmpty {
+                _ = KeychainHelper.save(key: "lastfm_username", value: initialUsername)
             }
-            Log.debug("Migrated session key from UserDefaults to Keychain", category: .auth)
             validateSavedSession()
         } else {
             authStatus = .needsAuth
@@ -167,8 +175,8 @@ class LastFmDesktopManager: LastFmManagerType {
             return
         }
 
-        // Use stored username from Keychain if the init username is empty
-        let validationUser = !username.isEmpty ? username : (KeychainHelper.load(key: "lastfm_username") ?? "")
+        // Use effective username (prefers Keychain, falls back to init value)
+        let validationUser = effectiveUsername
 
         // Test the session with a simple API call
         var parameters: [String: String] = [
@@ -290,8 +298,11 @@ class LastFmDesktopManager: LastFmManagerType {
 
         self.sessionKey = sessionKey
         _ = KeychainHelper.save(key: "lastfm_session_key", value: sessionKey)
-        if let username = username, !username.isEmpty {
+        // Keep UserDefaults as fallback in case Keychain ACL breaks after re-signing
+        UserDefaults.standard.set(sessionKey, forKey: "lastfm_session_key")
+        if let username, !username.isEmpty {
             _ = KeychainHelper.save(key: "lastfm_username", value: username)
+            UserDefaults.standard.set(username, forKey: "lastfm_username_backup")
         }
         self.isAuthenticated = true
 
@@ -588,7 +599,7 @@ class LastFmDesktopManager: LastFmManagerType {
 
         var parameters: [String: String] = [
             "method": "user.getFriends",
-            "user": username,
+            "user": effectiveUsername,
             "api_key": apiKey,
             "sk": sessionKey,
             "page": String(page),
@@ -694,6 +705,8 @@ extension LastFmDesktopManager {
         currentAuthToken = ""  // This also clears UserDefaults pending token
         KeychainHelper.delete(key: "lastfm_session_key")
         KeychainHelper.delete(key: "lastfm_username")
+        UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
+        UserDefaults.standard.removeObject(forKey: "lastfm_username_backup")
 
         authState.signOut()
         authStatus = .needsAuth
