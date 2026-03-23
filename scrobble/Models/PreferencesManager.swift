@@ -105,11 +105,15 @@ class PreferencesManager {
             self.trackCompletionPercentageBeforeScrobble = savedCompletionPercentage
         }
         
+        if UserDefaults.standard.object(forKey: "useMaxTrackCompletionScrobbleDelay") != nil {
+            self.useMaxTrackCompletionScrobbleDelay = UserDefaults.standard.bool(forKey: "useMaxTrackCompletionScrobbleDelay")
+        }
+
         let savedMaxDelay = UserDefaults.standard.integer(forKey: "maxTrackCompletionScrobbleDelay")
         if savedMaxDelay > 0 {
             self.maxTrackCompletionScrobbleDelay = savedMaxDelay
         }
-        
+
         self.mediaAppSource = UserDefaults.standard.string(forKey: "mediaAppSource") ?? "Apple Music"
         
         self.enableCustomScrobbler = UserDefaults.standard.bool(forKey: "enableCustomScrobbler")

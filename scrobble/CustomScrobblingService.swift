@@ -61,22 +61,14 @@ class CustomScrobblingService: ScrobblingService {
     func authenticate() async throws -> Bool {
         await oauthManager.startAuthentication()
 
-        // Wait for authentication to complete
-        // We can just watch the stream we made!
         for await isAuth in authStatus {
             if isAuth { return true }
-            // Check for error state?
-             let error = await oauthManager.authError
-             if error != nil {
-                 throw ScrobblerError.apiError(error ?? "Unknown error")
-             }
-             // Timeout or cancellation handling might be needed here practically
-             // but for this implementation we wait.
-             // Actually we should inspect `isAuthenticating`.
-             let authenticating = await oauthManager.isAuthenticating
-             if !authenticating && !isAuth {
-                 return false // Finished but failed
-             }
+            if let error = oauthManager.authError {
+                throw ScrobblerError.apiError(error)
+            }
+            if !oauthManager.isAuthenticating && !isAuth {
+                return false
+            }
         }
         return false
     }
@@ -89,8 +81,7 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     func scrobble(artist: String, track: String, album: String) async throws -> Bool {
-        let isAuth = await isAuthenticated
-        guard isAuth else {
+        guard isAuthenticated else {
             Log.debug("Custom scrobbler: Not authenticated", category: .scrobble)
             throw ScrobblerError.authenticationRequired
         }
@@ -106,8 +97,7 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
-        let isAuth = await isAuthenticated
-        guard isAuth else {
+        guard isAuthenticated else {
             Log.error("Custom scrobbler: Not authenticated for now playing update", category: .scrobble)
             throw ScrobblerError.authenticationRequired
         }

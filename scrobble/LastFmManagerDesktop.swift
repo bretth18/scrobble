@@ -188,47 +188,43 @@ class LastFmDesktopManager: LastFmManagerType {
             parameters["user"] = validationUser
         }
 
-        makeRequest(parameters: parameters)
-            .receive(on: RunLoop.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        // Only clear the session for explicit auth errors from Last.fm,
-                        // not for transient network failures
-                        let isAuthError: Bool
-                        if let scrobblerError = error as? ScrobblerError,
-                           case .apiError(let message) = scrobblerError {
-                            // Last.fm auth errors: 4 (invalid token), 9 (invalid session), 26 (suspended API key)
-                            isAuthError = message.contains("error 4:") || message.contains("error 9:") || message.contains("error 26:")
-                        } else {
-                            isAuthError = false
-                        }
+        let signature = createSignature(parameters: parameters)
+        parameters["api_sig"] = signature
+        parameters["format"] = "json"
 
-                        if isAuthError {
-                            Log.debug("Saved session invalid, clearing auth", category: .auth)
-                            KeychainHelper.delete(key: "lastfm_session_key")
-                            KeychainHelper.delete(key: "lastfm_username")
-                            self?.sessionKey = nil
-                            self?.isAuthenticated = false
-                            self?.authStatus = .needsAuth
-                            self?.authState.isAuthenticated = false
-                        } else {
-                            // Network or transient error — keep session, assume authenticated
-                            Log.debug("Session validation failed (transient), keeping session: \(error.localizedDescription)", category: .auth)
-                            self?.isAuthenticated = true
-                            self?.authStatus = .authenticated
-                            self?.authState.isAuthenticated = true
-                        }
-                    }
-                },
-                receiveValue: { _ in
-                    Log.debug("Saved session validated successfully", category: .auth)
+        Task {
+            do {
+                _ = try await makeRequestAsync(parameters: parameters)
+                Log.debug("Saved session validated successfully", category: .auth)
+                self.isAuthenticated = true
+                self.authStatus = .authenticated
+                self.authState.isAuthenticated = true
+            } catch {
+                // Only clear the session for explicit auth errors from Last.fm
+                let isAuthError: Bool
+                if let scrobblerError = error as? ScrobblerError,
+                   case .apiError(let message) = scrobblerError {
+                    isAuthError = message.contains("error 4:") || message.contains("error 9:") || message.contains("error 26:")
+                } else {
+                    isAuthError = false
+                }
+
+                if isAuthError {
+                    Log.debug("Saved session invalid, clearing auth", category: .auth)
+                    KeychainHelper.delete(key: "lastfm_session_key")
+                    KeychainHelper.delete(key: "lastfm_username")
+                    self.sessionKey = nil
+                    self.isAuthenticated = false
+                    self.authStatus = .needsAuth
+                    self.authState.isAuthenticated = false
+                } else {
+                    Log.debug("Session validation failed (transient), keeping session: \(error.localizedDescription)", category: .auth)
                     self.isAuthenticated = true
                     self.authStatus = .authenticated
                     self.authState.isAuthenticated = true
                 }
-            )
-            .store(in: &cancellables)
+            }
+        }
     }
     
     func startAuth() {
@@ -502,50 +498,11 @@ class LastFmDesktopManager: LastFmManagerType {
         return data
     }
 
-    // MARK: - Legacy Combine API Methods (kept for compatibility)
+    // MARK: - Public API
 
-    private func getToken() -> AnyPublisher<String, Error> {
-        let parameters: [String: Any] = [
-            "method": "auth.getToken",
-            "api_key": apiKey
-        ]
-
-        let signature = createSignature(parameters: parameters)
-        var allParameters = parameters
-        allParameters["api_sig"] = signature
-        allParameters["format"] = "json"
-
-        return makeRequest(parameters: allParameters)
-            .decode(type: TokenResponse.self, decoder: JSONDecoder())
-            .map { $0.token }
-            .eraseToAnyPublisher()
-    }
-
-    private func getSession(token: String) -> AnyPublisher<String, Error> {
-        Log.debug("Requesting session with token: \(token)", category: .auth)
-        // Small delay to allow Last.fm to process the authorization
-        return Future { promise in
-            Task {
-                do {
-                    // Wait 3 seconds before requesting the session (legacy behavior)
-                    try await Task.sleep(for: .seconds(3))
-                    Log.debug("Making session request after delay...", category: .auth)
-
-                    let result = try await self.getSessionAsync(token: token)
-                    promise(.success(result.key))
-                } catch {
-                    Log.error("Session request failed with error: \(error)", category: .auth)
-                    promise(.failure(error))
-                }
-            }
-        }.eraseToAnyPublisher()
-    }
-    
-    // MARK: - Public API (matching original LastFmManager)
-    
-    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
+    func scrobble(artist: String, track: String, album: String) async throws -> Bool {
         guard let sessionKey = self.sessionKey else {
-            return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+            throw ScrobblerError.noSessionKey
         }
 
         let timestamp = Int(Date.now.timeIntervalSince1970)
@@ -558,22 +515,21 @@ class LastFmDesktopManager: LastFmManagerType {
             "api_key": apiKey,
             "sk": sessionKey
         ]
-        
+
         let signature = createSignature(parameters: parameters)
         parameters["api_sig"] = signature
         parameters["format"] = "json"
-        
-        return makeRequest(parameters: parameters)
-            .decode(type: ScrobbleResponse.self, decoder: JSONDecoder())
-            .map { $0.scrobbles.attr.accepted == 1 }
-            .eraseToAnyPublisher()
+
+        let data = try await makeRequestAsync(parameters: parameters)
+        let response = try JSONDecoder().decode(ScrobbleResponse.self, from: data)
+        return response.scrobbles.attr.accepted == 1
     }
-    
-    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error> {
+
+    func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
         guard let sessionKey = self.sessionKey else {
-            return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+            throw ScrobblerError.noSessionKey
         }
-        
+
         var parameters: [String: String] = [
             "method": "track.updateNowPlaying",
             "artist": artist,
@@ -582,19 +538,18 @@ class LastFmDesktopManager: LastFmManagerType {
             "api_key": apiKey,
             "sk": sessionKey
         ]
-        
+
         let signature = createSignature(parameters: parameters)
         parameters["api_sig"] = signature
         parameters["format"] = "json"
-        
-        return makeRequest(parameters: parameters)
-            .map { _ in true }
-            .eraseToAnyPublisher()
+
+        _ = try await makeRequestAsync(parameters: parameters)
+        return true
     }
-    
-    func getFriends(page: Int = 1, limit: Int = 50) -> AnyPublisher<[Friend], Error> {
+
+    func getFriends(page: Int = 1, limit: Int = 50) async throws -> [Friend] {
         guard let sessionKey = self.sessionKey else {
-            return Fail(error: ScrobblerError.noSessionKey).eraseToAnyPublisher()
+            throw ScrobblerError.noSessionKey
         }
 
         var parameters: [String: String] = [
@@ -605,20 +560,19 @@ class LastFmDesktopManager: LastFmManagerType {
             "page": String(page),
             "limit": String(limit),
         ]
-        
+
         let signature = createSignature(parameters: parameters)
         parameters["api_sig"] = signature
         parameters["format"] = "json"
-        
+
         Log.debug("Getting friends with parameters: \(parameters)", category: .general)
-        
-        return makeRequest(parameters: parameters)
-            .decode(type: FriendsResponse.self, decoder: JSONDecoder())
-            .map { $0.friends.user }
-            .eraseToAnyPublisher()
+
+        let data = try await makeRequestAsync(parameters: parameters)
+        let response = try JSONDecoder().decode(FriendsResponse.self, from: data)
+        return response.friends.user
     }
-    
-    func getRecentTracks(for username: String, page: Int = 1, limit: Int = 50) -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error> {
+
+    func getRecentTracks(for username: String, page: Int = 1, limit: Int = 50) async throws -> [RecentTracksResponse.RecentTracks.Track] {
         var parameters: [String: String] = [
             "method": "user.getRecentTracks",
             "user": username,
@@ -626,45 +580,17 @@ class LastFmDesktopManager: LastFmManagerType {
             "page": String(page),
             "limit": String(limit),
         ]
-        
+
         let signature = createSignature(parameters: parameters)
         parameters["api_sig"] = signature
         parameters["format"] = "json"
-        
-        return makeRequest(parameters: parameters)
-            .decode(type: RecentTracksResponse.self, decoder: JSONDecoder())
-            .map { $0.recenttracks.track }
-            .eraseToAnyPublisher()
+
+        let data = try await makeRequestAsync(parameters: parameters)
+        let response = try JSONDecoder().decode(RecentTracksResponse.self, from: data)
+        return response.recenttracks.track
     }
     
     // MARK: - Helper Methods
-    
-    private func makeRequest(parameters: [String: Any]) -> AnyPublisher<Data, Error> {
-        let baseURL = "https://ws.audioscrobbler.com/2.0/"
-        var components = URLComponents(string: baseURL)!
-        components.queryItems = parameters.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
-        
-        guard let url = components.url else {
-            return Fail(error: ScrobblerError.invalidURL).eraseToAnyPublisher()
-        }
-        
-        var request = URLRequest(url: url)
-        if parameters["method"] as? String == "track.scrobble" ||
-           parameters["method"] as? String == "track.updateNowPlaying" {
-            request.httpMethod = "POST"
-            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        }
-        
-        return URLSession.shared.dataTaskPublisher(for: request)
-            .map(\.data)
-            .tryMap { data in
-                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    throw ScrobblerError.apiError(errorResponse.message)
-                }
-                return data
-            }
-            .eraseToAnyPublisher()
-    }
     
     private func createSignature(parameters: [String: Any]) -> String {
         createLastFmSignature(parameters: parameters, secret: apiSecret)
@@ -689,11 +615,6 @@ private struct LastFmErrorResponse: Codable {
     let error: Int
     let message: String
 }
-
-extension ScrobblerError {
-    static let authorizationCancelled = ScrobblerError.apiError("Authorization was cancelled by user")
-}
-
 extension LastFmDesktopManager {
     func logout() {
         // Cancel any pending auth operations

@@ -66,8 +66,7 @@ struct ScrobblingView: View {
 
                     MarqueeText(
                         text: scrobbler.currentTrack,
-                        font: .body,
-                        containerWidth: 200
+                        font: .body
                     )
 
                     if let currentArtwork = scrobbler.currentArtwork {
@@ -95,17 +94,24 @@ struct ScrobblingView: View {
                             .accessibilityHidden(true)
                     }
 
-                    Text("Last Scrobbled:")
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
+                    HStack(spacing: DesignTokens.spacingTight) {
+                        Text("Last Scrobbled:")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
 
-                    HStack {
-                        MarqueeText(
-                            text: scrobbler.lastScrobbledTrack,
-                            font: .body,
-                            containerWidth: 200
-                        )
+                        if scrobbler.showScrobbleSuccess {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .font(.caption)
+                                .transition(.scale.combined(with: .opacity))
+                        }
                     }
+                    .animation(.easeInOut(duration: 0.3), value: scrobbler.showScrobbleSuccess)
+
+                    MarqueeText(
+                        text: scrobbler.lastScrobbledTrack,
+                        font: .body
+                    )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

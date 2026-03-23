@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import MediaPlayer
 import MusicKit
 import ScriptingBridge
@@ -59,11 +58,19 @@ class Scrobbler {
     var lastScrobbledTrack: String = ""
     var errorMessage: String?
     var musicAppStatus: String = "Connecting to Music app..."
+    /// Briefly set to true when a scrobble succeeds, then reset after a delay
+    var showScrobbleSuccess: Bool = false
+    /// Number of scrobbles waiting to be retried
+    var pendingRetryCount: Int { failedScrobbles.count }
 
-    private var cancellables = Set<AnyCancellable>()
     private var lastScrobbleTime: Date?
     private let minimumScrobbleInterval: TimeInterval = 30
     private var pollTask: Task<Void, Never>?
+    private var retryTask: Task<Void, Never>?
+
+    /// Queue of failed scrobbles to retry
+    private var failedScrobbles: [(artist: String, title: String, album: String, timestamp: Date)] = []
+    private static let maxRetryQueueSize = 50
 
     private var currentTrackStartTime: Date?
     private var currentTrackDuration: TimeInterval?
@@ -415,13 +422,28 @@ class Scrobbler {
 
                 if !successes.isEmpty {
                     self.lastScrobbledTrack = "\(artist) - \(title)"
+                    self.showScrobbleSuccess = true
                     Log.debug("Successfully scrobbled to: \(successes.joined(separator: ", "))", category: .scrobble)
+                    // Reset success indicator after 2 seconds
+                    Task {
+                        try? await Task.sleep(for: .seconds(2))
+                        self.showScrobbleSuccess = false
+                    }
+                    // Successful scrobble — try to flush retry queue
+                    self.processRetryQueue()
                 }
 
                 if !failures.isEmpty {
                     let failureNames = failures.joined(separator: ", ")
-                    self.errorMessage = "Failed to scrobble to: \(failureNames)"
                     Log.error("Failed to scrobble to: \(failureNames)", category: .scrobble)
+
+                    // If ALL services failed, queue for retry
+                    if successes.isEmpty {
+                        self.queueFailedScrobble(artist: artist, title: title, album: album)
+                        self.errorMessage = "Failed to scrobble — will retry (\(self.failedScrobbles.count) queued)"
+                    } else {
+                        self.errorMessage = "Failed to scrobble to: \(failureNames)"
+                    }
                 }
             }
         }
@@ -523,11 +545,63 @@ class Scrobbler {
         }
     }
     
+    // MARK: - Retry Queue
+
+    private func queueFailedScrobble(artist: String, title: String, album: String) {
+        let entry = (artist: artist, title: title, album: album, timestamp: Date.now)
+
+        // Cap the queue to prevent unbounded growth
+        if failedScrobbles.count >= Self.maxRetryQueueSize {
+            failedScrobbles.removeFirst()
+        }
+        failedScrobbles.append(entry)
+        Log.debug("Queued failed scrobble: \(artist) - \(title) (\(failedScrobbles.count) in queue)", category: .scrobble)
+    }
+
+    private func processRetryQueue() {
+        guard !failedScrobbles.isEmpty else { return }
+
+        let pending = failedScrobbles
+        failedScrobbles.removeAll()
+        Log.debug("Retrying \(pending.count) queued scrobbles", category: .scrobble)
+
+        retryTask?.cancel()
+        retryTask = Task {
+            for entry in pending {
+                guard !Task.isCancelled else {
+                    // Re-queue remaining entries
+                    failedScrobbles.append(contentsOf: pending.suffix(from: pending.firstIndex(where: { $0.timestamp == entry.timestamp }) ?? pending.endIndex))
+                    break
+                }
+
+                var anySuccess = false
+                for service in self.scrobblingServices {
+                    do {
+                        let result = try await service.scrobble(artist: entry.artist, track: entry.title, album: entry.album)
+                        if result { anySuccess = true }
+                    } catch {
+                        Log.error("Retry scrobble failed for \(service.serviceName): \(error)", category: .scrobble)
+                    }
+                }
+
+                if anySuccess {
+                    Log.debug("Retry succeeded: \(entry.artist) - \(entry.title)", category: .scrobble)
+                } else {
+                    // Re-queue if all services still failing
+                    queueFailedScrobble(artist: entry.artist, title: entry.title, album: entry.album)
+                }
+
+                // Small delay between retries to avoid hammering the API
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
     isolated deinit {
         DistributedNotificationCenter.default().removeObserver(self)
         pollTask?.cancel()
         scrobbleTask?.cancel()
-        // Cancel all auth monitoring tasks
+        retryTask?.cancel()
         for task in authMonitoringTasks {
             task.cancel()
         }

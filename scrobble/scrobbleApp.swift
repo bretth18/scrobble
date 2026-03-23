@@ -34,6 +34,16 @@ struct scrobbleApp: App {
         _scrobbler = State(initialValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
     }
 
+    private var menuBarIcon: String {
+        if scrobbler.errorMessage != nil {
+            "music.note.tv"
+        } else if scrobbler.currentTrack != "No track playing" {
+            "music.note"
+        } else {
+            "music.note"
+        }
+    }
+
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: DesignTokens.spacingDefault) {
@@ -57,7 +67,8 @@ struct scrobbleApp: App {
                     OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
                 }
         } label: {
-            Image(systemName: "music.note")
+            Image(systemName: menuBarIcon)
+                .symbolEffect(.pulse, isActive: scrobbler.isScrobbling)
                 .accessibilityLabel("Scrobble")
         }
         .menuBarExtraStyle(.window)

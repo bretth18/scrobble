@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import Observation
 
 @Observable
@@ -16,80 +15,101 @@ class FriendsModel {
     var friendTracks: [String: [RecentTracksResponse.RecentTracks.Track]] = [:]
     var isLoading = false
     var errorMessage: String?
-    
+
     var preferencesManager: PreferencesManager?
-    
+
     private var lastFmManager: LastFmManagerType
-    private var cancellables = Set<AnyCancellable>()
-    
+    private var lastFetchedAt: Date?
+    private var loadTask: Task<Void, Never>?
+    private static let cacheTTL: TimeInterval = 60
+
     init(lastFmManager: LastFmManagerType) {
         self.lastFmManager = lastFmManager
     }
-    
+
+    /// Update the manager reference without triggering a fetch.
+    func setLastFmManager(_ manager: LastFmManagerType) {
+        self.lastFmManager = manager
+    }
+
+    /// Update the manager and force a fresh fetch.
     func updateLastFmManager(_ manager: LastFmManagerType) {
         self.lastFmManager = manager
         loadFriends()
     }
-    
+
+    /// Called by pull-to-refresh and manual refresh button — always fetches.
     func refreshData() {
         loadFriends()
     }
-    
-    // Using a separate method to keep init lightweight
-    func loadFriends() {
+
+    /// Called by onAppear — skips fetch if cache is fresh.
+    func loadIfNeeded() {
+        if let lastFetchedAt, Date.now.timeIntervalSince(lastFetchedAt) < Self.cacheTTL, !friends.isEmpty {
+            Log.debug("FriendsModel: Cache still fresh, skipping fetch", category: .general)
+            return
+        }
+        loadFriends()
+    }
+
+    private func loadFriends() {
+        loadTask?.cancel()
         Log.debug("FriendsModel: Loading friends...", category: .general)
         isLoading = true
         errorMessage = nil
-        
+
         let limit = preferencesManager?.numberOfFriendsDisplayed ?? 10
         Log.debug("FriendsModel: Fetching \(limit) friends", category: .general)
-        
-        lastFmManager.getFriends(page: 1, limit: limit)
-            .receive(on: RunLoop.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                guard let self = self else { return }
-                self.isLoading = false
-                
-                if case .failure(let error) = completion {
-                    Log.error("FriendsModel: Error loading friends: \(error)", category: .general)
-                    // Check for specific error about missing parameters
-                    if error.localizedDescription.contains("Missing parameter") {
-                         self.errorMessage = "Configuration error: Missing username or API key."
-                    } else {
-                        self.errorMessage = error.localizedDescription
-                    }
-                }
-            }, receiveValue: { [weak self] friends in
-                guard let self = self else { return }
+
+        loadTask = Task {
+            do {
+                let friends = try await lastFmManager.getFriends(page: 1, limit: limit)
+                guard !Task.isCancelled else { return }
                 Log.debug("FriendsModel: Loaded \(friends.count) friends", category: .general)
                 self.friends = friends
-                self.loadRecentTracksForFriends()
-            })
-            .store(in: &cancellables)
+                self.lastFetchedAt = Date.now
+                self.isLoading = false
+                await self.loadRecentTracksForFriends()
+            } catch is CancellationError {
+                // Normal — view disappeared or new load started
+            } catch {
+                guard !Task.isCancelled else { return }
+                Log.error("FriendsModel: Error loading friends: \(error)", category: .general)
+                self.isLoading = false
+                if error.localizedDescription.contains("Missing parameter") {
+                    self.errorMessage = "Configuration error: Missing username or API key."
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
     }
-    
-    private func loadRecentTracksForFriends() {
+
+    private func loadRecentTracksForFriends() async {
         guard !friends.isEmpty else { return }
         Log.debug("FriendsModel: Loading recent tracks for \(friends.count) friends", category: .general)
-        
-        // Clear old tracks just in case, or keep them? 
-        // Better to update incrementally or clear? Let's keep existing if refreshing.
-        
-        // get limit from pref manager
+
         let limit = preferencesManager?.numberOfFriendsRecentTracksDisplayed ?? 3
-        
-        
-        for friend in friends {
-            lastFmManager.getRecentTracks(for: friend.name, page: 1, limit: limit)
-                .receive(on: RunLoop.main)
-                .sink(receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        Log.error("FriendsModel: Error loading tracks for \(friend.name): \(error)", category: .general)
+
+        await withTaskGroup(of: (String, [RecentTracksResponse.RecentTracks.Track]?).self) { group in
+            for friend in friends {
+                let name = friend.name
+                group.addTask {
+                    do {
+                        let tracks = try await self.lastFmManager.getRecentTracks(for: name, page: 1, limit: limit)
+                        return (name, tracks)
+                    } catch {
+                        Log.error("FriendsModel: Error loading tracks for \(name): \(error)", category: .general)
+                        return (name, nil)
                     }
-                }, receiveValue: { [weak self] tracks in
-                    self?.friendTracks[friend.name] = tracks
-                })
-                .store(in: &cancellables)
+                }
+            }
+
+            for await (name, tracks) in group {
+                if let tracks {
+                    self.friendTracks[name] = tracks
+                }
+            }
         }
     }
 }

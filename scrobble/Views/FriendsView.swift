@@ -68,7 +68,8 @@ struct FriendsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             model.preferencesManager = preferencesManager
-            model.updateLastFmManager(scrobbler.lastFmManager)
+            model.setLastFmManager(scrobbler.lastFmManager)
+            model.loadIfNeeded()
         }
         .onChange(of: preferencesManager.numberOfFriendsDisplayed) { _, _ in
             model.refreshData()

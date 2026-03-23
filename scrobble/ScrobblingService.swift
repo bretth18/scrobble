@@ -84,56 +84,12 @@ class LastFmServiceAdapter: ScrobblingService {
 
     func scrobble(artist: String, track: String, album: String) async throws -> Bool {
         Log.debug("Last.fm: Scrobbling \(artist) - \(track)", category: .scrobble)
-
-        return try await withCheckedThrowingContinuation { continuation in
-            var hasResumed = false
-            var cancellable: AnyCancellable?
-            cancellable = lastFmManager.scrobble(artist: artist, track: track, album: album)
-                .sink(receiveCompletion: { completion in
-                    switch completion {
-                    case .finished:
-                        if !hasResumed {
-                            continuation.resume(throwing: ScrobblerError.noData)
-                        }
-                    case .failure(let error):
-                        if !hasResumed {
-                            hasResumed = true
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                    cancellable = nil
-                }, receiveValue: { success in
-                    hasResumed = true
-                    continuation.resume(returning: success)
-                })
-        }
+        return try await lastFmManager.scrobble(artist: artist, track: track, album: album)
     }
 
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
         Log.debug("Last.fm: Updating now playing \(artist) - \(track)", category: .scrobble)
-
-        return try await withCheckedThrowingContinuation { continuation in
-            var hasResumed = false
-            var cancellable: AnyCancellable?
-            cancellable = lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
-                .sink(receiveCompletion: { completion in
-                    switch completion {
-                    case .finished:
-                        if !hasResumed {
-                            continuation.resume(throwing: ScrobblerError.noData)
-                        }
-                    case .failure(let error):
-                        if !hasResumed {
-                            hasResumed = true
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                    cancellable = nil
-                }, receiveValue: { success in
-                    hasResumed = true
-                    continuation.resume(returning: success)
-                })
-        }
+        return try await lastFmManager.updateNowPlaying(artist: artist, track: track, album: album)
     }
 
     func authenticate() async throws -> Bool {
@@ -155,8 +111,4 @@ class LastFmServiceAdapter: ScrobblingService {
             desktopManager.logout()
         }
     }
-}
-
-extension ScrobblerError {
-    static let authenticationFailed = ScrobblerError.apiError("Authentication failed")
 }

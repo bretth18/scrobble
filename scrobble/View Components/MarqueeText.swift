@@ -59,17 +59,17 @@ struct MarqueeRenderer: TextRenderer {
 struct MarqueeText: View {
     let text: String
     var font: Font = .body
-    var containerWidth: Double = 200
     var speed: Double = 30 // points per second
     var pauseDuration: Double = 1.5
 
     @State private var offset: Double = 0
     @State private var textWidth: Double = 0
+    @State private var containerWidth: Double = 0
     @State private var animationTask: Task<Void, Never>?
     @State private var isHovering = false
 
     private var needsScrolling: Bool {
-        textWidth > containerWidth
+        containerWidth > 0 && textWidth > containerWidth
     }
 
     var body: some View {
@@ -81,13 +81,19 @@ struct MarqueeText: View {
                 Color.clear
                     .onAppear { textWidth = geo.size.width }
                     .onChange(of: text) {
-                        // Update width when text changes
                         textWidth = geo.size.width
                     }
             })
             .textRenderer(MarqueeRenderer(offset: offset, containerWidth: containerWidth))
-            .frame(width: containerWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .clipped()
+            .background(GeometryReader { geo in
+                Color.clear
+                    .onAppear { containerWidth = geo.size.width }
+                    .onChange(of: geo.size.width) { _, newWidth in
+                        containerWidth = newWidth
+                    }
+            })
             .onHover { hovering in
                 isHovering = hovering
                 if hovering && needsScrolling {
@@ -152,7 +158,7 @@ struct MarqueeText: View {
 #Preview {
     MarqueeText(
         text: "Some Really Long Song Title That Needs to Scroll",
-        font: .headline,
-        containerWidth: 200
+        font: .headline
     )
+    .frame(width: 200)
 }
