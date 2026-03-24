@@ -194,11 +194,21 @@ struct CodableTests {
         #expect(track.nowplaying == false)
     }
 
-    @Test("mockFriend has expected values")
-    func mockFriendValues() {
-        #expect(mockFriend.name == "test")
-        #expect(mockFriend.realname == "Test User")
-        #expect(mockFriend.country == "USA")
+    @Test("Friend has expected values")
+    func friendValues() {
+        let friend = Friend(
+            name: "test",
+            realname: "Test User",
+            url: "https://example.com",
+            image: [Friend.Image(text: "https://example.com/image.jpg", size: "medium")],
+            country: "USA",
+            playcount: "100",
+            registered: Friend.Registered(unixtime: "1234567890"),
+            subscriber: "0"
+        )
+        #expect(friend.name == "test")
+        #expect(friend.realname == "Test User")
+        #expect(friend.country == "USA")
     }
 
     @Test("SupportedMusicApp encoding excludes id field")

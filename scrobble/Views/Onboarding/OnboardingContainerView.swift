@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnboardingContainerView: View {
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
@@ -99,7 +100,10 @@ struct OnboardingContainerView: View {
     }
 
     private var stepTransition: AnyTransition {
-        .asymmetric(
+        if reduceMotion {
+            return .opacity
+        }
+        return .asymmetric(
             insertion: .move(edge: onboardingState.isGoingForward ? .trailing : .leading).combined(with: .opacity),
             removal: .move(edge: onboardingState.isGoingForward ? .leading : .trailing).combined(with: .opacity)
         )

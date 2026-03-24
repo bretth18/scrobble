@@ -58,10 +58,7 @@ struct OnboardingPreferencesView: View {
                     Toggle("Cap scrobble delay", isOn: $preferencesManager.useMaxTrackCompletionScrobbleDelay)
 
                     if preferencesManager.useMaxTrackCompletionScrobbleDelay {
-                        Picker("Max delay", selection: Binding(
-                            get: { preferencesManager.maxTrackCompletionScrobbleDelay ?? 240 },
-                            set: { preferencesManager.maxTrackCompletionScrobbleDelay = $0 }
-                        )) {
+                        Picker("Max delay", selection: $preferencesManager.maxTrackCompletionScrobbleDelay) {
                             ForEach(maxDelayOptions, id: \.self) { seconds in
                                 Text("\(seconds / 60) minutes").tag(seconds)
                             }

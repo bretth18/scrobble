@@ -9,7 +9,7 @@ import SwiftUI
 
 struct OnboardingWelcomeView: View {
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: DesignTokens.spacingLarge) {
             Spacer()
 
             // App icon
@@ -20,7 +20,7 @@ struct OnboardingWelcomeView: View {
                 .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
 
             // Welcome text
-            VStack(spacing: 8) {
+            VStack(spacing: DesignTokens.spacingDefault) {
                 Text("scrobble")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -31,7 +31,7 @@ struct OnboardingWelcomeView: View {
             }
 
             // Features list
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingLarge) {
                 FeatureRow(
                     icon: "music.note.list",
                     title: "Automatic Scrobbling",
@@ -61,30 +61,6 @@ struct OnboardingWelcomeView: View {
                 .padding(.bottom, 8)
         }
         .padding()
-    }
-}
-
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 32)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
     }
 }
 

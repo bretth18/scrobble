@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import Combine
 
 @MainActor
 protocol LastFmManagerType {
-    func scrobble(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
-    func updateNowPlaying(artist: String, track: String, album: String) -> AnyPublisher<Bool, Error>
-    func getFriends(page: Int, limit: Int) -> AnyPublisher<[Friend], Error>
-    func getRecentTracks(for username: String, page: Int, limit: Int) -> AnyPublisher<[RecentTracksResponse.RecentTracks.Track], Error>
+    func scrobble(artist: String, track: String, album: String) async throws -> Bool
+    func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool
+    func getFriends(page: Int, limit: Int) async throws -> [Friend]
+    func getRecentTracks(for username: String, page: Int, limit: Int) async throws -> [RecentTracksResponse.RecentTracks.Track]
 }
 
 enum ScrobblerError: Error, LocalizedError {
@@ -23,7 +22,10 @@ enum ScrobblerError: Error, LocalizedError {
     case noData
     case invalidURL
     case authenticationRequired
-    
+
+    static let authenticationFailed = ScrobblerError.apiError("Authentication failed")
+    static let authorizationCancelled = ScrobblerError.apiError("Authorization was cancelled by user")
+
     var errorDescription: String? {
         switch self {
         case .noSessionKey:
@@ -163,7 +165,6 @@ struct Friend: Codable {
     }
 }
 
- let mockFriend: Friend = Friend(name: "test", realname: "Test User", url: "https://example.com", image: [Friend.Image(text: "https://example.com/image.jpg", size: "medium")], country: "USA", playcount: "100", registered: Friend.Registered(unixtime: "1234567890"), subscriber: "0")
 
 
 

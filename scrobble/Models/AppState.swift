@@ -7,11 +7,11 @@
 
 import Foundation
 import SwiftUI
-import Combine
 import Observation
 
 
 @Observable
+@MainActor
 class AppState {
     var isMainWindowVisible = false
     var isPreferencesVisible = false

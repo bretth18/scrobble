@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class UpdateChecker {
     var latestVersion: String?
     var latestBuildNumber: String?
@@ -46,7 +47,7 @@ final class UpdateChecker {
             let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/releases/latest")!
             let (data, _) = try await URLSession.shared.data(from: url)
             let release = try JSONDecoder().decode(GitHubRelease.self, from: data)
-            print(release)
+            Log.debug("Fetched release: \(release.tagName)", category: .general)
             
             // Parse "v1.6.4" -> version "1.6", build "4"
             let tag = release.tagName.trimmingPrefix("v")

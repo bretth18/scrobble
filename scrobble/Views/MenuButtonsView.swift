@@ -24,7 +24,7 @@ struct MenuButtonsView: View {
             } label: {
                 Label("Window", systemImage: "rectangle.expand.vertical")
                     .foregroundStyle(.tertiary)
-                    .font(.caption2)
+                    .font(.caption)
             }
             .compatGlassButtonStyle()
             .accessibilityLabel("Open window")
@@ -34,7 +34,7 @@ struct MenuButtonsView: View {
             SettingsLink {
                 Label("Settings", systemImage: "gearshape")
                     .foregroundStyle(.tertiary)
-                    .font(.caption2)
+                    .font(.caption)
             }
             .compatGlassButtonStyle()
 
@@ -45,7 +45,7 @@ struct MenuButtonsView: View {
             } label: {
                 Label("Quit", systemImage: "xmark.circle")
                     .foregroundStyle(.quaternary)
-                    .font(.caption2)
+                    .font(.caption)
             }
             .compatGlassButtonStyle()
             .accessibilityLabel("Quit Scrobble")

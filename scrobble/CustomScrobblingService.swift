@@ -26,38 +26,32 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     var authStatus: AsyncStream<Bool> {
-        AsyncStream { continuation in
-            // Yield initial state immediately
-            let initialState = Task { @MainActor in
-                return oauthManager.isAuthenticated
-            }
+        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self)
 
-            Task {
-                let initial = await initialState.value
-                continuation.yield(initial)
-            }
+        // Use a polling approach with reasonable interval instead of busy-wait observation
+        // Auth state changes are infrequent (user-initiated), so 1 second polling is fine
+        let monitoringTask = Task { @MainActor in
+            var previousState = oauthManager.isAuthenticated
+            continuation.yield(previousState)
 
-            // Use a polling approach with reasonable interval instead of busy-wait observation
-            // Auth state changes are infrequent (user-initiated), so 1 second polling is fine
-            let monitoringTask = Task { @MainActor in
-                var previousState = oauthManager.isAuthenticated
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { break }
 
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(1))
-                    guard !Task.isCancelled else { break }
-
-                    let newState = oauthManager.isAuthenticated
-                    if newState != previousState {
-                        continuation.yield(newState)
-                        previousState = newState
-                    }
+                let newState = oauthManager.isAuthenticated
+                if newState != previousState {
+                    continuation.yield(newState)
+                    previousState = newState
                 }
             }
-
-            continuation.onTermination = { _ in
-                monitoringTask.cancel()
-            }
+            continuation.finish()
         }
+
+        continuation.onTermination = { _ in
+            monitoringTask.cancel()
+        }
+
+        return stream
     }
 
     init(blueskyHandle: String) {
@@ -67,22 +61,14 @@ class CustomScrobblingService: ScrobblingService {
     func authenticate() async throws -> Bool {
         await oauthManager.startAuthentication()
 
-        // Wait for authentication to complete
-        // We can just watch the stream we made!
         for await isAuth in authStatus {
             if isAuth { return true }
-            // Check for error state?
-             let error = await oauthManager.authError
-             if error != nil {
-                 throw ScrobblerError.apiError(error ?? "Unknown error")
-             }
-             // Timeout or cancellation handling might be needed here practically
-             // but for this implementation we wait.
-             // Actually we should inspect `isAuthenticating`.
-             let authenticating = await oauthManager.isAuthenticating
-             if !authenticating && !isAuth {
-                 return false // Finished but failed
-             }
+            if let error = oauthManager.authError {
+                throw ScrobblerError.apiError(error)
+            }
+            if !oauthManager.isAuthenticating && !isAuth {
+                return false
+            }
         }
         return false
     }
@@ -95,8 +81,7 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     func scrobble(artist: String, track: String, album: String) async throws -> Bool {
-        let isAuth = await isAuthenticated
-        guard isAuth else {
+        guard isAuthenticated else {
             Log.debug("Custom scrobbler: Not authenticated", category: .scrobble)
             throw ScrobblerError.authenticationRequired
         }
@@ -112,8 +97,7 @@ class CustomScrobblingService: ScrobblingService {
     }
 
     func updateNowPlaying(artist: String, track: String, album: String) async throws -> Bool {
-        let isAuth = await isAuthenticated
-        guard isAuth else {
+        guard isAuthenticated else {
             Log.error("Custom scrobbler: Not authenticated for now playing update", category: .scrobble)
             throw ScrobblerError.authenticationRequired
         }

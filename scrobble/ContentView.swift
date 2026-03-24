@@ -13,27 +13,16 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            ScrobblingView()
-                .tabItem {
-                    Label("Scrobbling", systemImage: "music.note")
-                }
-            
-            AppSelectionView()
-                .tabItem {
-                    Label("Apps", systemImage: "app.badge")
-                }
-            
-            // Use type-safe casting to check for desktop manager
-            if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
-                FriendsView(lastFmManager: desktopManager)
-                    .tabItem {
-                        Label("Friends", systemImage: "person.2")
-                    }
-            } else {
+            Tab("Scrobbling", systemImage: "music.note") {
+                ScrobblingView()
+            }
+
+            Tab("Apps", systemImage: "app.badge") {
+                AppSelectionView()
+            }
+
+            Tab("Friends", systemImage: "person.2") {
                 FriendsView(lastFmManager: scrobbler.lastFmManager)
-                    .tabItem {
-                        Label("Friends", systemImage: "person.2")
-                    }
             }
         }
         .tabViewStyle(.tabBarOnly)

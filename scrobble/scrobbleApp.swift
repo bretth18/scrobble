@@ -11,7 +11,7 @@ import Observation
 @main
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State private var preferencesManager = PreferencesManager()
+    @State private var preferencesManager: PreferencesManager
     @State private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState
@@ -32,6 +32,16 @@ struct scrobbleApp: App {
             authState: auth
         )
         _scrobbler = State(initialValue: Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
+    }
+
+    private var menuBarIcon: String {
+        if scrobbler.errorMessage != nil {
+            "music.note.tv"
+        } else if scrobbler.currentTrack != "No track playing" {
+            "music.note"
+        } else {
+            "music.note"
+        }
     }
 
     var body: some Scene {
@@ -57,7 +67,8 @@ struct scrobbleApp: App {
                     OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
                 }
         } label: {
-            Image(systemName: "music.note")
+            Image(systemName: menuBarIcon)
+                .symbolEffect(.pulse, isActive: scrobbler.isScrobbling)
                 .accessibilityLabel("Scrobble")
         }
         .menuBarExtraStyle(.window)

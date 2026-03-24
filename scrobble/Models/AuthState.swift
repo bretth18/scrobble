@@ -41,6 +41,7 @@ class AuthState {
         KeychainHelper.delete(key: "lastfm_session_key")
         KeychainHelper.delete(key: "lastfm_username")
         UserDefaults.standard.removeObject(forKey: "lastfm_session_key")
+        UserDefaults.standard.removeObject(forKey: "lastfm_username_backup")
         isAuthenticated = false
         authError = nil
     }
