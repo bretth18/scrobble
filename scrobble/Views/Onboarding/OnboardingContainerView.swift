@@ -17,57 +17,38 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress indicator
             HStack(spacing: DesignTokens.spacingDefault) {
                 ForEach(OnboardingState.Step.allCases, id: \.self) { step in
                     Circle()
                         .fill(stepColor(for: step))
                         .frame(width: 8, height: 8)
-                        .animation(.easeInOut(duration: 0.2), value: onboardingState.currentStep)
                 }
             }
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: onboardingState.currentStep)
             .padding(.top, 20)
             .padding(.bottom, DesignTokens.spacingDefault)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Step \(onboardingState.currentStep.rawValue + 1) of \(OnboardingState.Step.allCases.count)")
 
-            // Step title
             Text(onboardingState.currentStep.title)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding(.bottom, DesignTokens.spacingLarge)
 
-            // Content area
-            ZStack {
-                switch onboardingState.currentStep {
-                case .welcome:
-                    OnboardingWelcomeView()
-                        .transition(stepTransition)
-
-                case .authenticate:
-                    OnboardingAuthView()
-                        .environment(scrobbler)
-                        .environment(authState)
-                        .transition(stepTransition)
-
-                case .selectApp:
-                    OnboardingAppSelectionView()
-                        .environment(preferencesManager)
-                        .environment(scrobbler)
-                        .transition(stepTransition)
-
-                case .preferences:
-                    OnboardingPreferencesView()
-                        .environment(preferencesManager)
-                        .transition(stepTransition)
+            // ViewThatFits prefers the natural layout (Spacers center content);
+            // falls back to ScrollView when content can't fit (large Dynamic
+            // Type, longer localizations) so the navigation bar stays visible.
+            ViewThatFits(in: .vertical) {
+                OnboardingStepContent(onboardingState: onboardingState)
+                ScrollView {
+                    OnboardingStepContent(onboardingState: onboardingState)
                 }
+                .scrollBounceBehavior(.basedOnSize)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .animation(.easeInOut(duration: 0.3), value: onboardingState.currentStep)
 
             Divider()
 
-            // Navigation buttons
             HStack {
                 if !onboardingState.currentStep.isFirst {
                     Button("Back") {
@@ -95,18 +76,8 @@ struct OnboardingContainerView: View {
             }
             .padding()
         }
-        .frame(width: 500, height: 520)
+        .frame(width: 500, height: 600)
         .background(.ultraThinMaterial)
-    }
-
-    private var stepTransition: AnyTransition {
-        if reduceMotion {
-            return .opacity
-        }
-        return .asymmetric(
-            insertion: .move(edge: onboardingState.isGoingForward ? .trailing : .leading).combined(with: .opacity),
-            removal: .move(edge: onboardingState.isGoingForward ? .leading : .trailing).combined(with: .opacity)
-        )
     }
 
     private func stepColor(for step: OnboardingState.Step) -> Color {
@@ -118,6 +89,41 @@ struct OnboardingContainerView: View {
     private func completeOnboarding() {
         onboardingState.complete()
         dismissWindow(id: "onboarding")
+    }
+}
+
+private struct OnboardingStepContent: View {
+    let onboardingState: OnboardingState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            switch onboardingState.currentStep {
+            case .welcome:
+                OnboardingWelcomeView()
+                    .transition(stepTransition)
+            case .authenticate:
+                OnboardingAuthView()
+                    .transition(stepTransition)
+            case .selectApp:
+                OnboardingAppSelectionView()
+                    .transition(stepTransition)
+            case .preferences:
+                OnboardingPreferencesView()
+                    .transition(stepTransition)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: onboardingState.currentStep)
+    }
+
+    private var stepTransition: AnyTransition {
+        if reduceMotion {
+            return .opacity
+        }
+        return .asymmetric(
+            insertion: .move(edge: onboardingState.isGoingForward ? .trailing : .leading).combined(with: .opacity),
+            removal: .move(edge: onboardingState.isGoingForward ? .leading : .trailing).combined(with: .opacity)
+        )
     }
 }
 
