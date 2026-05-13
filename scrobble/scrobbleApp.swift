@@ -16,6 +16,7 @@ struct scrobbleApp: App {
     @State private var appState = AppState()
     @State private var authState: AuthState
     @State private var updateChecker = UpdateChecker()
+    @State private var networkMonitor = NetworkMonitor()
     @State private var hasCheckedOnboarding = false
 
     init() {
@@ -51,6 +52,7 @@ struct scrobbleApp: App {
                         .environment(scrobbler)
                         .environment(preferencesManager)
                         .environment(authState)
+                        .environment(networkMonitor)
 
                     Divider()
 
@@ -79,6 +81,7 @@ struct scrobbleApp: App {
                 .environment(preferencesManager)
                 .environment(appState)
                 .environment(authState)
+                .environment(networkMonitor)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                         LastFMAuthSheetView(lastFmManager: desktopManager)

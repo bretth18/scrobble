@@ -24,6 +24,7 @@
 		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
 		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
 		A65671EA2EEADB7300773C58 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65671E92EEADB7300773C58 /* UpdateChecker.swift */; };
+		A6NETMON0002 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6NETMON0001 /* NetworkMonitor.swift */; };
 		A65671EC2EEADB9F00773C58 /* UpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65671EB2EEADB9F00773C58 /* UpdateView.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
 		A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */; };
@@ -114,6 +115,7 @@
 		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
 		A65671E92EEADB7300773C58 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		A6NETMON0001 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		A65671EB2EEADB9F00773C58 /* UpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateView.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthView.swift; sourceTree = "<group>"; };
 		A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingServicesView.swift; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 				A65671E92EEADB7300773C58 /* UpdateChecker.swift */,
 				A64304C52D52FBA1001998B6 /* AppState.swift */,
 				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
+				A6NETMON0001 /* NetworkMonitor.swift */,
 				A6HIG00008 /* ServiceStatus.swift */,
 				A6F2131D2C8C10AB00E1D23B /* PreferencesManager.swift */,
 				A6ONBOARD0002 /* OnboardingState.swift */,
@@ -467,6 +470,7 @@
 				A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */,
 				A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */,
 				A6F2FEEC2EE79C16003826F7 /* FriendsModel.swift in Sources */,
+				A6NETMON0002 /* NetworkMonitor.swift in Sources */,
 				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
