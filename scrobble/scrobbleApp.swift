@@ -15,7 +15,7 @@ struct scrobbleApp: App {
     @State private var scrobbler: Scrobbler
     @State private var appState = AppState()
     @State private var authState: AuthState
-    @State private var updateChecker = UpdateChecker()
+    @State private var updateState = UpdateState()
     @State private var networkMonitor = NetworkMonitor()
     @State private var hasCheckedOnboarding = false
 
@@ -67,6 +67,7 @@ struct scrobbleApp: App {
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                 .background {
                     OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
+                    UpdateLauncher(updateState: updateState)
                 }
         } label: {
             Image(systemName: menuBarIcon)
@@ -101,7 +102,7 @@ struct scrobbleApp: App {
                 .environment(preferencesManager)
                 .environment(scrobbler)
                 .environment(authState)
-                .environment(updateChecker)
+                .environment(updateState)
                 .sheet(isPresented: $authState.showingAuthSheet) {
                     if let desktopManager = scrobbler.lastFmManager as? LastFmDesktopManager {
                         LastFMAuthSheetView(lastFmManager: desktopManager)
@@ -114,25 +115,23 @@ struct scrobbleApp: App {
         .commands {
             CommandGroup(after: .appInfo) {
                 Button {
-                    if updateChecker.updateAvailable, let url = updateChecker.downloadURL {
-                        NSWorkspace.shared.open(url)
+                    if updateState.updateAvailable {
+                        updateState.showUpdatePrompt = true
                     } else {
-                        Task {
-                            await updateChecker.checkForUpdates(owner: "bretth18", repo: "scrobble")
-                        }
+                        Task { await updateState.checkForUpdate() }
                     }
                 } label: {
-                    if updateChecker.isChecking {
+                    if updateState.isChecking {
                         Label("Checking...", systemImage: "arrow.trianglehead.2.clockwise")
-                    } else if updateChecker.updateAvailable {
+                    } else if updateState.updateAvailable {
                         Label("Download Update", systemImage: "arrow.down.circle")
-                    } else if updateChecker.latestVersion != nil {
+                    } else if updateState.lastCheckDate != nil {
                         Label("Up to Date", systemImage: "checkmark.circle")
                     } else {
                         Label("Check for Updates...", systemImage: "arrow.clockwise")
                     }
                 }
-                .disabled(updateChecker.isChecking)
+                .disabled(updateState.isChecking)
             }
         }
 
@@ -146,8 +145,53 @@ struct scrobbleApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        // Update prompt window — opened by UpdateLauncher when an update is
+        // available. .suppressed prevents macOS window restoration from
+        // re-opening it on launch (the Installer force-quit path).
+        Window("Update Available", id: "update-prompt") {
+            UpdatePromptSheet(updateState: updateState)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
+        .commandsRemoved()
     }
 
+}
+
+// MARK: - Update Launcher
+
+/// Invisible helper that runs the on-launch update check and bridges
+/// `UpdateState.showUpdatePrompt` to opening / dismissing the prompt window.
+/// Without this bridge, flipping the bool wouldn't move the window.
+struct UpdateLauncher: View {
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+    let updateState: UpdateState
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .task {
+                updateState.checkOnLaunch()
+                if updateState.showUpdatePrompt {
+                    openWindow(id: "update-prompt")
+                } else {
+                    // Defense against macOS restoring a stale prompt window
+                    // from a previous session (the Installer force-quit path).
+                    dismissWindow(id: "update-prompt")
+                }
+            }
+            .onChange(of: updateState.showUpdatePrompt) { _, show in
+                if show {
+                    openWindow(id: "update-prompt")
+                    NSApp.activate()
+                } else {
+                    dismissWindow(id: "update-prompt")
+                }
+            }
+    }
 }
 
 // MARK: - Onboarding Launcher

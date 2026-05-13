@@ -54,6 +54,7 @@ struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
+    @Environment(UpdateState.self) var updateState
 
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
@@ -87,7 +88,7 @@ struct PreferencesView: View {
                 }
             }
 
-            UpdateSettingsView()
+            UpdateSettingsView(updateState: updateState)
 
             Section("Display") {
                 LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
@@ -156,5 +157,5 @@ struct PreferencesView: View {
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
-        .environment(UpdateChecker())
+        .environment(UpdateState())
 }
