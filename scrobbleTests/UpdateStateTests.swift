@@ -108,7 +108,9 @@ struct GitHubDecodingTests {
             ]
         }
         """
-        let release = try JSONDecoder().decode(GitHubRelease.self, from: Data(json.utf8))
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let release = try decoder.decode(GitHubRelease.self, from: Data(json.utf8))
         #expect(release.tagName == "v1.6.9")
         #expect(release.assets.count == 1)
         #expect(release.assets.first?.name == "scrobble.pkg")

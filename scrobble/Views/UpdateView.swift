@@ -11,6 +11,7 @@ import AppKit
 
 struct UpdateSettingsView: View {
     @Bindable var updateState: UpdateState
+    @Environment(\.dismissWindow) private var dismissWindow
 
     init(updateState: UpdateState) {
         self.updateState = updateState
@@ -39,10 +40,7 @@ struct UpdateSettingsView: View {
                 }
             }
 
-            Toggle("Check automatically on launch", isOn: Binding(
-                get: { updateState.autoCheckEnabled },
-                set: { updateState.autoCheckEnabled = $0 }
-            ))
+            Toggle("Check automatically on launch", isOn: $updateState.autoCheckEnabled)
 
             if let lastCheck = updateState.lastCheckDate {
                 HStack {
@@ -112,8 +110,11 @@ struct UpdateSettingsView: View {
                 HStack {
                     Button("Download & Install") {
                         Task {
-                            guard let pkgURL = await updateState.downloadPkg() else { return }
-                            NSWorkspace.shared.open(pkgURL)
+                            // Close Settings before Installer force-quits us —
+                            // same load-bearing sequence as UpdatePromptSheet.
+                            await updateState.downloadAndInstall {
+                                dismissWindow()
+                            }
                         }
                     }
                     .controlSize(.small)

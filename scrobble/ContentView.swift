@@ -41,4 +41,5 @@ struct ContentView: View {
     ContentView()
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(prefManager)
+        .environment(NetworkMonitor())
 }

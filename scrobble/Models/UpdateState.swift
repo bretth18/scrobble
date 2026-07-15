@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import AppKit
 import Observation
 
 @MainActor
@@ -26,7 +27,6 @@ final class UpdateState {
     var lastCheckDate: Date?
     var errorMessage: String?
     var downloadProgress: Double?
-    var downloadedPkgURL: URL?
 
     /// Drives the dedicated "Update Available" window. Kept separate from
     /// `updateAvailable` so settings can show update info without auto-popping
@@ -34,7 +34,6 @@ final class UpdateState {
     var showUpdatePrompt: Bool = false
 
     private let lastCheckKey = "updateLastCheckDate"
-    private let autoCheckKey = "updateAutoCheckEnabled"
     private let skippedVersionKey = "updateSkippedVersion"
 
     var currentVersion: String {
@@ -54,17 +53,38 @@ final class UpdateState {
         "\(currentVersion).\(currentBuild)"
     }
 
+    // Persisted preferences use the DefaultsBacked + access/withMutation
+    // pattern from PreferencesManager — @Observable only instruments stored
+    // properties, so plain computed properties would emit no change events
+    // and Settings toggles would render stale.
+    @ObservationIgnored @DefaultsBacked("updateAutoCheckEnabled")
+    private var _autoCheckEnabled: Bool = true
     var autoCheckEnabled: Bool {
         get {
-            if UserDefaults.standard.object(forKey: autoCheckKey) == nil { return true }
-            return UserDefaults.standard.bool(forKey: autoCheckKey)
+            access(keyPath: \.autoCheckEnabled)
+            return _autoCheckEnabled
         }
-        set { UserDefaults.standard.set(newValue, forKey: autoCheckKey) }
+        set {
+            withMutation(keyPath: \.autoCheckEnabled) {
+                _autoCheckEnabled = newValue
+            }
+        }
     }
 
     var skippedVersion: String? {
-        get { UserDefaults.standard.string(forKey: skippedVersionKey) }
-        set { UserDefaults.standard.set(newValue, forKey: skippedVersionKey) }
+        get {
+            access(keyPath: \.skippedVersion)
+            return UserDefaults.standard.string(forKey: skippedVersionKey)
+        }
+        set {
+            withMutation(keyPath: \.skippedVersion) {
+                if let newValue {
+                    UserDefaults.standard.set(newValue, forKey: skippedVersionKey)
+                } else {
+                    UserDefaults.standard.removeObject(forKey: skippedVersionKey)
+                }
+            }
+        }
     }
 
     init() {
@@ -78,16 +98,17 @@ final class UpdateState {
         isChecking = true
         errorMessage = nil
 
-        defer {
-            isChecking = false
-            lastCheckDate = Date()
-            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastCheckKey)
-        }
+        defer { isChecking = false }
 
         do {
             let currentFull = currentFullVersionFormatted
             Log.info("Update check: current=\(currentFull) skipped=\(skippedVersion ?? "<none>")", category: .general)
             let result = try await updateClient.fetchLatestRelease(currentVersion: currentFull)
+
+            // Only a successful check counts as "checked" — the menu shows
+            // "Up to Date" based on this, so a thrown fetch must not stamp it.
+            lastCheckDate = Date()
+            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastCheckKey)
 
             updateAvailable = result.isNewer
             latestVersion = result.release.tagName
@@ -128,8 +149,13 @@ final class UpdateState {
         downloadProgress = 0
         errorMessage = nil
 
+        defer {
+            isDownloading = false
+            downloadProgress = nil
+        }
+
         do {
-            let pkgURL = try await updateClient.downloadPkg(
+            return try await updateClient.downloadPkg(
                 from: pkgAsset.absoluteString,
                 version: version,
                 onProgress: { @Sendable [weak self] progress in
@@ -138,18 +164,22 @@ final class UpdateState {
                     }
                 }
             )
-
-            downloadedPkgURL = pkgURL
-            isDownloading = false
-            downloadProgress = nil
-            return pkgURL
         } catch {
             Log.error("Download failed: \(error.localizedDescription)", category: .general)
             errorMessage = error.localizedDescription
-            isDownloading = false
-            downloadProgress = nil
             return nil
         }
+    }
+
+    /// Shared download-then-install flow. `beforeInstall` runs between the
+    /// completed download and handing the pkg to Installer.app — callers close
+    /// their windows there (load-bearing: Installer force-quits the app, and
+    /// any window still visible at that point risks being restored on next
+    /// launch and looping the prompt).
+    func downloadAndInstall(beforeInstall: () -> Void) async {
+        guard let pkgURL = await downloadPkg() else { return }
+        beforeInstall()
+        NSWorkspace.shared.open(pkgURL)
     }
 
     func skipCurrentVersion() {

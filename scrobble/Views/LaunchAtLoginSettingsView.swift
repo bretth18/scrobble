@@ -11,6 +11,16 @@ import ServiceManagement
 struct LaunchAtLoginSettingsView: View {
     @Environment(PreferencesManager.self) var preferencesManager
 
+    /// `.requiresApproval` counts as registered: the item exists in System
+    /// Settings and will take effect once approved, so the toggle must show
+    /// ON and toggling OFF must actually unregister it.
+    private var isRegistered: Bool {
+        switch SMAppService.mainApp.status {
+        case .enabled, .requiresApproval: true
+        default: false
+        }
+    }
+
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
 
@@ -24,14 +34,13 @@ struct LaunchAtLoginSettingsView: View {
                 .foregroundStyle(.secondary)
         }
         .onAppear {
-            preferencesManager.launchAtLogin = SMAppService.mainApp.status == .enabled
+            preferencesManager.launchAtLogin = isRegistered
         }
         .onChange(of: preferencesManager.launchAtLogin) { _, newValue in
             // The onAppear sync above also lands here; skip when the toggle
             // already matches the registered state so we don't re-register
             // (or ping-pong on repeated failures).
-            let isEnabled = SMAppService.mainApp.status == .enabled
-            guard newValue != isEnabled else { return }
+            guard newValue != isRegistered else { return }
 
             do {
                 if newValue {
@@ -41,7 +50,7 @@ struct LaunchAtLoginSettingsView: View {
                 }
             } catch {
                 Log.error("Failed to update launch at login: \(error)", category: .general)
-                preferencesManager.launchAtLogin = isEnabled
+                preferencesManager.launchAtLogin = isRegistered
             }
         }
     }

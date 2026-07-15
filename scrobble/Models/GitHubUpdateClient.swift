@@ -39,7 +39,9 @@ actor GitHubUpdateClient {
             throw UpdateError.httpError(httpResponse.statusCode)
         }
 
-        let release = try JSONDecoder().decode(GitHubRelease.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let release = try decoder.decode(GitHubRelease.self, from: data)
 
         guard !release.draft, !release.prerelease else {
             throw UpdateError.noStableRelease
@@ -66,34 +68,40 @@ actor GitHubUpdateClient {
 
         try? FileManager.default.removeItem(at: destination)
 
-        let (bytes, response) = try await session.bytes(for: URLRequest(url: url))
+        // A download task streams to disk instead of buffering the pkg in
+        // memory; progress comes from KVO on the task's Progress. The temp
+        // file is only valid inside the completion handler, so the move to
+        // the cache directory happens there.
+        var observation: NSKeyValueObservation?
+        defer { observation?.invalidate() }
 
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw UpdateError.downloadFailed
-        }
-
-        let expectedLength = httpResponse.expectedContentLength
-        var downloadedBytes: Int64 = 0
-        var fileData = Data()
-
-        if expectedLength > 0 {
-            fileData.reserveCapacity(Int(expectedLength))
-        }
-
-        for try await byte in bytes {
-            fileData.append(byte)
-            downloadedBytes += 1
-
-            if expectedLength > 0, downloadedBytes % 65536 == 0 {
-                let progress = Double(downloadedBytes) / Double(expectedLength)
-                onProgress(min(progress, 1.0))
+        let downloaded: URL = try await withCheckedThrowingContinuation { continuation in
+            let task = session.downloadTask(with: URLRequest(url: url)) { tempURL, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let tempURL,
+                      let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200 else {
+                    continuation.resume(throwing: UpdateError.downloadFailed)
+                    return
+                }
+                do {
+                    try FileManager.default.moveItem(at: tempURL, to: destination)
+                    continuation.resume(returning: destination)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
+            observation = task.progress.observe(\.fractionCompleted) { progress, _ in
+                onProgress(progress.fractionCompleted)
+            }
+            task.resume()
         }
 
         onProgress(1.0)
-
-        try fileData.write(to: destination)
-        return destination
+        return downloaded
     }
 
     /// Numeric, dot-separated semver comparison. Strips a leading "v".
@@ -123,7 +131,6 @@ enum UpdateError: LocalizedError {
     case httpError(Int)
     case noReleasesFound
     case noStableRelease
-    case noPkgAsset
     case downloadFailed
 
     var errorDescription: String? {
@@ -133,7 +140,6 @@ enum UpdateError: LocalizedError {
         case .httpError(let code): "Server returned status \(code)"
         case .noReleasesFound: "No releases found"
         case .noStableRelease: "No stable release available"
-        case .noPkgAsset: "No .pkg installer found in release"
         case .downloadFailed: "Download failed"
         }
     }

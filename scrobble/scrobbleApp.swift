@@ -111,24 +111,7 @@ struct scrobbleApp: App {
         .defaultSize(width: 800, height: 600)
         .commands {
             CommandGroup(after: .appInfo) {
-                Button {
-                    if updateState.updateAvailable {
-                        updateState.showUpdatePrompt = true
-                    } else {
-                        Task { await updateState.checkForUpdate() }
-                    }
-                } label: {
-                    if updateState.isChecking {
-                        Label("Checking...", systemImage: "arrow.trianglehead.2.clockwise")
-                    } else if updateState.updateAvailable {
-                        Label("Download Update", systemImage: "arrow.down.circle")
-                    } else if updateState.lastCheckDate != nil {
-                        Label("Up to Date", systemImage: "checkmark.circle")
-                    } else {
-                        Label("Check for Updates...", systemImage: "arrow.clockwise")
-                    }
-                }
-                .disabled(updateState.isChecking)
+                CheckForUpdatesMenuItem(updateState: updateState)
             }
         }
 
@@ -142,6 +125,8 @@ struct scrobbleApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+        // Only OnboardingLauncher opens this — never the system at launch.
+        .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
 
         // Update prompt window — opened by UpdateLauncher when an update is
@@ -159,6 +144,40 @@ struct scrobbleApp: App {
 
 }
 
+// MARK: - Check for Updates Menu Item
+
+/// App-menu update command. Opens the prompt window itself via `openWindow`
+/// rather than only flipping `showUpdatePrompt` — the onChange bridge that
+/// watches that flag lives in the MenuBarExtra content, which isn't a safe
+/// dependency from the main menu.
+struct CheckForUpdatesMenuItem: View {
+    @Environment(\.openWindow) private var openWindow
+    let updateState: UpdateState
+
+    var body: some View {
+        Button {
+            if updateState.updateAvailable {
+                updateState.showUpdatePrompt = true
+                openWindow(id: "update-prompt")
+                NSApp.activate()
+            } else {
+                Task { await updateState.checkForUpdate() }
+            }
+        } label: {
+            if updateState.isChecking {
+                Label("Checking...", systemImage: "arrow.trianglehead.2.clockwise")
+            } else if updateState.updateAvailable {
+                Label("Download Update", systemImage: "arrow.down.circle")
+            } else if updateState.lastCheckDate != nil {
+                Label("Up to Date", systemImage: "checkmark.circle")
+            } else {
+                Label("Check for Updates...", systemImage: "arrow.clockwise")
+            }
+        }
+        .disabled(updateState.isChecking)
+    }
+}
+
 // MARK: - Update Launcher
 
 /// Invisible helper that runs the on-launch update check and bridges
@@ -167,12 +186,19 @@ struct scrobbleApp: App {
 struct UpdateLauncher: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
+    @State private var hasCheckedOnLaunch = false
     let updateState: UpdateState
 
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
             .task {
+                // .task on MenuBarExtra content re-fires on every popover
+                // open; the launch check must run exactly once or "Remind Me
+                // Later" is defeated and every click hits the GitHub API.
+                guard !hasCheckedOnLaunch else { return }
+                hasCheckedOnLaunch = true
+
                 updateState.checkOnLaunch()
                 if updateState.showUpdatePrompt {
                     openWindow(id: "update-prompt")

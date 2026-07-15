@@ -87,22 +87,21 @@ struct UpdatePromptSheet: View {
 
             if updateState.isDownloading {
                 downloadProgress
-            } else {
+            } else if updateState.latestPkgURL != nil {
                 Button("Download & Install") {
-                    // Sequence is load-bearing: download, then dismiss this
-                    // window, *then* hand the pkg to Installer.app. If we
-                    // leave the window visible when Installer force-quits us,
-                    // macOS restores it on next launch and the prompt loops.
                     Task {
-                        guard let pkgURL = await updateState.downloadPkg() else {
-                            return
-                        }
-                        close()
-                        NSWorkspace.shared.open(pkgURL)
+                        await updateState.downloadAndInstall(beforeInstall: close)
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(updateState.latestPkgURL == nil)
+            } else if let releaseURL = updateState.latestReleaseURL {
+                // Release has no .pkg asset — fall back to the release page
+                // so the user still has a path to the update.
+                Button("View Release Page") {
+                    NSWorkspace.shared.open(releaseURL)
+                    close()
+                }
+                .keyboardShortcut(.defaultAction)
             }
         }
     }
