@@ -197,6 +197,31 @@ class PreferencesManager {
         }
     }
 
+    @ObservationIgnored @DefaultsBacked("showDockIcon")
+    private var _showDockIcon: Bool = false
+    var showDockIcon: Bool {
+        get {
+            access(keyPath: \.showDockIcon)
+            return _showDockIcon
+        }
+        set {
+            withMutation(keyPath: \.showDockIcon) {
+                _showDockIcon = newValue
+            }
+            Self.applyActivationPolicy(showDockIcon: newValue)
+            // Keep the Settings window frontmost across the policy change.
+            NSApp.activate()
+        }
+    }
+
+    /// The app ships as LSUIElement (no Dock icon). Switching to `.regular`
+    /// restores the Dock icon when the user opts in.
+    static func applyActivationPolicy(
+        showDockIcon: Bool = UserDefaults.standard.bool(forKey: "showDockIcon")
+    ) {
+        NSApp.setActivationPolicy(showDockIcon ? .regular : .accessory)
+    }
+
     @ObservationIgnored @DefaultsBacked("selectedMusicAppBundleId")
     private var _selectedMusicAppBundleId: String = "com.apple.Music"
     var selectedMusicApp: SupportedMusicApp {
@@ -216,19 +241,5 @@ class PreferencesManager {
     init() {
         // Clean up legacy password storage
         UserDefaults.standard.removeObject(forKey: "lastFmPassword")
-    }
-
-    func showPreferences() {
-        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "preferences" }) {
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-        }
-    }
-
-    func showMainWindow() {
-        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-        }
     }
 }

@@ -54,6 +54,7 @@ struct PreferencesView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(Scrobbler.self) var scrobbler
     @Environment(AuthState.self) var authState
+    @Environment(UpdateState.self) var updateState
 
     var body: some View {
         @Bindable var preferencesManager = preferencesManager
@@ -87,7 +88,17 @@ struct PreferencesView: View {
                 }
             }
 
-            UpdateSettingsView()
+            UpdateSettingsView(updateState: updateState)
+
+            Section {
+                Toggle("Show Dock icon", isOn: $preferencesManager.showDockIcon)
+            } header: {
+                Text("Appearance")
+            } footer: {
+                Text("Scrobble always lives in the menu bar. Enable this to also show an icon in the Dock while the app is running.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Section("Display") {
                 LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
@@ -156,5 +167,5 @@ struct PreferencesView: View {
         .environment(prefManager)
         .environment(Scrobbler(lastFmManager: lastFmManager, preferencesManager: prefManager))
         .environment(authState)
-        .environment(UpdateChecker())
+        .environment(UpdateState())
 }

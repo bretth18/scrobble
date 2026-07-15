@@ -10,6 +10,7 @@ import SwiftUI
 struct FriendsView: View {
     @Environment(Scrobbler.self) var scrobbler
     @Environment(PreferencesManager.self) var preferencesManager
+    @Environment(NetworkMonitor.self) var networkMonitor
     @State private var model: FriendsModel
 
     init(lastFmManager: LastFmManagerType) {
@@ -61,7 +62,12 @@ struct FriendsView: View {
                 }
             }
 
-            if let error = model.errorMessage {
+            if !networkMonitor.isConnected {
+                Label("Offline — will retry when connection returns", systemImage: "wifi.slash")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .padding()
+            } else if let error = model.errorMessage {
                 Text(error)
                     .foregroundStyle(.red)
                     .font(.caption)
@@ -77,6 +83,13 @@ struct FriendsView: View {
         .onChange(of: preferencesManager.numberOfFriendsDisplayed) { _, _ in
             model.refreshData()
         }
+        .onChange(of: networkMonitor.isConnected) { wasConnected, isConnected in
+            // Auto-recover from a stale network error once the link comes back.
+            guard !wasConnected, isConnected else { return }
+            if model.errorMessage != nil || model.friends.isEmpty {
+                model.refreshData()
+            }
+        }
     }
 }
 
@@ -87,4 +100,5 @@ struct FriendsView: View {
     FriendsView(lastFmManager: scrobbler.lastFmManager)
         .environment(preferencesManager)
         .environment(scrobbler)
+        .environment(NetworkMonitor())
 }

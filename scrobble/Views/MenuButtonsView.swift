@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct MenuButtonsView: View {
-    @Environment(AppState.self) var appState
     @Environment(\.openWindow) var openWindow
+    @Environment(\.openSettings) var openSettings
 
     var body: some View {
         CompatGlassContainer(spacing: DesignTokens.spacingDefault) {
@@ -21,6 +21,9 @@ struct MenuButtonsView: View {
         HStack(spacing: DesignTokens.spacingTight) {
             Button {
                 openWindow(id: "scrobbler")
+                // As an accessory app, windows open behind the frontmost app
+                // unless we activate.
+                NSApp.activate()
             } label: {
                 Label("Window", systemImage: "rectangle.expand.vertical")
                     .foregroundStyle(.tertiary)
@@ -31,12 +34,16 @@ struct MenuButtonsView: View {
 
             Spacer()
 
-            SettingsLink {
+            Button {
+                openSettings()
+                NSApp.activate()
+            } label: {
                 Label("Settings", systemImage: "gearshape")
                     .foregroundStyle(.tertiary)
                     .font(.caption)
             }
             .compatGlassButtonStyle()
+            .accessibilityLabel("Open settings")
 
             Spacer()
 
@@ -56,5 +63,4 @@ struct MenuButtonsView: View {
 
 #Preview {
     MenuButtonsView()
-        .environment(AppState())
 }
