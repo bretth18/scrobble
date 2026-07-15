@@ -242,18 +242,4 @@ class PreferencesManager {
         // Clean up legacy password storage
         UserDefaults.standard.removeObject(forKey: "lastFmPassword")
     }
-
-    func showPreferences() {
-        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "preferences" }) {
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-        }
-    }
-
-    func showMainWindow() {
-        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-        }
-    }
 }

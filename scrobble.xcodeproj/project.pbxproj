@@ -19,16 +19,9 @@
 		A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* ContentView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
 		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
-		A64304C62D52FBA1001998B6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C52D52FBA1001998B6 /* AppState.swift */; };
 		A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304C72D52FBEC001998B6 /* AuthState.swift */; };
 		A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */; };
 		A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */; };
-		A6NETMON0002 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6NETMON0001 /* NetworkMonitor.swift */; };
-		A6UPDATE0001 /* UpdateState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0002 /* UpdateState.swift */; };
-		A6UPDATE0003 /* GitHubRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0004 /* GitHubRelease.swift */; };
-		A6UPDATE0005 /* GitHubAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0006 /* GitHubAsset.swift */; };
-		A6UPDATE0007 /* GitHubUpdateClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0008 /* GitHubUpdateClient.swift */; };
-		A6UPDATE0009 /* UpdatePromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE000A /* UpdatePromptSheet.swift */; };
 		A65671EC2EEADB9F00773C58 /* UpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65671EB2EEADB9F00773C58 /* UpdateView.swift */; };
 		A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */; };
 		A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */; };
@@ -60,6 +53,7 @@
 		A6HIG00005 /* ServiceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6HIG00006 /* ServiceRow.swift */; };
 		A6HIG00007 /* ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6HIG00008 /* ServiceStatus.swift */; };
 		A6KEYCHAIN01 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6KEYCHAIN02 /* KeychainHelper.swift */; };
+		A6NETMON0002 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6NETMON0001 /* NetworkMonitor.swift */; };
 		A6ONBOARD0001 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0002 /* OnboardingState.swift */; };
 		A6ONBOARD0003 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0004 /* OnboardingContainerView.swift */; };
 		A6ONBOARD0005 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0006 /* OnboardingWelcomeView.swift */; };
@@ -75,6 +69,11 @@
 		A6TESTBF0007 /* UpdateStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0007 /* UpdateStateTests.swift */; };
 		A6TESTBF0008 /* CodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0008 /* CodableTests.swift */; };
 		A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0009 /* CryptoUtilsTests.swift */; };
+		A6UPDATE0001 /* UpdateState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0002 /* UpdateState.swift */; };
+		A6UPDATE0003 /* GitHubRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0004 /* GitHubRelease.swift */; };
+		A6UPDATE0005 /* GitHubAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0006 /* GitHubAsset.swift */; };
+		A6UPDATE0007 /* GitHubUpdateClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0008 /* GitHubUpdateClient.swift */; };
+		A6UPDATE0009 /* UpdatePromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE000A /* UpdatePromptSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -114,16 +113,9 @@
 		A63A2B1A2D271A95000BC92E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; tabWidth = 3; };
 		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
-		A64304C52D52FBA1001998B6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A64304C72D52FBEC001998B6 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicApp.swift; sourceTree = "<group>"; };
-		A6NETMON0001 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		A6UPDATE0002 /* UpdateState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateState.swift; sourceTree = "<group>"; };
-		A6UPDATE0004 /* GitHubRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubRelease.swift; sourceTree = "<group>"; };
-		A6UPDATE0006 /* GitHubAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAsset.swift; sourceTree = "<group>"; };
-		A6UPDATE0008 /* GitHubUpdateClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubUpdateClient.swift; sourceTree = "<group>"; };
-		A6UPDATE000A /* UpdatePromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePromptSheet.swift; sourceTree = "<group>"; };
 		A65671EB2EEADB9F00773C58 /* UpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateView.swift; sourceTree = "<group>"; };
 		A65800992E78A56E00A30A42 /* LastFMWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthView.swift; sourceTree = "<group>"; };
 		A66926022EE83DE1000921B1 /* ScrobblingServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingServicesView.swift; sourceTree = "<group>"; };
@@ -158,6 +150,7 @@
 		A6HIG00006 /* ServiceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRow.swift; sourceTree = "<group>"; };
 		A6HIG00008 /* ServiceStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceStatus.swift; sourceTree = "<group>"; };
 		A6KEYCHAIN02 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		A6NETMON0001 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		A6ONBOARD0002 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		A6ONBOARD0004 /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
 		A6ONBOARD0006 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
@@ -174,6 +167,11 @@
 		A6TESTFR0008 /* CodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0009 /* CryptoUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoUtilsTests.swift; sourceTree = "<group>"; };
 		A6TESTFR000A /* scrobbleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = scrobbleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6UPDATE0002 /* UpdateState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateState.swift; sourceTree = "<group>"; };
+		A6UPDATE0004 /* GitHubRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubRelease.swift; sourceTree = "<group>"; };
+		A6UPDATE0006 /* GitHubAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAsset.swift; sourceTree = "<group>"; };
+		A6UPDATE0008 /* GitHubUpdateClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubUpdateClient.swift; sourceTree = "<group>"; };
+		A6UPDATE000A /* UpdatePromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePromptSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -306,7 +304,6 @@
 				A6UPDATE0004 /* GitHubRelease.swift */,
 				A6UPDATE0006 /* GitHubAsset.swift */,
 				A6UPDATE0008 /* GitHubUpdateClient.swift */,
-				A64304C52D52FBA1001998B6 /* AppState.swift */,
 				A6F2FEEB2EE79C16003826F7 /* FriendsModel.swift */,
 				A6NETMON0001 /* NetworkMonitor.swift */,
 				A6HIG00008 /* ServiceStatus.swift */,
@@ -467,7 +464,6 @@
 				A6F2131C2C8C085900E1D23B /* Music.h in Sources */,
 				A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */,
 				A64304C82D52FBEC001998B6 /* AuthState.swift in Sources */,
-				A64304C62D52FBA1001998B6 /* AppState.swift in Sources */,
 				A62299192EE7D49B00592239 /* FriendCardView.swift in Sources */,
 				A62299172EE7D46100592239 /* ErrorMessageView.swift in Sources */,
 				A64B5FAE2E7E0AF1000F1BAE /* SupportedMusicApp.swift in Sources */,
@@ -679,7 +675,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -729,7 +725,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct MenuButtonsView: View {
-    @Environment(AppState.self) var appState
     @Environment(\.openWindow) var openWindow
     @Environment(\.openSettings) var openSettings
 
@@ -64,5 +63,4 @@ struct MenuButtonsView: View {
 
 #Preview {
     MenuButtonsView()
-        .environment(AppState())
 }

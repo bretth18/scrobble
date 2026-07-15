@@ -27,6 +27,12 @@ struct LaunchAtLoginSettingsView: View {
             preferencesManager.launchAtLogin = SMAppService.mainApp.status == .enabled
         }
         .onChange(of: preferencesManager.launchAtLogin) { _, newValue in
+            // The onAppear sync above also lands here; skip when the toggle
+            // already matches the registered state so we don't re-register
+            // (or ping-pong on repeated failures).
+            let isEnabled = SMAppService.mainApp.status == .enabled
+            guard newValue != isEnabled else { return }
+
             do {
                 if newValue {
                     try SMAppService.mainApp.register()
@@ -35,7 +41,7 @@ struct LaunchAtLoginSettingsView: View {
                 }
             } catch {
                 Log.error("Failed to update launch at login: \(error)", category: .general)
-                preferencesManager.launchAtLogin = !newValue
+                preferencesManager.launchAtLogin = isEnabled
             }
         }
     }

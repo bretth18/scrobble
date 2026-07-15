@@ -7,13 +7,13 @@
 
 import SwiftUI
 import Observation
+import Combine
 
 @main
 struct scrobbleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var preferencesManager: PreferencesManager
     @State private var scrobbler: Scrobbler
-    @State private var appState = AppState()
     @State private var authState: AuthState
     @State private var updateState = UpdateState()
     @State private var networkMonitor = NetworkMonitor()
@@ -36,13 +36,7 @@ struct scrobbleApp: App {
     }
 
     private var menuBarIcon: String {
-        if scrobbler.errorMessage != nil {
-            "music.note.tv"
-        } else if scrobbler.currentTrack != "No track playing" {
-            "music.note"
-        } else {
-            "music.note"
-        }
+        scrobbler.errorMessage != nil ? "music.note.tv" : "music.note"
     }
 
     var body: some Scene {
@@ -58,7 +52,6 @@ struct scrobbleApp: App {
 
                     MenuButtonsView()
                         .environment(authState)
-                        .environment(appState)
                 }
                 .padding(DesignTokens.spacingDefault)
                 .containerBackground(
@@ -68,6 +61,7 @@ struct scrobbleApp: App {
                 .background {
                     OnboardingLauncher(hasCheckedOnboarding: $hasCheckedOnboarding)
                     UpdateLauncher(updateState: updateState)
+                    DockReopenLauncher()
                 }
         } label: {
             Image(systemName: menuBarIcon)
@@ -76,11 +70,10 @@ struct scrobbleApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        WindowGroup("Scrobbler", id: "scrobbler") {
+        Window("Scrobbler", id: "scrobbler") {
             ContentView()
                 .environment(scrobbler)
                 .environment(preferencesManager)
-                .environment(appState)
                 .environment(authState)
                 .environment(networkMonitor)
                 .sheet(isPresented: $authState.showingAuthSheet) {
@@ -97,8 +90,9 @@ struct scrobbleApp: App {
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
         // Menu bar app: the main window should only appear when explicitly
-        // opened, never automatically at launch (#9).
+        // opened, never automatically at launch or via restoration (#9).
         .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
 
         Settings {
             PreferencesView()
@@ -139,7 +133,7 @@ struct scrobbleApp: App {
         }
 
         // Onboarding window
-        WindowGroup("Welcome to Scrobble", id: "onboarding") {
+        Window("Welcome to Scrobble", id: "onboarding") {
             OnboardingContainerView()
                 .environment(preferencesManager)
                 .environment(scrobbler)
@@ -148,16 +142,18 @@ struct scrobbleApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+        .restorationBehavior(.disabled)
 
         // Update prompt window — opened by UpdateLauncher when an update is
-        // available. .suppressed prevents macOS window restoration from
-        // re-opening it on launch (the Installer force-quit path).
+        // available. Never opens at launch, and restoration is disabled so a
+        // stale prompt can't come back after the Installer force-quit path.
         Window("Update Available", id: "update-prompt") {
             UpdatePromptSheet(updateState: updateState)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
         .commandsRemoved()
     }
 
@@ -180,10 +176,6 @@ struct UpdateLauncher: View {
                 updateState.checkOnLaunch()
                 if updateState.showUpdatePrompt {
                     openWindow(id: "update-prompt")
-                } else {
-                    // Defense against macOS restoring a stale prompt window
-                    // from a previous session (the Installer force-quit path).
-                    dismissWindow(id: "update-prompt")
                 }
             }
             .onChange(of: updateState.showUpdatePrompt) { _, show in
@@ -193,6 +185,29 @@ struct UpdateLauncher: View {
                 } else {
                     dismissWindow(id: "update-prompt")
                 }
+            }
+    }
+}
+
+// MARK: - Dock Reopen Launcher
+
+extension Notification.Name {
+    /// Posted by the app delegate when the user clicks the Dock icon (or
+    /// relaunches the app) while no windows are visible.
+    static let dockReopen = Notification.Name("DockReopen")
+}
+
+/// Bridges Dock-icon reopen events to opening the main window. The app
+/// delegate can't reach `openWindow`, so it posts a notification instead.
+struct DockReopenLauncher: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onReceive(NotificationCenter.default.publisher(for: .dockReopen)) { _ in
+                openWindow(id: "scrobbler")
+                NSApp.activate()
             }
     }
 }
@@ -235,6 +250,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forEventClass: AEEventClass(kInternetEventClass),
             andEventID: AEEventID(kAEGetURL)
         )
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            NotificationCenter.default.post(name: .dockReopen, object: nil)
+        }
+        return true
     }
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
