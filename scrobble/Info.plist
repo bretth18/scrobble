@@ -13,6 +13,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>LSUIElement</key>
+	<true/>
 	<key>NSAppleEventsUsageDescription</key>
     <string>This app needs to control Apple Music to scrobble tracks.</string>
     <key>NSNetworkVolumesUsageDescription</key>

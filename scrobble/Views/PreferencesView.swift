@@ -90,6 +90,16 @@ struct PreferencesView: View {
 
             UpdateSettingsView(updateState: updateState)
 
+            Section {
+                Toggle("Show Dock icon", isOn: $preferencesManager.showDockIcon)
+            } header: {
+                Text("Appearance")
+            } footer: {
+                Text("Scrobble always lives in the menu bar. Enable this to also show an icon in the Dock while the app is running.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Display") {
                 LabeledStepper("Friends displayed:", value: $preferencesManager.numberOfFriendsDisplayed, in: 1...10)
 

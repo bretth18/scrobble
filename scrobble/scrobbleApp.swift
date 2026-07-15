@@ -96,6 +96,9 @@ struct scrobbleApp: App {
         }
         .defaultPosition(.center)
         .defaultSize(width: 400, height: 600)
+        // Menu bar app: the main window should only appear when explicitly
+        // opened, never automatically at launch (#9).
+        .defaultLaunchBehavior(.suppressed)
 
         Settings {
             PreferencesView()
@@ -221,6 +224,10 @@ struct OnboardingLauncher: View {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // LSUIElement launches us as an accessory; promote to .regular if the
+        // user has opted into showing the Dock icon.
+        PreferencesManager.applyActivationPolicy()
+
         // Setup URL event handling for Last.fm authentication callbacks
         NSAppleEventManager.shared().setEventHandler(
             self,
