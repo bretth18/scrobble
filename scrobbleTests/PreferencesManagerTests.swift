@@ -10,7 +10,7 @@ struct PreferencesManagerTests {
             "lastFmUsername", "lastFmPassword", "numberOfFriendsDisplayed",
             "numberOfFriendsRecentTracksDisplayed", "trackCompletionPercentageBeforeScrobble",
             "maxTrackCompletionScrobbleDelay", "useMaxTrackCompletionScrobbleDelay",
-            "mediaAppSource", "enableCustomScrobbler", "blueskyHandle",
+            "mediaAppSource",
             "enableLastFm", "launchAtLogin", "selectedMusicAppBundleId"
         ]
         for key in keys {
@@ -77,13 +77,6 @@ struct PreferencesManagerTests {
         cleanupDefaults()
         let manager = PreferencesManager()
         #expect(manager.enableLastFm == true)
-    }
-
-    @Test("Default enableCustomScrobbler is false")
-    func defaultEnableCustomScrobbler() {
-        cleanupDefaults()
-        let manager = PreferencesManager()
-        #expect(manager.enableCustomScrobbler == false)
     }
 
     @Test("Default launchAtLogin is false")

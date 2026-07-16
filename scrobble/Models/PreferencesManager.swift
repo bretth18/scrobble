@@ -141,34 +141,6 @@ class PreferencesManager {
         }
     }
 
-    @ObservationIgnored @DefaultsBacked("enableCustomScrobbler")
-    private var _enableCustomScrobbler: Bool = false
-    var enableCustomScrobbler: Bool {
-        get {
-            access(keyPath: \.enableCustomScrobbler)
-            return _enableCustomScrobbler
-        }
-        set {
-            withMutation(keyPath: \.enableCustomScrobbler) {
-                _enableCustomScrobbler = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored @DefaultsBacked("blueskyHandle")
-    private var _blueskyHandle: String = ""
-    var blueskyHandle: String {
-        get {
-            access(keyPath: \.blueskyHandle)
-            return _blueskyHandle
-        }
-        set {
-            withMutation(keyPath: \.blueskyHandle) {
-                _blueskyHandle = newValue
-            }
-        }
-    }
-
     @ObservationIgnored @DefaultsBacked("enableLastFm")
     private var _enableLastFm: Bool = true
     var enableLastFm: Bool {
@@ -241,5 +213,8 @@ class PreferencesManager {
     init() {
         // Clean up legacy password storage
         UserDefaults.standard.removeObject(forKey: "lastFmPassword")
+        // Clean up prefs from the removed ScrobbleProtocol (Bluesky) service
+        UserDefaults.standard.removeObject(forKey: "enableCustomScrobbler")
+        UserDefaults.standard.removeObject(forKey: "blueskyHandle")
     }
 }

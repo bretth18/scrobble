@@ -50,52 +50,6 @@ struct ScrobblingServicesView: View {
                 }
             }
 
-            Divider()
-
-            // Custom Scrobbler (Bluesky)
-            ServiceRow(
-                title: "ScrobbleProtocol",
-                isEnabled: $preferencesManager.enableCustomScrobbler,
-                status: customScrobblerStatus
-            ) {
-                VStack(alignment: .leading, spacing: 8) {
-                    TextField("Bluesky Handle (e.g. computerdata.co)", text: $preferencesManager.blueskyHandle)
-                        .textFieldStyle(.roundedBorder)
-
-                    HStack(spacing: 8) {
-                        Button("Authenticate with Bluesky") {
-                            scrobbler.refreshScrobblingServices()
-
-                            if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                                Task {
-                                    do {
-                                        let success = try await customService.authenticate()
-                                        Log.debug("Custom auth result: \(success)", category: .ui)
-                                    } catch {
-                                        Log.error("Custom auth failed: \(error)", category: .auth)
-                                    }
-                                }
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(preferencesManager.blueskyHandle.isEmpty)
-
-                        if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-                            let _ = scrobbler.servicesLastUpdated
-                            if customService.isAuthenticated {
-                                Button("Sign Out") {
-                                    customService.signOut()
-                                }
-                                .buttonStyle(.bordered)
-                            }
-                        }
-                    }
-
-                    Text("ScrobbleProtocol uses Bluesky OAuth authentication (atproto)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
         }
     }
 
@@ -112,17 +66,6 @@ struct ScrobblingServicesView: View {
         }
     }
 
-    private var customScrobblerStatus: ServiceStatus {
-        if !preferencesManager.enableCustomScrobbler {
-            return .disabled
-        }
-
-        let _ = scrobbler.servicesLastUpdated
-        if let customService = scrobbler.getScrobblingServices().first(where: { $0.serviceId == "custom" }) {
-            return customService.isAuthenticated ? .connected : .notConnected
-        }
-        return .disabled
-    }
 }
 
 #Preview {

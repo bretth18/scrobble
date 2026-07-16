@@ -135,8 +135,6 @@ class Scrobbler {
         withObservationTracking {
             // Read the properties we care about to register dependency
             _ = prefManager.enableLastFm
-            _ = prefManager.enableCustomScrobbler
-            _ = prefManager.blueskyHandle
             _ = prefManager.trackCompletionPercentageBeforeScrobble
             _ = prefManager.maxTrackCompletionScrobbleDelay
             _ = prefManager.useMaxTrackCompletionScrobbleDelay
@@ -166,12 +164,6 @@ class Scrobbler {
         if prefManager.enableLastFm {
             let lastFmService = LastFmServiceAdapter(lastFmManager: lastFmManager)
             scrobblingServices.append(lastFmService)
-        }
-
-        // Add custom scrobbling service if enabled
-        if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
-            let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
-            scrobblingServices.append(customService)
         }
 
         // Subscribe to authentication state changes for all services
