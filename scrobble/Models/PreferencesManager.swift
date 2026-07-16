@@ -82,6 +82,22 @@ class PreferencesManager {
         }
     }
 
+    @ObservationIgnored @DefaultsBacked("selectedFriends")
+    private var _selectedFriends: [String] = []
+    /// Usernames chosen in the Friends filter. Empty means no filter —
+    /// show the first `numberOfFriendsDisplayed` friends.
+    var selectedFriends: [String] {
+        get {
+            access(keyPath: \.selectedFriends)
+            return _selectedFriends
+        }
+        set {
+            withMutation(keyPath: \.selectedFriends) {
+                _selectedFriends = newValue
+            }
+        }
+    }
+
     @ObservationIgnored @DefaultsBacked("trackCompletionPercentageBeforeScrobble")
     private var _trackCompletionPercentageBeforeScrobble: Int = 50
     var trackCompletionPercentageBeforeScrobble: Int {

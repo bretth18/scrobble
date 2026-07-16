@@ -11,10 +11,16 @@ import Observation
 @Observable
 @MainActor
 class FriendsModel {
+    /// Full first page of the user's friends — backs the filter picker.
+    var allFriends: [Friend] = []
+    /// The displayed subset: the user's selection, or the first
+    /// `numberOfFriendsDisplayed` friends when no selection exists.
     var friends: [Friend] = []
     var friendTracks: [String: [RecentTracksResponse.RecentTracks.Track]] = [:]
     var isLoading = false
     var errorMessage: String?
+
+    private static let friendsPageSize = 50
 
     var preferencesManager: PreferencesManager?
 
@@ -54,19 +60,19 @@ class FriendsModel {
 
     private func loadFriends() {
         loadTask?.cancel()
-        Log.debug("FriendsModel: Loading friends...", category: .general)
         isLoading = true
         errorMessage = nil
 
-        let limit = preferencesManager?.numberOfFriendsDisplayed ?? 10
-        Log.debug("FriendsModel: Fetching \(limit) friends", category: .general)
-
         loadTask = Task {
             do {
-                let friends = try await lastFmManager.getFriends(page: 1, limit: limit)
+                // Always fetch the full page so the filter picker has the
+                // complete list; recent tracks are only fetched for the
+                // displayed subset.
+                let fetched = try await lastFmManager.getFriends(page: 1, limit: Self.friendsPageSize)
                 guard !Task.isCancelled else { return }
-                Log.debug("FriendsModel: Loaded \(friends.count) friends", category: .general)
-                self.friends = friends
+                Log.debug("FriendsModel: Loaded \(fetched.count) friends", category: .network)
+                self.allFriends = fetched
+                self.applyFilter()
                 self.lastFetchedAt = Date.now
                 self.isLoading = false
                 await self.loadRecentTracksForFriends()
@@ -85,14 +91,35 @@ class FriendsModel {
         }
     }
 
-    private func loadRecentTracksForFriends() async {
-        guard !friends.isEmpty else { return }
-        Log.debug("FriendsModel: Loading recent tracks for \(friends.count) friends", category: .general)
+    /// Applies the user's friend selection (or the display-count default)
+    /// to `allFriends`, producing the displayed subset.
+    private func applyFilter() {
+        let selected = preferencesManager?.selectedFriends ?? []
+        if selected.isEmpty {
+            let limit = preferencesManager?.numberOfFriendsDisplayed ?? 10
+            friends = Array(allFriends.prefix(limit))
+        } else {
+            friends = allFriends.filter { selected.contains($0.name) }
+        }
+    }
+
+    /// Called when the selection or display count changes — re-filters
+    /// without a network round-trip and fetches tracks only for friends
+    /// that don't have them yet.
+    func selectionDidChange() {
+        applyFilter()
+        Task { await loadRecentTracksForFriends(onlyMissing: true) }
+    }
+
+    private func loadRecentTracksForFriends(onlyMissing: Bool = false) async {
+        let targets = onlyMissing ? friends.filter { friendTracks[$0.name] == nil } : friends
+        guard !targets.isEmpty else { return }
+        Log.debug("FriendsModel: Loading recent tracks for \(targets.count) friends", category: .network)
 
         let limit = preferencesManager?.numberOfFriendsRecentTracksDisplayed ?? 3
 
         await withTaskGroup(of: (String, [RecentTracksResponse.RecentTracks.Track]?).self) { group in
-            for friend in friends {
+            for friend in targets {
                 let name = friend.name
                 group.addTask {
                     do {

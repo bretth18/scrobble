@@ -12,6 +12,7 @@ struct FriendsView: View {
     @Environment(PreferencesManager.self) var preferencesManager
     @Environment(NetworkMonitor.self) var networkMonitor
     @State private var model: FriendsModel
+    @State private var showingFilter = false
 
     init(lastFmManager: LastFmManagerType) {
         _model = State(initialValue: FriendsModel(lastFmManager: lastFmManager))
@@ -23,6 +24,18 @@ struct FriendsView: View {
                 Text("Friends Activity")
                     .font(.headline)
                 Spacer()
+                Button(action: { showingFilter = true }) {
+                    Image(systemName: preferencesManager.selectedFriends.isEmpty
+                          ? "line.3.horizontal.decrease.circle"
+                          : "line.3.horizontal.decrease.circle.fill")
+                }
+                .compatGlassButtonStyle()
+                .accessibilityLabel("Filter friends")
+                .popover(isPresented: $showingFilter, arrowEdge: .bottom) {
+                    FriendsFilterView(allFriends: model.allFriends)
+                        .environment(preferencesManager)
+                }
+
                 Button(action: { model.refreshData() }) {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -81,7 +94,10 @@ struct FriendsView: View {
             model.loadIfNeeded()
         }
         .onChange(of: preferencesManager.numberOfFriendsDisplayed) { _, _ in
-            model.refreshData()
+            model.selectionDidChange()
+        }
+        .onChange(of: preferencesManager.selectedFriends) { _, _ in
+            model.selectionDidChange()
         }
         .onChange(of: networkMonitor.isConnected) { wasConnected, isConnected in
             // Auto-recover from a stale network error once the link comes back.
