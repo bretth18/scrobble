@@ -135,8 +135,6 @@ class Scrobbler {
         withObservationTracking {
             // Read the properties we care about to register dependency
             _ = prefManager.enableLastFm
-            _ = prefManager.enableCustomScrobbler
-            _ = prefManager.blueskyHandle
             _ = prefManager.trackCompletionPercentageBeforeScrobble
             _ = prefManager.maxTrackCompletionScrobbleDelay
             _ = prefManager.useMaxTrackCompletionScrobbleDelay
@@ -166,12 +164,6 @@ class Scrobbler {
         if prefManager.enableLastFm {
             let lastFmService = LastFmServiceAdapter(lastFmManager: lastFmManager)
             scrobblingServices.append(lastFmService)
-        }
-
-        // Add custom scrobbling service if enabled
-        if prefManager.enableCustomScrobbler && !prefManager.blueskyHandle.isEmpty {
-            let customService = CustomScrobblingService(blueskyHandle: prefManager.blueskyHandle)
-            scrobblingServices.append(customService)
         }
 
         // Subscribe to authentication state changes for all services
@@ -308,13 +300,12 @@ class Scrobbler {
         }
     }
 
+    // This runs on every poll tick — only log state *transitions* (new
+    // track, playback stopped), never the steady state, or the log becomes
+    // unreadable within minutes.
     private func checkNowPlaying() async {
-        Log.debug("Checking now playing...", category: .scrobble)
-
         if let trackInfo = getCurrentTrackInfoViaFetcher() {
             let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
-
-            Log.debug("Found track: \(trackString) from app: \(trackInfo.application)", category: .scrobble)
 
             // Music is playing - prevent App Nap
             beginBackgroundActivity()
@@ -326,7 +317,7 @@ class Scrobbler {
 
             // Only update now playing status and setup scrobble timer if this is a new track
             if !isSameTrack {
-                Log.debug("New track detected, updating now playing and setting up scrobble timer", category: .scrobble)
+                Log.debug("Now playing: \(trackString) [\(trackInfo.application)]", category: .scrobble)
                 // Reset scrobble session flag for new track
                 hasScrobbledCurrentSession = false
 
@@ -334,13 +325,10 @@ class Scrobbler {
                 await updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
 
                 setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
-            } else {
-                Log.debug("Same track continuing, skipping now playing update", category: .scrobble)
             }
         } else {
-            Log.debug("No track info found", category: .scrobble)
             if currentTrack != "No track playing" {
-                Log.debug("No track playing detected, updating UI and invalidating timers", category: .scrobble)
+                Log.debug("Playback stopped, invalidating scrobble timers", category: .scrobble)
                 currentTrack = "No track playing"
                 currentArtwork = nil
                 invalidateScrobbleTimer()
@@ -352,28 +340,17 @@ class Scrobbler {
     }
     
 
+    // Called from the poll loop — must stay silent in the steady state.
     private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
-        Log.debug("Fetching current track info via MediaRemoteTestFetcher", category: .scrobble)
         guard let fetcher = _mediaRemoteFetcher else {
-            Log.debug("MediaRemoteTestFetcher not initialized", category: .scrobble)
             return nil
         }
-        
-        Log.debug("Current target app: \(fetcher.currentTargetApp?.displayName ?? "none")", category: .scrobble)
-        
+
         let trackInfo = fetcher.fetchCurrentTrackInfo()
-        
-        Log.debug("Track info from fetcher: isPlaying=\(trackInfo.isPlaying), title='\(trackInfo.title)', artist='\(trackInfo.artist)', app='\(trackInfo.application)'", category: .scrobble)
-        
-        guard trackInfo.isPlaying else {
-            Log.debug("No track currently playing (isPlaying = false) in MediaRemoteTestFetcher", category: .scrobble)
+
+        guard trackInfo.isPlaying, !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
             return nil
         }
-        guard !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
-            Log.debug("No track currently playing (empty title/artist) in MediaRemoteTestFetcher", category: .scrobble)
-            return nil
-        }
-        Log.debug("Returning valid track info: \(trackInfo.artist) - \(trackInfo.title)", category: .scrobble)
         return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, artwork: trackInfo.artwork)
     }
     

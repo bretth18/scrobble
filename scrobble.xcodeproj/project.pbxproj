@@ -8,14 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */; };
-		A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */; };
-		A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */; };
 		A62299172EE7D46100592239 /* ErrorMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62299162EE7D46100592239 /* ErrorMessageView.swift */; };
 		A62299192EE7D49B00592239 /* FriendCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62299182EE7D49B00592239 /* FriendCardView.swift */; };
 		A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991A2EE7D69100592239 /* MenuButtonsView.swift */; };
 		A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991C2EE7D72900592239 /* ServicesStatusView.swift */; };
 		A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991F2EE80F2C00592239 /* LabeledStepper.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
+		A6FFILTER0002 /* FriendsFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FFILTER0001 /* FriendsFilterView.swift */; };
 		A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* ContentView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
 		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
@@ -102,14 +101,13 @@
 
 /* Begin PBXFileReference section */
 		A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingService.swift; sourceTree = "<group>"; };
-		A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyOAuthManager.swift; sourceTree = "<group>"; };
-		A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomScrobblingService.swift; sourceTree = "<group>"; };
 		A62299162EE7D46100592239 /* ErrorMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessageView.swift; sourceTree = "<group>"; };
 		A62299182EE7D49B00592239 /* FriendCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCardView.swift; sourceTree = "<group>"; };
 		A622991A2EE7D69100592239 /* MenuButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuButtonsView.swift; sourceTree = "<group>"; };
 		A622991C2EE7D72900592239 /* ServicesStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStatusView.swift; sourceTree = "<group>"; };
 		A622991F2EE80F2C00592239 /* LabeledStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledStepper.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		A6FFILTER0001 /* FriendsFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsFilterView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; tabWidth = 3; };
 		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
@@ -195,6 +193,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A6SERVICES0001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
+				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
+				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
+				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
+				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		A622991E2EE80F1600592239 /* View Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -234,24 +244,18 @@
 				A6F2FEF02EE7A41F003826F7 /* Utils */,
 				A6F2FEE82EE79A26003826F7 /* Models */,
 				A6F2FEE72EE79A20003826F7 /* Views */,
+				A6SERVICES0001 /* Services */,
 				A6F213182C8C075F00E1D23B /* Info.plist */,
 				A6F212FF2C8C021800E1D23B /* scrobbleApp.swift */,
 				A6F213172C8C065100E1D23B /* Music.h */,
-				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
 				A63A2B1A2D271A95000BC92E /* ContentView.swift */,
-				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
-				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
 				A6F213032C8C021900E1D23B /* Assets.xcassets */,
 				A6F213082C8C021900E1D23B /* scrobble.entitlements */,
 				A6F213052C8C021900E1D23B /* Preview Content */,
-				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
 				A6A5809E2E78D2360079DC91 /* MediaRemoteBridge.h */,
 				A6A5809F2E78D23A0079DC91 /* MediaRemoteBridge.m */,
 				A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */,
 				A64B5FAD2E7E0AF1000F1BAE /* SupportedMusicApp.swift */,
-				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
-				A61F9BD02E85E07200CC1661 /* BlueskyOAuthManager.swift */,
-				A61F9BD22E85E08900CC1661 /* CustomScrobblingService.swift */,
 			);
 			path = scrobble;
 			sourceTree = "<group>";
@@ -280,6 +284,7 @@
 				A62299162EE7D46100592239 /* ErrorMessageView.swift */,
 				A64B5FAB2E7E09D2000F1BAE /* AppSelectionView.swift */,
 				A63A2B182D2717A1000BC92E /* FriendsView.swift */,
+				A6FFILTER0001 /* FriendsFilterView.swift */,
 				A62299182EE7D49B00592239 /* FriendCardView.swift */,
 				A622991A2EE7D69100592239 /* MenuButtonsView.swift */,
 				A622991C2EE7D72900592239 /* ServicesStatusView.swift */,
@@ -482,12 +487,11 @@
 				A64B5FAC2E7E09D2000F1BAE /* AppSelectionView.swift in Sources */,
 				A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */,
 				A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */,
-				A61F9BD32E85E08900CC1661 /* CustomScrobblingService.swift in Sources */,
+				A6FFILTER0002 /* FriendsFilterView.swift in Sources */,
 				A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */,
 				A6F2131E2C8C10AB00E1D23B /* PreferencesManager.swift in Sources */,
 				A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */,
 				A658009A2E78A56E00A30A42 /* LastFMWebAuthView.swift in Sources */,
-				A61F9BD12E85E07200CC1661 /* BlueskyOAuthManager.swift in Sources */,
 				A66926032EE83DE1000921B1 /* ScrobblingServicesView.swift in Sources */,
 				A6UPDATE0001 /* UpdateState.swift in Sources */,
 				A6UPDATE0003 /* GitHubRelease.swift in Sources */,

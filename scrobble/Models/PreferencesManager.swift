@@ -40,9 +40,6 @@ class PreferencesManager {
     var apiKey: String { Secrets.lastFmApiKey }
     var apiSecret: String { Secrets.lastFmApiSecret }
 
-    // Password is no longer stored — kept for API compatibility only
-    var password: String = ""
-
     @ObservationIgnored @DefaultsBacked("lastFmUsername")
     private var _username: String = ""
     var username: String {
@@ -81,6 +78,22 @@ class PreferencesManager {
         set {
             withMutation(keyPath: \.numberOfFriendsRecentTracksDisplayed) {
                 _numberOfFriendsRecentTracksDisplayed = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored @DefaultsBacked("selectedFriends")
+    private var _selectedFriends: [String] = []
+    /// Usernames chosen in the Friends filter. Empty means no filter —
+    /// show the first `numberOfFriendsDisplayed` friends.
+    var selectedFriends: [String] {
+        get {
+            access(keyPath: \.selectedFriends)
+            return _selectedFriends
+        }
+        set {
+            withMutation(keyPath: \.selectedFriends) {
+                _selectedFriends = newValue
             }
         }
     }
@@ -137,34 +150,6 @@ class PreferencesManager {
         set {
             withMutation(keyPath: \.mediaAppSource) {
                 _mediaAppSource = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored @DefaultsBacked("enableCustomScrobbler")
-    private var _enableCustomScrobbler: Bool = false
-    var enableCustomScrobbler: Bool {
-        get {
-            access(keyPath: \.enableCustomScrobbler)
-            return _enableCustomScrobbler
-        }
-        set {
-            withMutation(keyPath: \.enableCustomScrobbler) {
-                _enableCustomScrobbler = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored @DefaultsBacked("blueskyHandle")
-    private var _blueskyHandle: String = ""
-    var blueskyHandle: String {
-        get {
-            access(keyPath: \.blueskyHandle)
-            return _blueskyHandle
-        }
-        set {
-            withMutation(keyPath: \.blueskyHandle) {
-                _blueskyHandle = newValue
             }
         }
     }
@@ -241,5 +226,8 @@ class PreferencesManager {
     init() {
         // Clean up legacy password storage
         UserDefaults.standard.removeObject(forKey: "lastFmPassword")
+        // Clean up prefs from the removed ScrobbleProtocol (Bluesky) service
+        UserDefaults.standard.removeObject(forKey: "enableCustomScrobbler")
+        UserDefaults.standard.removeObject(forKey: "blueskyHandle")
     }
 }

@@ -11,6 +11,10 @@ struct ServicesStatusView: View {
     @Environment(Scrobbler.self) var scrobbler
 
     var body: some View {
+        // Auth state lives on the service objects, which aren't observable —
+        // reading servicesLastUpdated subscribes this view to the Scrobbler's
+        // auth-monitoring bumps so rows refresh when authentication changes.
+        let _ = scrobbler.servicesLastUpdated
         let services = scrobbler.getScrobblingServices()
 
         if services.isEmpty {

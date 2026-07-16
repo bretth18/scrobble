@@ -4,6 +4,14 @@
 //
 //  Created by Brett Henderson on 12/8/25.
 //
+//  Thin wrapper over os.Logger. Output goes to the unified logging system
+//  only — os.Logger already surfaces in the Xcode console and Console.app,
+//  so there is no separate print() path (a second sink just duplicates
+//  every line, and ANSI color codes render as garbage in both consoles).
+//
+//  Never log credentials: session keys, API keys/secrets, auth tokens,
+//  or signed request parameter dictionaries.
+//
 
 import Foundation
 import os
@@ -17,56 +25,28 @@ enum LogCategory: String, CaseIterable {
 }
 
 struct Log {
-    
+
     private static let subsystem = Bundle.main.bundleIdentifier ?? "com.app.scrobble"
-    
-    private static func logger(for category: LogCategory) -> Logger {
-        Logger(subsystem: subsystem, category: category.rawValue)
-    }
-    
-    
-    // ANSI color for terminal/console output
-    private static let reset = "\u{001B}[0m"
-    private static let colors: [OSLogType: String] = [
-        .debug: "\u{001B}[36m",    // Cyan
-        .info: "\u{001B}[32m",     // Green
-        .error: "\u{001B}[31m",    // Red
-        .fault: "\u{001B}[35m",     // Magenta
-        .default: "\u{001B}[37m"   // White
-    ]
-    
-    
+
+    private static let loggers: [LogCategory: Logger] = Dictionary(
+        uniqueKeysWithValues: LogCategory.allCases.map {
+            ($0, Logger(subsystem: subsystem, category: $0.rawValue))
+        }
+    )
+
     static func debug(_ message: String, category: LogCategory = .general) {
-        #if DEBUG
-        let color = colors[.debug]!
-        print("\(color)[\(category.rawValue)]: \(message)\(reset)")
-        #endif
-        logger(for: category).debug("\(message)")
+        loggers[category]!.debug("\(message, privacy: .public)")
     }
-    
+
     static func info(_ message: String, category: LogCategory = .general) {
-        #if DEBUG
-        let color = colors[.info]!
-        print("\(color)[\(category.rawValue)]: \(message)\(reset)")
-        #endif
-        logger(for: category).info("\(message)")
+        loggers[category]!.info("\(message, privacy: .public)")
     }
-    
+
     static func error(_ message: String, category: LogCategory = .general) {
-        #if DEBUG
-        let color = colors[.error]!
-        print("\(color)[\(category.rawValue)]: \(message)\(reset)")
-        #endif
-        logger(for: category).error("\(message)")
+        loggers[category]!.error("\(message, privacy: .public)")
     }
-    
+
     static func fault(_ message: String, category: LogCategory = .general) {
-        #if DEBUG
-        let color = colors[.fault]!
-        print("\(color)[\(category.rawValue)]: \(message)\(reset)")
-        #endif
-        logger(for: category).fault("\(message)")
+        loggers[category]!.fault("\(message, privacy: .public)")
     }
-        
-        
 }

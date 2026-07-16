@@ -42,7 +42,6 @@ class LastFmDesktopManager: LastFmManagerType {
     let apiKey: String  // Made public for WebKit auth view
     private let apiSecret: String
     private let initialUsername: String
-    private let password: String  // Kept for API compatibility but not used
 
     /// Resolves the effective username: prefers Keychain, falls back to UserDefaults backup, then init value
     private var effectiveUsername: String {
@@ -97,12 +96,10 @@ class LastFmDesktopManager: LastFmManagerType {
         case failed(String)
     }
 
-    // Keep same init signature for compatibility
-    init(apiKey: String, apiSecret: String, username: String, password: String = "", authState: AuthState) {
+    init(apiKey: String, apiSecret: String, username: String, authState: AuthState) {
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self.initialUsername = username
-        self.password = password
         self.authState = authState
 
         // Recover pending auth token if app restarted mid-auth
@@ -121,11 +118,11 @@ class LastFmDesktopManager: LastFmManagerType {
             .sink { [weak self] notification in
                 guard let self = self else { return }
                 if let token = notification.userInfo?["token"] as? String {
-                    Log.debug("Received auth success notification with token: \(token)", category: .scrobble)
+                    Log.debug("Received auth success notification", category: .auth)
 
                     // Verify tokens match if we have one expected
                     if !self.currentAuthToken.isEmpty, self.currentAuthToken != token {
-                        Log.debug("Warning: Received callback token \(token) differs from expected \(self.currentAuthToken)", category: .scrobble)
+                        Log.debug("Warning: Received callback token differs from expected token", category: .auth)
                     }
 
                     // If we received a token, we can assume it's the right one or update ours
@@ -194,8 +191,20 @@ class LastFmDesktopManager: LastFmManagerType {
 
         Task {
             do {
-                _ = try await makeRequestAsync(parameters: parameters)
+                let data = try await makeRequestAsync(parameters: parameters)
                 Log.debug("Saved session validated successfully", category: .auth)
+
+                // Heal a missing username: sessions saved before username
+                // persistence existed leave effectiveUsername empty, which
+                // breaks user.getFriends. The getInfo response we just made
+                // contains the account name — persist it.
+                if validationUser.isEmpty,
+                   let info = try? JSONDecoder().decode(UserInfoResponse.self, from: data),
+                   !info.user.name.isEmpty {
+                    Log.info("Recovered username from session validation: \(info.user.name)", category: .auth)
+                    _ = KeychainHelper.save(key: "lastfm_username", value: info.user.name)
+                    UserDefaults.standard.set(info.user.name, forKey: "lastfm_username_backup")
+                }
                 self.isAuthenticated = true
                 self.authStatus = .authenticated
                 self.authState.isAuthenticated = true
@@ -242,7 +251,7 @@ class LastFmDesktopManager: LastFmManagerType {
             do {
                 let token = try await getTokenAsync()
                 self.currentAuthToken = token
-                Log.debug("Got token: \(token)", category: .auth)
+                Log.debug("Got auth token", category: .auth)
 
                 // Show the auth sheet with WebKit view
                 self.authState.showingAuthSheet = true
@@ -399,7 +408,7 @@ class LastFmDesktopManager: LastFmManagerType {
             Task {
                 do {
                     _ = try await NSWorkspace.shared.open(url, configuration: configuration)
-                    Log.debug("Reopened auth URL in new browser window: \(url)", category: .auth)
+                    Log.debug("Reopened auth URL in new browser window", category: .auth)
                 } catch {
                     Log.error("Failed to reopen auth URL: \(error)", category: .auth)
                 }
@@ -451,14 +460,9 @@ class LastFmDesktopManager: LastFmManagerType {
         allParameters["api_sig"] = signature
         allParameters["format"] = "json"
 
-        Log.debug("Session request parameters: \(allParameters)", category: .auth)
+        Log.debug("Requesting session for auth token", category: .auth)
 
         let data = try await makeRequestAsync(parameters: allParameters)
-
-        // Log the raw response for debugging
-        if let jsonString = String(data: data, encoding: .utf8) {
-            Log.debug("Raw session response: \(jsonString)", category: .auth)
-        }
 
         // Try to decode as an error response first
         if let errorResponse = try? JSONDecoder().decode(LastFmErrorResponse.self, from: data) {
@@ -468,7 +472,7 @@ class LastFmDesktopManager: LastFmManagerType {
 
         // Try to decode as a successful session response
         let response = try JSONDecoder().decode(SessionResponse.self, from: data)
-        Log.debug("Session response received: \(response.session)", category: .auth)
+        Log.debug("Session established for user: \(response.session.name)", category: .auth)
         return SessionResult(key: response.session.key, username: response.session.name)
     }
 
@@ -552,9 +556,16 @@ class LastFmDesktopManager: LastFmManagerType {
             throw ScrobblerError.noSessionKey
         }
 
+        let username = effectiveUsername
+        guard !username.isEmpty else {
+            // Firing the request with user="" is a guaranteed backend error;
+            // fail with something actionable instead.
+            throw ScrobblerError.apiError("No Last.fm username available — re-authenticate or set your username in Settings.")
+        }
+
         var parameters: [String: String] = [
             "method": "user.getFriends",
-            "user": effectiveUsername,
+            "user": username,
             "api_key": apiKey,
             "sk": sessionKey,
             "page": String(page),
@@ -565,7 +576,7 @@ class LastFmDesktopManager: LastFmManagerType {
         parameters["api_sig"] = signature
         parameters["format"] = "json"
 
-        Log.debug("Getting friends with parameters: \(parameters)", category: .general)
+        Log.debug("Getting friends for \(parameters["user"] ?? "?") (page \(page), limit \(limit))", category: .network)
 
         let data = try await makeRequestAsync(parameters: parameters)
         let response = try JSONDecoder().decode(FriendsResponse.self, from: data)
@@ -608,6 +619,13 @@ private struct SessionResponse: Codable {
         let name: String
         let key: String
         let subscriber: Int
+    }
+}
+
+private struct UserInfoResponse: Codable {
+    let user: UserInfo
+    struct UserInfo: Codable {
+        let name: String
     }
 }
 
