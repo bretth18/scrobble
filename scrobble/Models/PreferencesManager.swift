@@ -40,9 +40,6 @@ class PreferencesManager {
     var apiKey: String { Secrets.lastFmApiKey }
     var apiSecret: String { Secrets.lastFmApiSecret }
 
-    // Password is no longer stored — kept for API compatibility only
-    var password: String = ""
-
     @ObservationIgnored @DefaultsBacked("lastFmUsername")
     private var _username: String = ""
     var username: String {

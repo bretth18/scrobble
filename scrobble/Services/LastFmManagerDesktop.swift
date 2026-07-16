@@ -42,7 +42,6 @@ class LastFmDesktopManager: LastFmManagerType {
     let apiKey: String  // Made public for WebKit auth view
     private let apiSecret: String
     private let initialUsername: String
-    private let password: String  // Kept for API compatibility but not used
 
     /// Resolves the effective username: prefers Keychain, falls back to UserDefaults backup, then init value
     private var effectiveUsername: String {
@@ -97,12 +96,10 @@ class LastFmDesktopManager: LastFmManagerType {
         case failed(String)
     }
 
-    // Keep same init signature for compatibility
-    init(apiKey: String, apiSecret: String, username: String, password: String = "", authState: AuthState) {
+    init(apiKey: String, apiSecret: String, username: String, authState: AuthState) {
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self.initialUsername = username
-        self.password = password
         self.authState = authState
 
         // Recover pending auth token if app restarted mid-auth

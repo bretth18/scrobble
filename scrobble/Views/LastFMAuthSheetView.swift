@@ -57,7 +57,7 @@ struct LastFMAuthSheetView: View {
 
 #Preview {
     let authState = AuthState()
-    let manager = LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", password: "", authState: authState)
+    let manager = LastFmDesktopManager(apiKey: "", apiSecret: "", username: "", authState: authState)
     return LastFMAuthSheetView(lastFmManager: manager)
         .environment(authState)
 }
