@@ -189,7 +189,7 @@ struct LegacyWebView: NSViewRepresentable {
 
             // Allow the scrobble:// callback URL to pass through to the system
             if url.scheme == "scrobble" {
-                Log.debug("Intercepted scrobble:// callback URL: \(url)", category: .ui)
+                Log.debug("Intercepted scrobble:// callback URL", category: .ui)
                 // Cancel the WebView navigation but let the system handle the URL
                 decisionHandler(.cancel)
                 // Open the URL so AppDelegate can catch it
@@ -205,7 +205,7 @@ struct LegacyWebView: NSViewRepresentable {
 
             guard let currentURL = webView.url?.absoluteString else { return }
 
-            Log.debug("Current URL: \(currentURL)", category: .ui)
+            Log.debug("Auth page navigation: \(webView.url?.host() ?? "?")\(webView.url?.path() ?? "")", category: .ui)
 
             // Skip checking if we're still on the initial auth page
             if currentURL.contains("/api/auth") {
