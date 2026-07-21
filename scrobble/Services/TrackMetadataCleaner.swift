@@ -2,13 +2,7 @@
 //  TrackMetadataCleaner.swift
 //  scrobble
 //
-//  Conservative cleanup for track metadata from web sources (#12).
-//  Browsers publish whatever the page sets via the Media Session API, so
-//  YouTube embeds arrive as e.g. artist "Gone - Topic", title
-//  "Gone - Bin Days (Official Video)". Native music apps are never touched.
-//
-//  Rules are deliberately suffix/prefix-anchored: mid-title segments like
-//  "(feat. X)", "(Live)", or "(Remix)" carry meaning and are preserved.
+//  Created by Brett Henderson on 7/21/26.
 //
 
 import Foundation
@@ -26,7 +20,7 @@ enum TrackMetadataCleaner {
         "org.mozilla.firefox",
         "com.microsoft.edgemac",
         "com.brave.browser",
-        "company.thebrowser.browser", // Arc
+        "company.thebrowser.browser",
         "com.vivaldi.vivaldi",
         "com.operasoftware.opera",
         "app.zen-browser.zen",
