@@ -14,7 +14,6 @@
 		A622991D2EE7D72900592239 /* ServicesStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991C2EE7D72900592239 /* ServicesStatusView.swift */; };
 		A62299202EE80F2C00592239 /* LabeledStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A622991F2EE80F2C00592239 /* LabeledStepper.swift */; };
 		A63A2B192D2717A1000BC92E /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B182D2717A1000BC92E /* FriendsView.swift */; };
-		A6FFILTER0002 /* FriendsFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FFILTER0001 /* FriendsFilterView.swift */; };
 		A63A2B1B2D271A95000BC92E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63A2B1A2D271A95000BC92E /* ContentView.swift */; };
 		A64304B92D52EBAE001998B6 /* LastFmManagerDesktop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */; };
 		A64304BB2D52EC87001998B6 /* LastFMAuthSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */; };
@@ -30,6 +29,8 @@
 		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
+		A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0001 /* TrackMetadataCleaner.swift */; };
+		A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0003 /* TrackMetadataCleanerTests.swift */; };
 		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
 		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
 		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
@@ -47,6 +48,7 @@
 		A6F2FEEF2EE79E47003826F7 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */; };
 		A6F2FEF22EE7A429003826F7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2FEF12EE7A429003826F7 /* Logger.swift */; };
 		A6F954FC2EED236000501378 /* LaunchAtLoginSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */; };
+		A6FFILTER0002 /* FriendsFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FFILTER0001 /* FriendsFilterView.swift */; };
 		A6HIG00001 /* AppSelectionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6HIG00002 /* AppSelectionButton.swift */; };
 		A6HIG00003 /* FeatureRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6HIG00004 /* FeatureRow.swift */; };
 		A6HIG00005 /* ServiceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6HIG00006 /* ServiceRow.swift */; };
@@ -107,7 +109,6 @@
 		A622991C2EE7D72900592239 /* ServicesStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStatusView.swift; sourceTree = "<group>"; };
 		A622991F2EE80F2C00592239 /* LabeledStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledStepper.swift; sourceTree = "<group>"; };
 		A63A2B182D2717A1000BC92E /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
-		A6FFILTER0001 /* FriendsFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsFilterView.swift; sourceTree = "<group>"; };
 		A63A2B1A2D271A95000BC92E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmManagerDesktop.swift; sourceTree = "<group>"; tabWidth = 3; };
 		A64304BA2D52EC87001998B6 /* LastFMAuthSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAuthSheetView.swift; sourceTree = "<group>"; };
@@ -123,6 +124,8 @@
 		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
+		A6CLEANER0001 /* TrackMetadataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleaner.swift; sourceTree = "<group>"; };
+		A6CLEANER0003 /* TrackMetadataCleanerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleanerTests.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
 		A6DESIGN012EFBAA0000002 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
@@ -143,6 +146,7 @@
 		A6F2FEED2EE79E47003826F7 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A6F2FEF12EE7A429003826F7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A6F954FB2EED236000501378 /* LaunchAtLoginSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettingsView.swift; sourceTree = "<group>"; };
+		A6FFILTER0001 /* FriendsFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsFilterView.swift; sourceTree = "<group>"; };
 		A6HIG00002 /* AppSelectionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionButton.swift; sourceTree = "<group>"; };
 		A6HIG00004 /* FeatureRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureRow.swift; sourceTree = "<group>"; };
 		A6HIG00006 /* ServiceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRow.swift; sourceTree = "<group>"; };
@@ -193,18 +197,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A6SERVICES0001 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
-				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
-				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
-				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
-				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
 		A622991E2EE80F1600592239 /* View Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -349,6 +341,19 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		A6SERVICES0001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
+				A6CLEANER0001 /* TrackMetadataCleaner.swift */,
+				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
+				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
+				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
+				A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		A6TESTGR0001 /* scrobbleTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -359,6 +364,7 @@
 				A6TESTFR0005 /* DesignTokensTests.swift */,
 				A6TESTFR0006 /* ScrobbleDelayTests.swift */,
 				A6TESTFR0007 /* UpdateStateTests.swift */,
+				A6CLEANER0003 /* TrackMetadataCleanerTests.swift */,
 				A6TESTFR0008 /* CodableTests.swift */,
 				A6TESTFR0009 /* CryptoUtilsTests.swift */,
 			);
@@ -503,6 +509,7 @@
 				A6KEYCHAIN01 /* KeychainHelper.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
+				A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */,
 				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
@@ -527,6 +534,7 @@
 				A6TESTBF0005 /* DesignTokensTests.swift in Sources */,
 				A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */,
 				A6TESTBF0007 /* UpdateStateTests.swift in Sources */,
+				A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */,
 				A6TESTBF0008 /* CodableTests.swift in Sources */,
 				A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */,
 			);
@@ -679,7 +687,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -729,7 +737,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;

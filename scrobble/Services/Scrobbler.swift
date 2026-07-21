@@ -305,7 +305,16 @@ class Scrobbler {
     // unreadable within minutes.
     private func checkNowPlaying() async {
         if let trackInfo = getCurrentTrackInfoViaFetcher() {
-            let trackString = "\(trackInfo.artist) - \(trackInfo.name)"
+            // Web sources (browsers) relay whatever the page put in the Media
+            // Session API — clean known junk before anything downstream sees it.
+            let track = TrackMetadataCleaner.cleanIfWebSource(
+                title: trackInfo.name,
+                artist: trackInfo.artist,
+                album: trackInfo.album,
+                bundleIdentifier: trackInfo.bundleIdentifier,
+                applicationName: trackInfo.application
+            )
+            let trackString = "\(track.artist) - \(track.title)"
 
             // Music is playing - prevent App Nap
             beginBackgroundActivity()
@@ -322,9 +331,9 @@ class Scrobbler {
                 hasScrobbledCurrentSession = false
 
                 // Update Now Playing (Async)
-                await updateNowPlaying(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+                await updateNowPlaying(artist: track.artist, title: track.title, album: track.album)
 
-                setupScrobbleTimer(artist: trackInfo.artist, title: trackInfo.name, album: trackInfo.album)
+                setupScrobbleTimer(artist: track.artist, title: track.title, album: track.album)
             }
         } else {
             if currentTrack != "No track playing" {
@@ -341,7 +350,7 @@ class Scrobbler {
     
 
     // Called from the poll loop — must stay silent in the steady state.
-    private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, artwork: NSImage?)? {
+    private func getCurrentTrackInfoViaFetcher() -> (name: String, artist: String, album: String, duration: TimeInterval?, application: String, bundleIdentifier: String?, artwork: NSImage?)? {
         guard let fetcher = _mediaRemoteFetcher else {
             return nil
         }
@@ -351,7 +360,7 @@ class Scrobbler {
         guard trackInfo.isPlaying, !trackInfo.title.isEmpty, !trackInfo.artist.isEmpty else {
             return nil
         }
-        return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, artwork: trackInfo.artwork)
+        return (name: trackInfo.title, artist: trackInfo.artist, album: trackInfo.album, duration: trackInfo.duration, application: trackInfo.application, bundleIdentifier: trackInfo.bundleIdentifier, artwork: trackInfo.artwork)
     }
     
     private func scrobbleTrack(artist: String, title: String, album: String) {

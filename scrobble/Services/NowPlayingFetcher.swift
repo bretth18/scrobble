@@ -31,6 +31,7 @@ final class NowPlayingFetcher {
     var currentTrackArtist: String = ""
     var currentTrackAlbum: String = ""
     var currentApplication: String = ""
+    var currentBundleIdentifier: String? = nil
     var currentArtwork: NSImage? = nil
     var currentArtworkBase64: String? = nil
     var isPlaying: Bool = false
@@ -68,6 +69,7 @@ final class NowPlayingFetcher {
             self.currentTrackArtist = trackInfo.payload.artist ?? ""
             self.currentTrackAlbum = trackInfo.payload.album ?? ""
             self.currentApplication = trackInfo.payload.applicationName ?? ""
+            self.currentBundleIdentifier = trackInfo.payload.bundleIdentifier
             self.currentArtwork = trackInfo.payload.artwork
             self.currentArtworkBase64 = trackInfo.payload.artworkDataBase64
             self.isPlaying = trackInfo.payload.isPlaying ?? false
@@ -105,6 +107,7 @@ final class NowPlayingFetcher {
         currentTrackArtist = ""
         currentTrackAlbum = ""
         currentApplication = ""
+        currentBundleIdentifier = nil
         currentArtwork = nil
         currentArtworkBase64 = nil
         isPlaying = false
@@ -154,8 +157,8 @@ final class NowPlayingFetcher {
         Log.debug("Forcing UI update with current state", category: .scrobble)
     }
 
-    func fetchCurrentTrackInfo() -> (isPlaying: Bool, title: String, artist: String, album: String, duration: TimeInterval, application: String, artwork: NSImage?, artworkBase64: String?) {
-        return (isPlaying: isPlaying, title: currentTrackTitle, artist: currentTrackArtist, album: currentTrackAlbum, duration: currentTrackDuration, application: currentApplication, artwork: currentArtwork, artworkBase64: currentArtworkBase64)
+    func fetchCurrentTrackInfo() -> (isPlaying: Bool, title: String, artist: String, album: String, duration: TimeInterval, application: String, bundleIdentifier: String?, artwork: NSImage?, artworkBase64: String?) {
+        return (isPlaying: isPlaying, title: currentTrackTitle, artist: currentTrackArtist, album: currentTrackAlbum, duration: currentTrackDuration, application: currentApplication, bundleIdentifier: currentBundleIdentifier, artwork: currentArtwork, artworkBase64: currentArtworkBase64)
     }
     
     func fetchCurrentArtwork() -> NSImage? {
