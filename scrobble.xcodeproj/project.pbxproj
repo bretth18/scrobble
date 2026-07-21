@@ -38,6 +38,7 @@
 		A6F213042C8C021900E1D23B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213032C8C021900E1D23B /* Assets.xcassets */; };
 		A6F213072C8C021900E1D23B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6F213062C8C021900E1D23B /* Preview Assets.xcassets */; };
 		A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */; };
+		A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0001 /* TrackMetadataCleaner.swift */; };
 		A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213102C8C037500E1D23B /* PreferencesView.swift */; };
 		A6F213132C8C038F00E1D23B /* LastFmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F213122C8C038F00E1D23B /* LastFmManager.swift */; };
 		A6F213192C8C076600E1D23B /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6F213152C8C05E800E1D23B /* ScriptingBridge.framework */; };
@@ -66,6 +67,7 @@
 		A6TESTBF0005 /* DesignTokensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0005 /* DesignTokensTests.swift */; };
 		A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0006 /* ScrobbleDelayTests.swift */; };
 		A6TESTBF0007 /* UpdateStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0007 /* UpdateStateTests.swift */; };
+		A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0003 /* TrackMetadataCleanerTests.swift */; };
 		A6TESTBF0008 /* CodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0008 /* CodableTests.swift */; };
 		A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0009 /* CryptoUtilsTests.swift */; };
 		A6UPDATE0001 /* UpdateState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6UPDATE0002 /* UpdateState.swift */; };
@@ -162,6 +164,8 @@
 		A6TESTFR0005 /* DesignTokensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0006 /* ScrobbleDelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobbleDelayTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0007 /* UpdateStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateStateTests.swift; sourceTree = "<group>"; };
+		A6CLEANER0001 /* TrackMetadataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleaner.swift; sourceTree = "<group>"; };
+		A6CLEANER0003 /* TrackMetadataCleanerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleanerTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0008 /* CodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0009 /* CryptoUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoUtilsTests.swift; sourceTree = "<group>"; };
 		A6TESTFR000A /* scrobbleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = scrobbleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -197,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
+				A6CLEANER0001 /* TrackMetadataCleaner.swift */,
 				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
@@ -359,6 +364,7 @@
 				A6TESTFR0005 /* DesignTokensTests.swift */,
 				A6TESTFR0006 /* ScrobbleDelayTests.swift */,
 				A6TESTFR0007 /* UpdateStateTests.swift */,
+				A6CLEANER0003 /* TrackMetadataCleanerTests.swift */,
 				A6TESTFR0008 /* CodableTests.swift */,
 				A6TESTFR0009 /* CryptoUtilsTests.swift */,
 			);
@@ -503,6 +509,7 @@
 				A6KEYCHAIN01 /* KeychainHelper.swift in Sources */,
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
+				A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */,
 				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
@@ -527,6 +534,7 @@
 				A6TESTBF0005 /* DesignTokensTests.swift in Sources */,
 				A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */,
 				A6TESTBF0007 /* UpdateStateTests.swift in Sources */,
+				A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */,
 				A6TESTBF0008 /* CodableTests.swift in Sources */,
 				A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */,
 			);
