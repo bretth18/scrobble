@@ -54,6 +54,18 @@ class Scrobbler {
 
     var currentTrack: String = "No track playing"
     var currentArtwork: NSImage? = nil
+
+    /// Cleaned-but-unresolved track identity from the poller. `currentTrack`
+    /// is the *display* string and may be rewritten by async web metadata
+    /// resolution; this key is what same-track detection compares against.
+    private var currentRawTrackKey = ""
+    private var resolutionTask: Task<Void, Never>?
+    /// Metadata the scrobble timer submits at fire time — updated in place
+    /// when web metadata resolution lands mid-play.
+    private var pendingScrobbleMetadata: (artist: String, title: String, album: String)?
+    private let metadataResolver = TrackMetadataResolver(
+        client: LastFmCatalogClient(apiKey: Secrets.lastFmApiKey)
+    )
     var isScrobbling: Bool = false
     var lastScrobbledTrack: String = ""
     var errorMessage: String?
@@ -319,13 +331,16 @@ class Scrobbler {
             // Music is playing - prevent App Nap
             beginBackgroundActivity()
 
-            // If we're getting the same track info, this is likely just a polling update
-            let isSameTrack = trackString == currentTrack
-            currentTrack = trackString
+            // Same-track detection compares the *cleaned* identity, not the
+            // displayed one — async resolution may rewrite currentTrack
+            // mid-play, and that must not read as a track change.
+            let isSameTrack = trackString == currentRawTrackKey
             currentArtwork = trackInfo.artwork
 
             // Only update now playing status and setup scrobble timer if this is a new track
             if !isSameTrack {
+                currentRawTrackKey = trackString
+                currentTrack = trackString
                 Log.debug("Now playing: \(trackString) [\(trackInfo.application)]", category: .scrobble)
                 // Reset scrobble session flag for new track
                 hasScrobbledCurrentSession = false
@@ -334,17 +349,71 @@ class Scrobbler {
                 await updateNowPlaying(artist: track.artist, title: track.title, album: track.album)
 
                 setupScrobbleTimer(artist: track.artist, title: track.title, album: track.album)
+
+                resolveWebMetadata(
+                    for: track,
+                    rawKey: trackString,
+                    isWebSource: TrackMetadataCleaner.isWebSource(
+                        bundleIdentifier: trackInfo.bundleIdentifier,
+                        applicationName: trackInfo.application
+                    )
+                )
             }
         } else {
             if currentTrack != "No track playing" {
                 Log.debug("Playback stopped, invalidating scrobble timers", category: .scrobble)
                 currentTrack = "No track playing"
+                currentRawTrackKey = ""
                 currentArtwork = nil
+                resolutionTask?.cancel()
+                resolutionTask = nil
                 invalidateScrobbleTimer()
 
                 // Music stopped - allow App Nap again
                 endBackgroundActivity()
             }
+        }
+    }
+
+    // MARK: - Web Metadata Resolution
+
+    /// Kicks off async Last.fm confirmation of an embedded-artist split for
+    /// web tracks ("VNRD" uploading "Distant Strangers - Do Anything").
+    /// Fire-and-forget: failure or no-match leaves the cleaned fields as-is.
+    private func resolveWebMetadata(
+        for track: (title: String, artist: String, album: String),
+        rawKey: String,
+        isWebSource: Bool
+    ) {
+        resolutionTask?.cancel()
+        resolutionTask = nil
+        guard isWebSource else { return }
+
+        resolutionTask = Task { [weak self] in
+            guard let self else { return }
+            let outcome = await self.metadataResolver.resolve(title: track.title, artist: track.artist)
+            guard case .confirmed(let resolved) = outcome else { return }
+            self.applyResolvedMetadata(resolved, rawKey: rawKey, fallbackAlbum: track.album)
+        }
+    }
+
+    private func applyResolvedMetadata(
+        _ resolved: TrackMetadataResolver.ResolvedTrack,
+        rawKey: String,
+        fallbackAlbum: String
+    ) {
+        // The track may have changed while we were resolving.
+        guard currentRawTrackKey == rawKey else { return }
+
+        let album = resolved.album ?? fallbackAlbum
+        Log.info("Resolved web metadata: \(resolved.artist) - \(resolved.title)", category: .scrobble)
+
+        currentTrack = "\(resolved.artist) - \(resolved.title)"
+        // The pending scrobble timer reads this at fire time.
+        pendingScrobbleMetadata = (artist: resolved.artist, title: resolved.title, album: album)
+
+        Task {
+            await updateNowPlaying(artist: resolved.artist, title: resolved.title, album: album)
         }
     }
     
@@ -469,12 +538,17 @@ class Scrobbler {
             
             Log.debug("Will scrobble after \(scrobbleDelay) seconds", category: .scrobble)
 
-            // Use Task.sleep instead of Timer for modern Swift concurrency
+            pendingScrobbleMetadata = (artist: artist, title: title, album: album)
+
+            // Use Task.sleep instead of Timer for modern Swift concurrency.
+            // Metadata is read at fire time, not captured — async web
+            // resolution may have corrected it mid-play.
             scrobbleTask = Task {
                 do {
                     try await Task.sleep(for: .seconds(scrobbleDelay))
                     Log.debug("Scrobble timer fired", category: .scrobble)
-                    scrobbleTrack(artist: artist, title: title, album: album)
+                    let metadata = pendingScrobbleMetadata ?? (artist: artist, title: title, album: album)
+                    scrobbleTrack(artist: metadata.artist, title: metadata.title, album: metadata.album)
                 } catch {
                     // Cancelled — track changed or stopped, do nothing
                     Log.debug("Scrobble timer cancelled", category: .scrobble)
@@ -488,6 +562,7 @@ class Scrobbler {
     private func invalidateScrobbleTimer() {
         scrobbleTask?.cancel()
         scrobbleTask = nil
+        pendingScrobbleMetadata = nil
         currentTrackStartTime = nil
         currentTrackDuration = nil
         // Reset session flag when track stops/changes

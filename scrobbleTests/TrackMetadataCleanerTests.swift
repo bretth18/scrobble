@@ -78,6 +78,67 @@ struct TrackMetadataCleanerTests {
         #expect(!TrackMetadataCleaner.isWebSource(bundleIdentifier: nil, applicationName: "Music"))
     }
 
+    // MARK: - Embedded artist candidates
+
+    @Test("VNRD case: channel artist with 'Artist - Title' in the title")
+    func vnrdCandidate() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Distant Strangers - Do Anything", artist: "VNRD")
+        #expect(candidates.first == .init(artist: "Distant Strangers", title: "Do Anything"))
+    }
+
+    @Test("No candidates when the artist already appears in the title")
+    func noCandidateWhenPrefixRuleOwns() {
+        #expect(TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Gone - Bin Days", artist: "Gone").isEmpty)
+    }
+
+    @Test("Junk suffixes are stripped before candidate generation")
+    func candidateAfterJunkStrip() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Distant Strangers - Do Anything (Official Video)", artist: "VNRD")
+        #expect(candidates.first == .init(artist: "Distant Strangers", title: "Do Anything"))
+    }
+
+    @Test("Alternate separators produce candidates")
+    func alternateSeparators() {
+        #expect(TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Distant Strangers – Do Anything", artist: "VNRD").first ==
+            .init(artist: "Distant Strangers", title: "Do Anything"))
+        #expect(TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Distant Strangers // Do Anything", artist: "VNRD").first ==
+            .init(artist: "Distant Strangers", title: "Do Anything"))
+    }
+
+    @Test("Multi-separator titles yield first-split and second-split candidates")
+    func multiSeparator() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Ninja Tune - Bonobo - Kerala", artist: "SomeChannel")
+        #expect(candidates.count == 2)
+        #expect(candidates[0] == .init(artist: "Ninja Tune", title: "Bonobo - Kerala"))
+        #expect(candidates[1] == .init(artist: "Bonobo", title: "Kerala"))
+    }
+
+    @Test("Quoted-title style yields a candidate")
+    func quotedTitle() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Spiritbox \"Circle With Me\"", artist: "Century Media Records")
+        #expect(candidates.contains(.init(artist: "Spiritbox", title: "Circle With Me")))
+    }
+
+    @Test("Separator plus quoted title tidies the quotes away")
+    func separatorWithQuotes() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Spiritbox - \"Circle With Me\"", artist: "Century Media Records")
+        #expect(candidates.first == .init(artist: "Spiritbox", title: "Circle With Me"))
+    }
+
+    @Test("Plain titles produce no candidates")
+    func noSeparatorNoCandidates() {
+        #expect(TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Do Anything", artist: "VNRD").isEmpty)
+    }
+
     @Test("Native sources pass through cleanIfWebSource untouched")
     func nativeGating() {
         let result = TrackMetadataCleaner.cleanIfWebSource(

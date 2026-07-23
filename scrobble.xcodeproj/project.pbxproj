@@ -30,7 +30,10 @@
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
 		A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0001 /* TrackMetadataCleaner.swift */; };
+		A6RESOLVER0002 /* TrackMetadataResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0001 /* TrackMetadataResolver.swift */; };
+		A6CATALOG0002 /* LastFmCatalogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CATALOG0001 /* LastFmCatalogClient.swift */; };
 		A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0003 /* TrackMetadataCleanerTests.swift */; };
+		A6RESOLVER0004 /* TrackMetadataResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0003 /* TrackMetadataResolverTests.swift */; };
 		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
 		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
 		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
@@ -125,6 +128,9 @@
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		A6CLEANER0001 /* TrackMetadataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleaner.swift; sourceTree = "<group>"; };
+		A6RESOLVER0001 /* TrackMetadataResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolver.swift; sourceTree = "<group>"; };
+		A6CATALOG0001 /* LastFmCatalogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmCatalogClient.swift; sourceTree = "<group>"; };
+		A6RESOLVER0003 /* TrackMetadataResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolverTests.swift; sourceTree = "<group>"; };
 		A6CLEANER0003 /* TrackMetadataCleanerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleanerTests.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
@@ -346,6 +352,8 @@
 			children = (
 				A6F2130E2C8C027C00E1D23B /* Scrobbler.swift */,
 				A6CLEANER0001 /* TrackMetadataCleaner.swift */,
+				A6RESOLVER0001 /* TrackMetadataResolver.swift */,
+				A6CATALOG0001 /* LastFmCatalogClient.swift */,
 				A61F9BCE2E85E04A00CC1661 /* ScrobblingService.swift */,
 				A6F213122C8C038F00E1D23B /* LastFmManager.swift */,
 				A64304B82D52EBAE001998B6 /* LastFmManagerDesktop.swift */,
@@ -365,6 +373,7 @@
 				A6TESTFR0006 /* ScrobbleDelayTests.swift */,
 				A6TESTFR0007 /* UpdateStateTests.swift */,
 				A6CLEANER0003 /* TrackMetadataCleanerTests.swift */,
+				A6RESOLVER0003 /* TrackMetadataResolverTests.swift */,
 				A6TESTFR0008 /* CodableTests.swift */,
 				A6TESTFR0009 /* CryptoUtilsTests.swift */,
 			);
@@ -510,6 +519,8 @@
 				A6F213112C8C037500E1D23B /* PreferencesView.swift in Sources */,
 				A6F2130F2C8C027C00E1D23B /* Scrobbler.swift in Sources */,
 				A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */,
+				A6RESOLVER0002 /* TrackMetadataResolver.swift in Sources */,
+				A6CATALOG0002 /* LastFmCatalogClient.swift in Sources */,
 				A622991B2EE7D69100592239 /* MenuButtonsView.swift in Sources */,
 				A61F9BCF2E85E04A00CC1661 /* ScrobblingService.swift in Sources */,
 				A6F213002C8C021800E1D23B /* scrobbleApp.swift in Sources */,
@@ -535,6 +546,7 @@
 				A6TESTBF0006 /* ScrobbleDelayTests.swift in Sources */,
 				A6TESTBF0007 /* UpdateStateTests.swift in Sources */,
 				A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */,
+				A6RESOLVER0004 /* TrackMetadataResolverTests.swift in Sources */,
 				A6TESTBF0008 /* CodableTests.swift in Sources */,
 				A6TESTBF0009 /* CryptoUtilsTests.swift in Sources */,
 			);

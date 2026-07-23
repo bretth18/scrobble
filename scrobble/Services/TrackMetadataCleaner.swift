@@ -114,7 +114,7 @@ enum TrackMetadataCleaner {
         let lowerTitle = title.lowercased()
         let lowerArtist = artist.lowercased()
 
-        for separator in [" - ", " – ", " — ", " | "] {
+        for separator in separators {
             let prefix = lowerArtist + separator
             if lowerTitle.hasPrefix(prefix), title.count > prefix.count {
                 return String(title.dropFirst(prefix.count))
@@ -122,5 +122,100 @@ enum TrackMetadataCleaner {
             }
         }
         return title
+    }
+
+    // MARK: - Embedded artist candidates
+
+    /// A possible (artist, title) reading of a web title like
+    /// "Distant Strangers - Do Anything" uploaded by an unrelated channel.
+    struct SplitCandidate: Equatable {
+        let artist: String
+        let title: String
+    }
+
+    private static let separators = [" - ", " – ", " — ", " | ", " // "]
+
+    /// Ordered, liberal candidate generation. Candidates decide nothing on
+    /// their own — TrackMetadataResolver adopts one only after Last.fm
+    /// confirms it, so a wrong candidate costs a request, never accuracy.
+    static func embeddedArtistCandidates(title: String, artist: String) -> [SplitCandidate] {
+        let cleanedTitle = stripJunkSuffixes(from: title)
+
+        // If the artist field already appears in the title, the prefix rule
+        // owns this case; a channel-name artist won't.
+        if !artist.isEmpty, cleanedTitle.lowercased().contains(artist.lowercased()) {
+            return []
+        }
+
+        var candidates: [SplitCandidate] = []
+        let parts = splitOnSeparators(cleanedTitle)
+
+        if parts.count >= 2 {
+            // "Artist - Title" — the common rip-channel shape.
+            candidates.append(SplitCandidate(
+                artist: tidy(parts[0]),
+                title: tidy(parts.dropFirst().joined(separator: " - "))
+            ))
+        }
+        if parts.count >= 3 {
+            // "Label - Artist - Title"
+            candidates.append(SplitCandidate(
+                artist: tidy(parts[1]),
+                title: tidy(parts.dropFirst(2).joined(separator: " - "))
+            ))
+        }
+        // 'Artist "Title"' quoted style (no separator required).
+        if let quoted = quotedTitleCandidate(from: cleanedTitle) {
+            candidates.append(quoted)
+        }
+
+        var seen = Set<String>()
+        return candidates.filter { candidate in
+            guard !candidate.artist.isEmpty, !candidate.title.isEmpty else { return false }
+            return seen.insert("\(candidate.artist.lowercased())|\(candidate.title.lowercased())").inserted
+        }
+    }
+
+    /// Parse-only normalization: splits on any separator variant. The parts
+    /// are lookup inputs, never submitted text — on confirmation the
+    /// resolver adopts Last.fm's canonical fields instead.
+    private static func splitOnSeparators(_ text: String) -> [String] {
+        var normalized = text
+        for separator in separators.dropFirst() {
+            normalized = normalized.replacingOccurrences(of: separator, with: separators[0])
+        }
+        return normalized.components(separatedBy: separators[0])
+    }
+
+    private static let quotedTitle = try! NSRegularExpression(
+        pattern: #"^(.+?)\s+["“](.+?)["”]$"#,
+        options: []
+    )
+
+    private static func quotedTitleCandidate(from title: String) -> SplitCandidate? {
+        let range = NSRange(title.startIndex..., in: title)
+        guard let match = quotedTitle.firstMatch(in: title, range: range),
+              let artistRange = Range(match.range(at: 1), in: title),
+              let titleRange = Range(match.range(at: 2), in: title) else {
+            return nil
+        }
+        return SplitCandidate(
+            artist: tidy(String(title[artistRange])),
+            title: tidy(String(title[titleRange]))
+        )
+    }
+
+    /// Trims whitespace and matched surrounding double quotes. Single quotes
+    /// are left alone — trailing apostrophes ("Rockin'") are real.
+    private static func tidy(_ text: String) -> String {
+        var tidied = text.trimmingCharacters(in: .whitespaces)
+        let quotes: Set<Character> = ["\"", "\u{201C}", "\u{201D}", "\u{201E}", "«", "»"]
+        while tidied.count >= 2,
+              let first = tidied.first, let last = tidied.last,
+              quotes.contains(first), quotes.contains(last) {
+            tidied = String(tidied.dropFirst().dropLast())
+                .trimmingCharacters(in: .whitespaces)
+        }
+        return tidied
     }
 }
