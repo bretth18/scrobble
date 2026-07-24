@@ -128,9 +128,13 @@ enum TrackMetadataCleaner {
 
     /// A possible (artist, title) reading of a web title like
     /// "Distant Strangers - Do Anything" uploaded by an unrelated channel.
+    /// `confident` marks structural parses (version descriptor, quotes).
+    /// The resolver accepts those on a bare catalog match; blind guesses
+    /// need more listeners.
     struct SplitCandidate: Equatable {
         let artist: String
         let title: String
+        var confident: Bool = false
     }
 
     private static let separators = [" - ", " – ", " — ", " | ", " // "]
@@ -150,14 +154,14 @@ enum TrackMetadataCleaner {
         var candidates: [SplitCandidate] = []
         let parts = splitOnSeparators(cleanedTitle)
 
-        if parts.count >= 2 {
-            // "Artist - Title" — the common rip-channel shape.
+        if parts.count == 2 {
+            candidates += pairCandidates(left: tidy(parts[0]), right: tidy(parts[1]))
+        } else if parts.count >= 3 {
+            // "Artist - Title - …"
             candidates.append(SplitCandidate(
                 artist: tidy(parts[0]),
                 title: tidy(parts.dropFirst().joined(separator: " - "))
             ))
-        }
-        if parts.count >= 3 {
             // "Label - Artist - Title"
             candidates.append(SplitCandidate(
                 artist: tidy(parts[1]),
@@ -174,6 +178,57 @@ enum TrackMetadataCleaner {
             guard !candidate.artist.isEmpty, !candidate.title.isEmpty else { return false }
             return seen.insert("\(candidate.artist.lowercased())|\(candidate.title.lowercased())").inserted
         }
+    }
+
+    /// Candidates for a two-part title. An unbracketed trailing version
+    /// descriptor marks that side as the title — artists do not end with
+    /// "Original Mix". The descriptor side gets three title variants:
+    /// parenthesized, stripped, verbatim.
+    private static func pairCandidates(left: String, right: String) -> [SplitCandidate] {
+        let leftVersion = trailingVersion(left)
+        let rightVersion = trailingVersion(right)
+
+        if let version = leftVersion, rightVersion == nil {
+            // "Title Original Mix - Artist"
+            return titleVariants(artist: right, version: version, verbatim: left)
+        }
+        if let version = rightVersion, leftVersion == nil {
+            // "Artist - Title Original Mix"
+            return titleVariants(artist: left, version: version, verbatim: right)
+        }
+        // No signal: forward first, reversed second.
+        return [
+            SplitCandidate(artist: left, title: right),
+            SplitCandidate(artist: right, title: left),
+        ]
+    }
+
+    private static func titleVariants(
+        artist: String, version: (base: String, descriptor: String), verbatim: String
+    ) -> [SplitCandidate] {
+        [
+            SplitCandidate(artist: artist, title: "\(version.base) (\(version.descriptor))", confident: true),
+            SplitCandidate(artist: artist, title: version.base, confident: true),
+            SplitCandidate(artist: artist, title: verbatim, confident: true),
+        ]
+    }
+
+    private static let versionDescriptors = [
+        "original mix", "extended mix", "radio edit", "club mix",
+        "dub mix", "vip mix", "instrumental mix", "extended version",
+    ]
+
+    private static func trailingVersion(_ part: String) -> (base: String, descriptor: String)? {
+        let lower = part.lowercased()
+        for descriptor in versionDescriptors {
+            let suffix = " " + descriptor
+            if lower.hasSuffix(suffix), part.count > suffix.count {
+                let base = String(part.dropLast(suffix.count)).trimmingCharacters(in: .whitespaces)
+                let original = String(part.suffix(descriptor.count))
+                if !base.isEmpty { return (base, original) }
+            }
+        }
+        return nil
     }
 
     /// Parse-only normalization: splits on any separator variant. The parts
@@ -201,7 +256,8 @@ enum TrackMetadataCleaner {
         }
         return SplitCandidate(
             artist: tidy(String(title[artistRange])),
-            title: tidy(String(title[titleRange]))
+            title: tidy(String(title[titleRange])),
+            confident: true
         )
     }
 

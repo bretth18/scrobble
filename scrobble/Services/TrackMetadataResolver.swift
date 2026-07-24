@@ -8,7 +8,7 @@
 //
 //  Request discipline: candidates only exist for ambiguous web titles, the
 //  dwell delay skips lookups while the user flips through a playlist, at
-//  most two lookups run per track, and results (including definitive
+//  most three lookups run per track, and results (including definitive
 //  no-matches) are cached. The failure mode is always the status quo:
 //  resolution can leave metadata unfixed, never make it worse.
 //
@@ -33,7 +33,7 @@ actor TrackMetadataResolver {
         case unavailable
     }
 
-    private static let maxLookupsPerTrack = 2
+    private static let maxLookupsPerTrack = 3
     private static let cacheLimit = 500
 
     private let listenerThreshold: Int
@@ -101,9 +101,11 @@ actor TrackMetadataResolver {
             }
 
             // Last.fm creates track pages from any scrobble, including other
-            // apps' garbage — existence alone is weak evidence. Require a
-            // few real listeners before trusting a match.
-            if let match, match.listeners >= listenerThreshold {
+            // apps' garbage — existence alone is weak evidence for a blind
+            // guess. A structural parse plus a catalog match is strong
+            // evidence, so confident candidates accept any listener count.
+            let threshold = candidate.confident ? 1 : listenerThreshold
+            if let match, match.listeners >= threshold {
                 let outcome = Outcome.confirmed(ResolvedTrack(
                     artist: match.artist,
                     title: match.title,

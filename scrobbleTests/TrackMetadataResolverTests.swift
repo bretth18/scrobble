@@ -111,16 +111,50 @@ struct TrackMetadataResolverTests {
         #expect(second == .confirmed(.init(artist: "Distant Strangers", title: "Do Anything", album: nil)))
     }
 
-    @Test("Lookups are capped at two per track")
+    @Test("Lookups are capped at three per track")
     func lookupCap() async {
         let recorder = LookupRecorder()
         let resolver = TrackMetadataResolver(
             lookup: { artist, title in recorder.record(artist, title); return nil },
             dwell: .zero
         )
-        // Three candidates possible (first-split, second-split, quoted) —
-        // only two lookups may fire.
         _ = await resolver.resolve(title: "A - B - C \"D\"", artist: "SomeChannel")
-        #expect(recorder.calls.count <= 2)
+        #expect(recorder.calls.count <= 3)
+    }
+
+    @Test("Confident candidates accept obscure tracks with few listeners")
+    func confidentLowListeners() async {
+        let resolver = TrackMetadataResolver(
+            lookup: { artist, title in
+                guard title == "Don't Think Too Much (Original Mix)" else { return nil }
+                return Self.match(artist: artist, title: title, listeners: 2)
+            },
+            dwell: .zero
+        )
+        let outcome = await resolver.resolve(
+            title: "Don't Think Too Much Original Mix - Cloak & Dagger",
+            artist: "Johnathan Yelenick"
+        )
+        #expect(outcome == .confirmed(.init(
+            artist: "Cloak & Dagger", title: "Don't Think Too Much (Original Mix)", album: nil)))
+    }
+
+    @Test("Reversed title with unbracketed version tag resolves")
+    func reversedVersionTag() async {
+        let resolver = TrackMetadataResolver(
+            lookup: { artist, title in
+                guard artist == "Cloak & Dagger", title == "Don't Think Too Much (Original Mix)" else {
+                    return nil
+                }
+                return Self.match(artist: artist, title: title, listeners: 300)
+            },
+            dwell: .zero
+        )
+        let outcome = await resolver.resolve(
+            title: "Don't Think Too Much Original Mix - Cloak & Dagger",
+            artist: "Johnathan Yelenick"
+        )
+        #expect(outcome == .confirmed(.init(
+            artist: "Cloak & Dagger", title: "Don't Think Too Much (Original Mix)", album: nil)))
     }
 }

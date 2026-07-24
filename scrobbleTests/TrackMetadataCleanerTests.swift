@@ -123,7 +123,7 @@ struct TrackMetadataCleanerTests {
     func quotedTitle() {
         let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
             title: "Spiritbox \"Circle With Me\"", artist: "Century Media Records")
-        #expect(candidates.contains(.init(artist: "Spiritbox", title: "Circle With Me")))
+        #expect(candidates.contains(.init(artist: "Spiritbox", title: "Circle With Me", confident: true)))
     }
 
     @Test("Separator plus quoted title tidies the quotes away")
@@ -131,6 +131,35 @@ struct TrackMetadataCleanerTests {
         let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
             title: "Spiritbox - \"Circle With Me\"", artist: "Century Media Records")
         #expect(candidates.first == .init(artist: "Spiritbox", title: "Circle With Me"))
+    }
+
+    @Test("Version descriptor marks its side as the title")
+    func versionDescriptorSignal() {
+        // Reversed shape: "Title Original Mix - Artist"
+        let reversed = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Don't Think Too Much Original Mix - Cloak & Dagger",
+            artist: "Johnathan Yelenick")
+        #expect(reversed == [
+            .init(artist: "Cloak & Dagger", title: "Don't Think Too Much (Original Mix)", confident: true),
+            .init(artist: "Cloak & Dagger", title: "Don't Think Too Much", confident: true),
+            .init(artist: "Cloak & Dagger", title: "Don't Think Too Much Original Mix", confident: true),
+        ])
+
+        // Forward shape: "Artist - Title Radio Edit"
+        let forward = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Cloak & Dagger - Don't Think Too Much Radio Edit",
+            artist: "SomeChannel")
+        #expect(forward.first == .init(artist: "Cloak & Dagger", title: "Don't Think Too Much (Radio Edit)", confident: true))
+    }
+
+    @Test("Two-part titles without a signal get forward and reversed candidates")
+    func reversedFallback() {
+        let candidates = TrackMetadataCleaner.embeddedArtistCandidates(
+            title: "Do Anything - Distant Strangers", artist: "VNRD")
+        #expect(candidates == [
+            .init(artist: "Do Anything", title: "Distant Strangers"),
+            .init(artist: "Distant Strangers", title: "Do Anything"),
+        ])
     }
 
     @Test("Plain titles produce no candidates")
