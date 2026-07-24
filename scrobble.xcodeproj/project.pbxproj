@@ -28,12 +28,10 @@
 		A6A580A52E78D9340079DC91 /* NowPlayingFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */; };
 		A6A580A82E78DB7F0079DC91 /* MediaRemoteAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; };
 		A6A580A92E78DB9F0079DC91 /* MediaRemoteAdapter in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6A580A72E78DB7F0079DC91 /* MediaRemoteAdapter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A6CATALOG0002 /* LastFmCatalogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CATALOG0001 /* LastFmCatalogClient.swift */; };
 		A6CC84552EE8470C00236D47 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CC84542EE8470C00236D47 /* MarqueeText.swift */; };
 		A6CLEANER0002 /* TrackMetadataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0001 /* TrackMetadataCleaner.swift */; };
-		A6RESOLVER0002 /* TrackMetadataResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0001 /* TrackMetadataResolver.swift */; };
-		A6CATALOG0002 /* LastFmCatalogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CATALOG0001 /* LastFmCatalogClient.swift */; };
 		A6CLEANER0004 /* TrackMetadataCleanerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CLEANER0003 /* TrackMetadataCleanerTests.swift */; };
-		A6RESOLVER0004 /* TrackMetadataResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0003 /* TrackMetadataResolverTests.swift */; };
 		A6COMPAT012EFBAA0000001 /* GlassEffect+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */; };
 		A6COMPAT012EFBAA0000003 /* LastFMWebAuthViewLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */; };
 		A6DESIGN012EFBAA0000001 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DESIGN012EFBAA0000002 /* DesignTokens.swift */; };
@@ -64,6 +62,8 @@
 		A6ONBOARD0007 /* OnboardingAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD0008 /* OnboardingAuthView.swift */; };
 		A6ONBOARD0009 /* OnboardingAppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000A /* OnboardingAppSelectionView.swift */; };
 		A6ONBOARD000B /* OnboardingPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6ONBOARD000C /* OnboardingPreferencesView.swift */; };
+		A6RESOLVER0002 /* TrackMetadataResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0001 /* TrackMetadataResolver.swift */; };
+		A6RESOLVER0004 /* TrackMetadataResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6RESOLVER0003 /* TrackMetadataResolverTests.swift */; };
 		A6TESTBF0001 /* SupportedMusicAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0001 /* SupportedMusicAppTests.swift */; };
 		A6TESTBF0002 /* OnboardingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0002 /* OnboardingStateTests.swift */; };
 		A6TESTBF0003 /* AuthStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6TESTFR0003 /* AuthStateTests.swift */; };
@@ -126,11 +126,9 @@
 		A6A580A12E78D23C0079DC91 /* scrobble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "scrobble-Bridging-Header.h"; sourceTree = "<group>"; };
 		A6A580A22E78D8480079DC91 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		A6A580A42E78D9340079DC91 /* NowPlayingFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingFetcher.swift; sourceTree = "<group>"; };
+		A6CATALOG0001 /* LastFmCatalogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmCatalogClient.swift; sourceTree = "<group>"; };
 		A6CC84542EE8470C00236D47 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		A6CLEANER0001 /* TrackMetadataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleaner.swift; sourceTree = "<group>"; };
-		A6RESOLVER0001 /* TrackMetadataResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolver.swift; sourceTree = "<group>"; };
-		A6CATALOG0001 /* LastFmCatalogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmCatalogClient.swift; sourceTree = "<group>"; };
-		A6RESOLVER0003 /* TrackMetadataResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolverTests.swift; sourceTree = "<group>"; };
 		A6CLEANER0003 /* TrackMetadataCleanerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataCleanerTests.swift; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000002 /* GlassEffect+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlassEffect+Compat.swift"; sourceTree = "<group>"; };
 		A6COMPAT012EFBAA0000004 /* LastFMWebAuthViewLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMWebAuthViewLegacy.swift; sourceTree = "<group>"; };
@@ -165,6 +163,8 @@
 		A6ONBOARD0008 /* OnboardingAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAuthView.swift; sourceTree = "<group>"; };
 		A6ONBOARD000A /* OnboardingAppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAppSelectionView.swift; sourceTree = "<group>"; };
 		A6ONBOARD000C /* OnboardingPreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPreferencesView.swift; sourceTree = "<group>"; };
+		A6RESOLVER0001 /* TrackMetadataResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolver.swift; sourceTree = "<group>"; };
+		A6RESOLVER0003 /* TrackMetadataResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadataResolverTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0001 /* SupportedMusicAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMusicAppTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0002 /* OnboardingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStateTests.swift; sourceTree = "<group>"; };
 		A6TESTFR0003 /* AuthStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStateTests.swift; sourceTree = "<group>"; };
@@ -699,7 +699,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
@@ -749,7 +749,7 @@
 				CODE_SIGN_ENTITLEMENTS = scrobble/scrobble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"scrobble/Preview Content\"";
 				ENABLE_APP_SANDBOX = NO;
