@@ -465,7 +465,7 @@ class LastFmDesktopManager: LastFmManagerType {
         let data = try await makeRequestAsync(parameters: allParameters)
 
         // Try to decode as an error response first
-        if let errorResponse = try? JSONDecoder().decode(LastFmErrorResponse.self, from: data) {
+        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
             Log.error("Last.fm API returned error \(errorResponse.error): \(errorResponse.message)", category: .auth)
             throw ScrobblerError.apiError("Last.fm error \(errorResponse.error): \(errorResponse.message)")
         }
@@ -629,10 +629,6 @@ private struct UserInfoResponse: Codable {
     }
 }
 
-private struct LastFmErrorResponse: Codable {
-    let error: Int
-    let message: String
-}
 extension LastFmDesktopManager {
     func logout() {
         // Cancel any pending auth operations

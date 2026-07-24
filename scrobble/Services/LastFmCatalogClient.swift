@@ -43,7 +43,7 @@ struct LastFmCatalogClient: Sendable {
         }
 
         // Last.fm returns API errors as JSON bodies (with varying HTTP codes).
-        if let apiError = try? JSONDecoder().decode(APIError.self, from: data) {
+        if let apiError = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
             if apiError.error == 6 { return nil } // "Track not found"
             throw ScrobblerError.apiError("Last.fm error \(apiError.error): \(apiError.message)")
         }
@@ -59,11 +59,6 @@ struct LastFmCatalogClient: Sendable {
             album: payload.track.album?.title,
             listeners: Int(payload.track.listeners ?? "") ?? 0
         )
-    }
-
-    private struct APIError: Codable {
-        let error: Int
-        let message: String
     }
 
     private struct Response: Codable {

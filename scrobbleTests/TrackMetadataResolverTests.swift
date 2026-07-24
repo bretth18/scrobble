@@ -122,12 +122,14 @@ struct TrackMetadataResolverTests {
         #expect(recorder.calls.count <= 3)
     }
 
-    @Test("Confident candidates accept obscure tracks with few listeners")
+    @Test("Confident candidates accept matches with zero listeners")
     func confidentLowListeners() async {
         let resolver = TrackMetadataResolver(
             lookup: { artist, title in
                 guard title == "Don't Think Too Much (Original Mix)" else { return nil }
-                return Self.match(artist: artist, title: title, listeners: 2)
+                // Simulates a genuine track page whose listeners field is
+                // absent from the response.
+                return Self.match(artist: artist, title: title, listeners: 0)
             },
             dwell: .zero
         )

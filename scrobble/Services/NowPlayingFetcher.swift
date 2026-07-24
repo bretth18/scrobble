@@ -11,6 +11,9 @@ import AppKit
 final class NowPlayingFetcher {
 
     private let mediaController = MediaController()
+    private var isStopping = false
+    private var hasReceivedEvent = false
+    private var watchdogTask: Task<Void, Never>?
 
     var currentTrackDuration: TimeInterval = 0
     var currentTrackTitle: String = ""
@@ -24,13 +27,6 @@ final class NowPlayingFetcher {
 
     var currentTargetApp: SupportedMusicApp?
 
-    init(bundleId: String? = nil) {
-        if let bundleId {
-            currentTargetApp = SupportedMusicApp.findApp(byBundleId: bundleId)
-        }
-        setupTrackInfoHandler()
-    }
-
     init(targetApp: SupportedMusicApp) {
         currentTargetApp = targetApp
         setupTrackInfoHandler()
@@ -39,11 +35,13 @@ final class NowPlayingFetcher {
     private func setupTrackInfoHandler() {
         // The adapter calls these on the main queue.
         mediaController.onTrackInfoReceived = { [weak self] trackInfo in
+            self?.hasReceivedEvent = true
             self?.apply(trackInfo)
         }
         mediaController.onListenerTerminated = { [weak self] in
+            guard let self, !self.isStopping else { return }
             Log.error("MediaRemote listener terminated, restarting", category: .scrobble)
-            self?.mediaController.startListening()
+            self.mediaController.startListening()
         }
     }
 
@@ -52,8 +50,12 @@ final class NowPlayingFetcher {
             clearCurrentState()
             return
         }
-        // The adapter reports all apps. Ignore apps that are not the target.
-        guard matchesTargetApp(payload.bundleIdentifier) else { return }
+        // The adapter reports only the system now-playing session. An event
+        // from another app means the target lost that session.
+        guard matchesTargetApp(payload.bundleIdentifier) else {
+            clearCurrentState()
+            return
+        }
 
         currentTrackDuration = (payload.durationMicros ?? 0) / 1_000_000
         currentTrackTitle = payload.title ?? ""
@@ -99,10 +101,30 @@ final class NowPlayingFetcher {
     }
 
     func setupAndStart() {
+        isStopping = false
         mediaController.startListening()
+        startWatchdog()
+    }
+
+    /// The adapter does not report a listener that dies before its first
+    /// event. Restart when nothing arrives, with a bounded retry count.
+    private func startWatchdog() {
+        watchdogTask?.cancel()
+        watchdogTask = Task { [weak self] in
+            for _ in 0..<3 {
+                try? await Task.sleep(for: .seconds(15))
+                guard let self, !Task.isCancelled else { return }
+                if self.hasReceivedEvent || self.isStopping { return }
+                Log.error("No MediaRemote events received, restarting listener", category: .scrobble)
+                self.mediaController.stopListening()
+                self.mediaController.startListening()
+            }
+        }
     }
 
     func stop() {
+        isStopping = true
+        watchdogTask?.cancel()
         mediaController.stopListening()
     }
 

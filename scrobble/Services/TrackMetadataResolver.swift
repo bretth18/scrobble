@@ -103,9 +103,9 @@ actor TrackMetadataResolver {
             // Last.fm creates track pages from any scrobble, including other
             // apps' garbage — existence alone is weak evidence for a blind
             // guess. A structural parse plus a catalog match is strong
-            // evidence, so confident candidates accept any listener count.
-            let threshold = candidate.confident ? 1 : listenerThreshold
-            if let match, match.listeners >= threshold {
+            // evidence, so confident candidates accept any match, even when
+            // the listeners field is absent from the response.
+            if let match, candidate.confident || match.listeners >= listenerThreshold {
                 let outcome = Outcome.confirmed(ResolvedTrack(
                     artist: match.artist,
                     title: match.title,

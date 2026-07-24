@@ -210,8 +210,10 @@ class Scrobbler {
     func setTargetMusicApp(_ app: SupportedMusicApp) {
         Log.debug("Scrobbler switching to target app: \(app.displayName)", category: .scrobble)
         
-        // Clear current track display immediately
+        // Clear current track display immediately. Reset the raw key so the
+        // next poll replaces the placeholder even for an unchanged track.
         self.currentTrack = "Switching to \(app.displayName)..."
+        self.currentRawTrackKey = ""
         self.currentArtwork = nil
         
         // Switch the fetcher
@@ -345,9 +347,6 @@ class Scrobbler {
                 // Reset scrobble session flag for new track
                 hasScrobbledCurrentSession = false
 
-                // Update Now Playing (Async)
-                await updateNowPlaying(artist: track.artist, title: track.title, album: track.album)
-
                 setupScrobbleTimer(artist: track.artist, title: track.title, album: track.album)
 
                 resolveWebMetadata(
@@ -358,6 +357,10 @@ class Scrobbler {
                         applicationName: trackInfo.application
                     )
                 )
+
+                // Keep the suspension last. A stale continuation that resumes
+                // here after a track change must not touch shared state.
+                await updateNowPlaying(artist: track.artist, title: track.title, album: track.album)
             }
         } else {
             if currentTrack != "No track playing" {
@@ -413,6 +416,9 @@ class Scrobbler {
         pendingScrobbleMetadata = (artist: resolved.artist, title: resolved.title, album: album)
 
         Task {
+            // The track can change before this task runs. Re-check so a stale
+            // update cannot overwrite the newer track's now-playing status.
+            guard currentRawTrackKey == rawKey else { return }
             await updateNowPlaying(artist: resolved.artist, title: resolved.title, album: album)
         }
     }
@@ -546,6 +552,10 @@ class Scrobbler {
             scrobbleTask = Task {
                 do {
                     try await Task.sleep(for: .seconds(scrobbleDelay))
+                    // The sleep can return before a late cancel lands. Do not
+                    // read pendingScrobbleMetadata for a cancelled timer — it
+                    // may already hold the next track.
+                    guard !Task.isCancelled else { return }
                     Log.debug("Scrobble timer fired", category: .scrobble)
                     let metadata = pendingScrobbleMetadata ?? (artist: artist, title: title, album: album)
                     scrobbleTrack(artist: metadata.artist, title: metadata.title, album: metadata.album)
